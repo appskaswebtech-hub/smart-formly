@@ -1,0 +1,120 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:dev.sqlite"
+}
+
+// ─────────────────────────────────────────
+// SESSION
+// ─────────────────────────────────────────
+model Session {
+  id                  String    @id
+  shop                String
+  state               String
+  isOnline            Boolean   @default(false)
+  scope               String?
+  expires             DateTime?
+  accessToken         String
+  userId              BigInt?
+  firstName           String?
+  lastName            String?
+  email               String?
+  accountOwner        Boolean   @default(false)
+  locale              String?
+  collaborator        Boolean?  @default(false)
+  emailVerified       Boolean?  @default(false)
+  refreshToken        String?
+  refreshTokenExpires DateTime?
+}
+
+// ─────────────────────────────────────────
+// Bundle Definition
+// SQLite does NOT support enums — use String
+// Valid status values : "DRAFT" | "ACTIVE" | "ARCHIVED"
+// Valid discountType  : "NONE"  | "PERCENTAGE" | "FIXED_AMOUNT"
+// ─────────────────────────────────────────
+model Bundle {
+  id               String   @id @default(cuid())
+  shop             String
+  title            String
+  description      String?
+  shopifyProductId String?
+  shopifyVariantId String?
+  status           String   @default("DRAFT")
+  discountType     String   @default("NONE")
+  discountValue    Float    @default(0)
+  totalPrice       Float?
+  compareAtPrice   Float?
+  image            String?
+  metafieldId      String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  items  BundleItem[]
+  orders BundleOrder[]
+
+  @@index([shop])
+  @@index([shopifyProductId])
+}
+
+// ─────────────────────────────────────────
+// Bundle Items
+// ─────────────────────────────────────────
+model BundleItem {
+  id               String  @id @default(cuid())
+  bundleId         String
+  shopifyProductId String
+  shopifyVariantId String
+  productTitle     String
+  variantTitle     String?
+  quantity         Int     @default(1)
+  price            Float
+  sku              String?
+  imageUrl         String?
+  position         Int     @default(0)
+
+  bundle Bundle @relation(fields: [bundleId], references: [id], onDelete: Cascade)
+
+  @@index([bundleId])
+  @@index([shopifyVariantId])
+}
+
+// ─────────────────────────────────────────
+// Bundle Orders
+// ─────────────────────────────────────────
+model BundleOrder {
+  id                String   @id @default(cuid())
+  bundleId          String
+  shop              String
+  shopifyOrderId    String
+  shopifyLineItemId String
+  quantity          Int
+  pricePaid         Float
+  createdAt         DateTime @default(now())
+
+  bundle Bundle @relation(fields: [bundleId], references: [id])
+
+  @@index([bundleId])
+  @@index([shopifyOrderId])
+  @@index([shop])
+}
+
+// ─────────────────────────────────────────
+// Shop Settings
+// ─────────────────────────────────────────
+model ShopSettings {
+  id                   String   @id @default(cuid())
+  shop                 String   @unique
+  bundleProductTag     String   @default("bundle")
+  trackInventory       Boolean  @default(true)
+  showBundleComponents Boolean  @default(true)
+  webhooksRegistered   Boolean  @default(false)
+  installedAt          DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
