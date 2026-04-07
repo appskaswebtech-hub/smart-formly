@@ -118,3 +118,12 @@ model ShopSettings {
   installedAt          DateTime @default(now())
   updatedAt            DateTime @updatedAt
 }
+
+model ShopPlan {
+  id               String   @id @default(cuid())
+  shop             String   @unique
+  planName         String   @default("free")
+  subscriptionId   String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}

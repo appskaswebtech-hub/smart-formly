@@ -30,6 +30,9 @@ export default function App() {
         <Link to="/app/settings">
           Settings
         </Link>
+        <Link to="/app/billing">
+          Upgrate to Plans
+        </Link>
          </NavMenu>
       <Outlet />
     </AppProvider>
