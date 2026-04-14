@@ -353,38 +353,84 @@
 })();
 
 
-// Price update function for widgets start
+// Price update function for widgets Start
+// ═══════════════════════════════════════════════
+// BUNDLER — Price Update Section (Clean Version)
+// ═══════════════════════════════════════════════
 
-// Step 1 — API se bundle data fetch karo aur cache karo
+// ── Cache ──────────────────────────────────────
 var bundlerDataCache = null;
 
+// ── Step 1 — API se bundle data fetch karo ─────
 function fetchBundlerData() {
   var root = document.querySelector('.bundler-qb');
   if (!root) return Promise.resolve(null);
 
-  var shop = root.dataset.shop;
+  var shop      = root.dataset.shop;
   var productId = root.dataset.productId;
   var proxyPath = root.dataset.proxyPath || '/apps/bundler';
 
-  // Agar cache mein hai toh wahi return karo
   if (bundlerDataCache) return Promise.resolve(bundlerDataCache);
 
-  return fetch(proxyPath + '/api/widget-data?shop=' + encodeURIComponent(shop) + '&productId=' + encodeURIComponent(productId))
-    .then(function(res) { return res.json(); })
-    .then(function(data) {
+  return fetch(
+    proxyPath + '/api/widget-data' +
+    '?shop='      + encodeURIComponent(shop) +
+    '&productId=' + encodeURIComponent(productId)
+  )
+    .then(function (res) { return res.json(); })
+    .then(function (data) {
       if (data.bundles && data.bundles.length > 0) {
-        bundlerDataCache = data.bundles[0]; // cache karo
+        bundlerDataCache = data.bundles[0];
         return bundlerDataCache;
       }
       return null;
     })
-    .catch(function(err) {
+    .catch(function (err) {
       console.error('[Bundler] fetchBundlerData error:', err);
       return null;
     });
 }
 
-// Step 2 — Sahi price calculate karo discount type ke hisaab se
+// ── Step 2 — Variant JSON se latest price nikalo ─
+function getSelectedVariantPrice() {
+  var variantIdEl = document.querySelector('input.product-variant-id');
+  if (!variantIdEl) {
+    console.warn('[Bundler] Variant ID input not found');
+    return null;
+  }
+
+  var currentVariantId = parseInt(variantIdEl.getAttribute('value') || variantIdEl.value);
+  console.log('[Bundler] Current Variant ID:', currentVariantId);
+
+  // Saare script[type="application/json"] tags check karo
+  var variants = null;
+  document.querySelectorAll('script[type="application/json"]').forEach(function (script) {
+    try {
+      var parsed = JSON.parse(script.textContent);
+      // Variants array identify karo — price field hona chahiye
+      if (Array.isArray(parsed) && parsed[0] && parsed[0].price !== undefined) {
+        variants = parsed;
+      }
+    } catch (e) { /* skip non-JSON scripts */ }
+  });
+
+  if (!variants) {
+    console.warn('[Bundler] Variants JSON not found');
+    return null;
+  }
+
+  var matched = variants.find(function (v) { return v.id === currentVariantId; });
+
+  if (!matched) {
+    console.warn('[Bundler] No variant matched for ID:', currentVariantId);
+    return null;
+  }
+
+  console.log('[Bundler] Matched variant:', matched.title, '→ $' + (matched.price / 100).toFixed(2));
+  return matched.price / 100; // cents → dollars
+}
+
+// ── Step 3 — Discount calculation ──────────────
 function calcDiscountedPrice(basePrice, qty, discountType, discountValue) {
   var total = basePrice * qty;
 
@@ -392,103 +438,113 @@ function calcDiscountedPrice(basePrice, qty, discountType, discountValue) {
     return { final: total, original: null };
   }
 
-  var final = total;
-
+  var final;
   if (discountType === 'PERCENTAGE') {
-    // 10% off → total ka 10% hatao
-    final = total * (1 - discountValue / 100);
-
+    final = total * (1 - discountValue / 100);      // 10% off
   } else if (discountType === 'FIXED_AMOUNT') {
-    // $5 off → total se $5 hatao
-    final = total - discountValue;
-
+    final = total - discountValue;                   // $5 off total
   } else if (discountType === 'FIXED_PRICE') {
-    // $100 per item → qty * 100
-    final = discountValue * qty;
+    final = discountValue * qty;                     // $100 per item
+  } else {
+    final = total;
   }
 
   return { final: Math.max(0, final), original: total };
 }
 
-// Step 3 — Main update function
-
+// ── Step 4 — Widget prices update karo ─────────
 function updateBundlerPrices() {
-  var priceElement = document.querySelector('.price__regular .price-item--regular');
   var bundlerOptions = document.querySelectorAll('.bundler-qb__option');
-
-  if (!priceElement || bundlerOptions.length === 0) {
-    console.log('[Bundler] Price or bundler option element not found!');
+  if (bundlerOptions.length === 0) {
+    console.log('[Bundler] No widget options found');
     return;
   }
 
-  var priceText = priceElement.innerText || priceElement.textContent;
-  var basePrice = parseFloat(priceText.replace(/[^0-9.-]+/g, ''));
-
-  if (isNaN(basePrice)) {
-    console.error('[Bundler] Invalid base price:', priceText);
+  // Latest variant price lo
+  var basePrice = getSelectedVariantPrice();
+  if (!basePrice || isNaN(basePrice)) {
+    console.error('[Bundler] Invalid base price — aborting update');
     return;
   }
 
-  // API se data fetch karo
-  fetchBundlerData().then(function(bundle) {
+  // Bundle data fetch karo (cached hoga mostly)
+  fetchBundlerData().then(function (bundle) {
     if (!bundle) {
       console.warn('[Bundler] No bundle data available');
       return;
     }
 
-    bundlerOptions.forEach(function(option) {
+    bundlerOptions.forEach(function (option) {
       var idx = parseInt(option.getAttribute('data-index'), 10);
-      var qb = bundle.quantityBreaks[idx];
+      var qb  = bundle.quantityBreaks[idx];
 
       if (!qb) {
-        console.warn('[Bundler] No quantity break found for index:', idx);
+        console.warn('[Bundler] No quantity break for index:', idx);
         return;
       }
 
-      var qty = qb.quantity;
-      var discountType = qb.discountType;   // PERCENTAGE / FIXED_AMOUNT / FIXED_PRICE
-      var discountValue = qb.discountValue; // actual value
+      console.log('[Bundler] Updating option', idx,
+        '| qty:', qb.quantity,
+        '| type:', qb.discountType,
+        '| value:', qb.discountValue
+      );
 
-      console.log('[Bundler] Updating option', idx, '→ qty:', qty, 'type:', discountType, 'value:', discountValue);
+      var prices = calcDiscountedPrice(basePrice, qb.quantity, qb.discountType, qb.discountValue);
 
-      var prices = calcDiscountedPrice(basePrice, qty, discountType, discountValue);
-
-      // Original price update karo
-      var originalEls = option.querySelectorAll('.bundler-qb__original');
-      originalEls.forEach(function(el) {
+      // Original (strikethrough) price
+      option.querySelectorAll('.bundler-qb__original').forEach(function (el) {
         if (prices.original) {
-          el.innerText = '$' + prices.original.toFixed(2);
-          el.style.display = '';
+          el.innerText      = '$' + prices.original.toFixed(2);
+          el.style.display  = '';
         } else {
-          el.style.display = 'none';
+          el.style.display  = 'none';
         }
       });
 
-      // Final discounted price update karo
-      var finalPriceEl = option.querySelector('.bundler-qb__price');
-      if (finalPriceEl) {
-        finalPriceEl.innerText = '$' + prices.final.toFixed(2);
+      // Final discounted price
+      var finalEl = option.querySelector('.bundler-qb__price');
+      if (finalEl) {
+        finalEl.innerText = '$' + prices.final.toFixed(2);
       }
     });
   });
 }
 
-// Step 4 — Variant change pe update karo
-// document.querySelectorAll('input[name="Size"], input[name="Color"], input[name="Denominations"] ').forEach(function(input) {
-//   input.addEventListener('change', function() {
-//     bundlerDataCache = null; // cache reset karo nayi variant ke liye
-//     setTimeout(updateBundlerPrices, 1000);
-//     console.log('[Bundler] Variant change triggered price update');
-//   });
-// });
+// ── Step 5 — Variant ID change watch karo ──────
+function watchVariantChange() {
+  var variantIdEl = document.querySelector('input.product-variant-id');
+  if (!variantIdEl) {
+    console.warn('[Bundler] Cannot watch — variant input not found');
+    return;
+  }
 
-var variantInputSelector = '.product-form__input input[type="radio"]';
+  var observer = new MutationObserver(function (mutations) {
+    mutations.forEach(function (mutation) {
+      if (mutation.attributeName === 'value') {
+        var newId = variantIdEl.getAttribute('value');
+        console.log('[Bundler] ✅ Variant ID changed to:', newId);
+        bundlerDataCache = null;      // cache clear karo
+        updateBundlerPrices();        // turant update karo — no delay needed
+      }
+    });
+  });
 
-document.querySelectorAll(variantInputSelector).forEach(function(input) {
-  input.addEventListener('change', function() {
-    bundlerDataCache = null; // cache reset
-    setTimeout(updateBundlerPrices, 1000);
-    console.log('[Bundler] Variant change triggered:', this.name, '=', this.value);
+  observer.observe(variantIdEl, { attributes: true });
+  console.log('[Bundler] 👀 Watching variant ID changes');
+}
+
+// ── Step 6 — Radio change listener (backup) ────
+document.querySelectorAll('.product-form__input input[type="radio"]').forEach(function (input) {
+  input.addEventListener('change', function () {
+    console.log('[Bundler] Radio changed:', this.name, '=', this.value);
+    // MutationObserver handle karega — no extra action needed
   });
 });
-// Price update function for widgets end
+
+// ── Boot ────────────────────────────────────────
+watchVariantChange();
+
+// ═══════════════════════════════════════════════
+// Price update function for widgets End
+
+
