@@ -1,0 +1,116 @@
+{% comment %}
+  Bundler ─ Quantity Breaks Widget
+  Merchants add this via: Theme Editor → Product page → Add block → "Bundler Quantity Breaks"
+  Place it above or near the Add-to-Cart button.
+{% endcomment %}
+
+<div
+  id="bundler-qb-{{ block.id }}"
+  class="bundler-qb"
+  data-block-id="{{ block.id }}"
+  data-product-id="{{ product.id }}"
+  data-variant-id="{{ product.selected_or_first_available_variant.id }}"
+  data-product-price="{{ product.selected_or_first_available_variant.price | money_without_currency | replace: ',', '' }}"
+  data-product-compare-price="{{ product.selected_or_first_available_variant.compare_at_price | money_without_currency | replace: ',', '' }}"
+  data-currency-symbol="{{ cart.currency.symbol }}"
+  data-shop="{{ shop.permanent_domain }}"
+  data-proxy-path="/apps/bundler"
+  data-primary-color="{{ block.settings.primary_color }}"
+  data-selected-bg="{{ block.settings.selected_bg }}"
+  data-badge-bg="{{ block.settings.badge_bg }}"
+  data-badge-text="{{ block.settings.badge_text }}"
+  data-text-color="{{ block.settings.text_color }}"
+  data-border-color="{{ block.settings.border_color }}"
+  data-original-color="{{ block.settings.original_price_color }}"
+  style="margin-top:{{ block.settings.margin_top }}px;margin-bottom:{{ block.settings.margin_bottom }}px;"
+>
+  {%- comment -%} Loading skeleton shown until JS hydrates {%- endcomment -%}
+  <div class="bundler-qb__loading">
+    <div class="bundler-qb__skeleton-title"></div>
+    <div class="bundler-qb__skeleton-row"></div>
+    <div class="bundler-qb__skeleton-row"></div>
+  </div>
+</div>
+
+{{ 'bundler-widget.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'bundler-widget.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "Bundler Quantity Breaks",
+  "target": "section",
+  "templates": ["product"],
+  "settings": [
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "primary_color",
+      "label": "Primary / radio color",
+      "default": "#1a1a2e"
+    },
+    {
+      "type": "color",
+      "id": "selected_bg",
+      "label": "Selected row background",
+      "default": "#f0f4ff"
+    },
+    {
+      "type": "color",
+      "id": "badge_bg",
+      "label": "Savings badge background",
+      "default": "#1a1a2e"
+    },
+    {
+      "type": "color",
+      "id": "badge_text",
+      "label": "Savings badge text",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#333333"
+    },
+    {
+      "type": "color",
+      "id": "border_color",
+      "label": "Border color",
+      "default": "#e0e0e0"
+    },
+    {
+      "type": "color",
+      "id": "original_price_color",
+      "label": "Original price (strikethrough)",
+      "default": "#999999"
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "margin_top",
+      "label": "Top margin",
+      "min": 0,
+      "max": 60,
+      "step": 4,
+      "default": 16,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "margin_bottom",
+      "label": "Bottom margin",
+      "min": 0,
+      "max": 60,
+      "step": 4,
+      "default": 16,
+      "unit": "px"
+    }
+  ]
+}
+{% endschema %}

@@ -32,98 +32,109 @@ model Session {
   refreshToken        String?
   refreshTokenExpires DateTime?
 }
-
 // ─────────────────────────────────────────
-// Bundle Definition
-// SQLite does NOT support enums — use String
-// Valid status values : "DRAFT" | "ACTIVE" | "ARCHIVED"
-// Valid discountType  : "NONE"  | "PERCENTAGE" | "FIXED_AMOUNT"
+// BUNDLE
 // ─────────────────────────────────────────
 model Bundle {
-  id               String   @id @default(cuid())
-  shop             String
-  title            String
-  description      String?
-  shopifyProductId String?
-  shopifyVariantId String?
-  status           String   @default("DRAFT")
-  discountType     String   @default("NONE")
-  discountValue    Float    @default(0)
-  totalPrice       Float?
-  compareAtPrice   Float?
-  image            String?
-  metafieldId      String?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id                    String              @id @default(uuid())
+  shop                  String
 
-  items  BundleItem[]
-  orders BundleOrder[]
+  name                  String
+  title                 String
+  bundleType            String              @default("QUANTITY_BREAKS")
+
+  prioritySequence      Int                 @default(100)
+  status                String              @default("ACTIVE")
+  showWidget            Boolean             @default(true)
+
+  applyOnSubscriptions  Boolean             @default(false)
+  numberOfRenewals      String              @default("Unlimited")
+
+  productSelectionType  String              @default("ALL_PRODUCTS")
+  selectedProductIds    String?
+
+  shortcode             String?
+
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+
+  quantityBreaks        QuantityBreak[]
+  discountCombination   DiscountCombination?
+  widgetSettings        WidgetSettings?
 
   @@index([shop])
-  @@index([shopifyProductId])
+  @@index([shop, status])
+  @@index([shop, bundleType])
+  @@index([shop, createdAt])
 }
 
 // ─────────────────────────────────────────
-// Bundle Items
+// QUANTITY BREAK
 // ─────────────────────────────────────────
-model BundleItem {
-  id               String  @id @default(cuid())
-  bundleId         String
-  shopifyProductId String
-  shopifyVariantId String
-  productTitle     String
-  variantTitle     String?
-  quantity         Int     @default(1)
-  price            Float
-  sku              String?
-  imageUrl         String?
-  position         Int     @default(0)
+model QuantityBreak {
+  id                    String      @id @default(uuid())
+  shop                  String
+  bundleId              String
+  bundle                Bundle      @relation(fields: [bundleId], references: [id], onDelete: Cascade)
 
-  bundle Bundle @relation(fields: [bundleId], references: [id], onDelete: Cascade)
+  type                  String      @default("FIXED_QUANTITY")
+  quantity              Int
+  maxQuantity           Int?
 
-  @@index([bundleId])
-  @@index([shopifyVariantId])
-}
+  discountType          String      @default("PERCENTAGE")
+  discountValue         Float
 
-// ─────────────────────────────────────────
-// Bundle Orders
-// ─────────────────────────────────────────
-model BundleOrder {
-  id                String   @id @default(cuid())
-  bundleId          String
-  shop              String
-  shopifyOrderId    String
-  shopifyLineItemId String
-  quantity          Int
-  pricePaid         Float
-  createdAt         DateTime @default(now())
+  savingsText           String      @default("Save {{discount_value}}{{discount_unit}}")
+  description           String
 
-  bundle Bundle @relation(fields: [bundleId], references: [id])
+  freeShipping          Boolean     @default(false)
 
-  @@index([bundleId])
-  @@index([shopifyOrderId])
+  sortOrder             Int         @default(0)
+
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
   @@index([shop])
+  @@index([shop, bundleId])
+  @@index([bundleId, sortOrder])
 }
 
 // ─────────────────────────────────────────
-// Shop Settings
+// DISCOUNT COMBINATION
 // ─────────────────────────────────────────
-model ShopSettings {
-  id                   String   @id @default(cuid())
-  shop                 String   @unique
-  bundleProductTag     String   @default("bundle")
-  trackInventory       Boolean  @default(true)
-  showBundleComponents Boolean  @default(true)
-  webhooksRegistered   Boolean  @default(false)
-  installedAt          DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+model DiscountCombination {
+  id                    String      @id @default(uuid())
+  shop                  String
+  bundleId              String      @unique
+  bundle                Bundle      @relation(fields: [bundleId], references: [id], onDelete: Cascade)
+
+  productDiscounts      Boolean     @default(true)
+  orderDiscounts        Boolean     @default(true)
+  shippingDiscounts     Boolean     @default(true)
+
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  @@index([shop])
+  @@index([shop, bundleId])
 }
 
-model ShopPlan {
-  id               String   @id @default(cuid())
-  shop             String   @unique
-  planName         String   @default("free")
-  subscriptionId   String?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+// ─────────────────────────────────────────
+// WIDGET SETTINGS
+// ─────────────────────────────────────────
+model WidgetSettings {
+  id                    String      @id @default(uuid())
+  shop                  String
+  bundleId              String      @unique
+  bundle                Bundle      @relation(fields: [bundleId], references: [id], onDelete: Cascade)
+
+  colors                String      @default("{\"primary\":\"#5C6AC4\",\"secondary\":\"#47C1BF\",\"accent\":\"#00848E\"}")
+
+  enableVariantPicker   Boolean     @default(false)
+
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  @@index([shop])
+  @@index([shop, bundleId])
 }
