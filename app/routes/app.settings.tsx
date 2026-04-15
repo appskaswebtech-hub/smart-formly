@@ -40,7 +40,6 @@ interface SettingsForm {
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
-
   const shopRecord = await db.shop.findUnique({
     where: { shopDomain: session.shop },
     include: { settings: true },
@@ -63,7 +62,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   });
 };
 
-// ─── ACTION ───────────────────────────────────────────────────────────────────
+// // ─── ACTION ───────────────────────────────────────────────────────────────────
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { session } = await authenticate.admin(request);
@@ -94,6 +93,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
   return json({ success: true });
 };
+
+
 
 // ─── COLOR INPUT ──────────────────────────────────────────────────────────────
 
@@ -132,6 +133,7 @@ function ColorInput({
             />
           }
         >
+         
           <Box padding="400">
             <input
               type="color"
@@ -140,6 +142,7 @@ function ColorInput({
               style={{ width: "200px", height: "40px", cursor: "pointer" }}
             />
           </Box>
+         
         </Popover>
         <TextField
           label=""
@@ -287,7 +290,11 @@ export default function Settings() {
     setForm((prev) => ({ ...prev, [field]: val }));
 
   const handleSave = () => {
+    alert();
+    
     const fd = new FormData();
+    console.log("AAAAAAAA",fd);
+    return;
     fd.append("primaryColor", form.primaryColor);
     fd.append("secondaryColor", form.secondaryColor);
     fd.append("accentColor", form.accentColor);

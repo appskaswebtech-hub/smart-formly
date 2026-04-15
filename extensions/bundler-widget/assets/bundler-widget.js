@@ -354,14 +354,10 @@
 
 
 // Price update function for widgets Start
-// ═══════════════════════════════════════════════
-// BUNDLER — Price Update Section (Clean Version)
-// ═══════════════════════════════════════════════
 
-// ── Cache ──────────────────────────────────────
 var bundlerDataCache = null;
 
-// ── Step 1 — API se bundle data fetch karo ─────
+// ── Step 1 — Fetching bundle data from API─────
 function fetchBundlerData() {
   var root = document.querySelector('.bundler-qb');
   if (!root) return Promise.resolve(null);
@@ -391,34 +387,79 @@ function fetchBundlerData() {
     });
 }
 
-// ── Step 2 — Variant JSON se latest price nikalo ─
+// ── Step 2 — Getting latest price from Variant JSON ─
+
+
 function getSelectedVariantPrice() {
-  var variantIdEl = document.querySelector('input.product-variant-id');
+
+  // ── Step 1: Get current variant ID (multi-selector fallback) ──
+  var variantIdEl = document.querySelector([
+    'input.product-variant-id',
+    'input[name="id"]',
+    'select[name="id"]',
+    'input[name="variant"]'
+  ].join(','));
+
   if (!variantIdEl) {
     console.warn('[Bundler] Variant ID input not found');
     return null;
   }
 
-  var currentVariantId = parseInt(variantIdEl.getAttribute('value') || variantIdEl.value);
+  var currentVariantId = parseInt(variantIdEl.value || variantIdEl.getAttribute('value'));
   console.log('[Bundler] Current Variant ID:', currentVariantId);
 
-  // Saare script[type="application/json"] tags check karo
-  var variants = null;
+  // ── Step 2: Try all known ways themes expose variant data ──
+
+  var variants = [];
+
+  // Strategy A: Individual <script type="application/json"> tags (your current fix)
   document.querySelectorAll('script[type="application/json"]').forEach(function (script) {
     try {
       var parsed = JSON.parse(script.textContent);
-      // Variants array identify karo — price field hona chahiye
-      if (Array.isArray(parsed) && parsed[0] && parsed[0].price !== undefined) {
-        variants = parsed;
+      if (parsed && parsed.id !== undefined && parsed.price !== undefined) {
+        variants.push(parsed); // individual variant objects
+      } else if (Array.isArray(parsed) && parsed[0]?.price !== undefined) {
+        variants = variants.concat(parsed); // array of variants
       }
-    } catch (e) { /* skip non-JSON scripts */ }
+    } catch (e) {}
   });
 
-  if (!variants) {
-    console.warn('[Bundler] Variants JSON not found');
-    return null;
+  // Strategy B: window.ShopifyAnalytics (available on most themes)
+  if (variants.length === 0) {
+    try {
+      var sa = window.ShopifyAnalytics?.meta?.selectedVariantId;
+      var product = window.ShopifyAnalytics?.meta?.product;
+      if (product?.variants) {
+        variants = product.variants;
+      }
+    } catch (e) {}
   }
 
+  // Strategy C: Common global variables set by themes
+  if (variants.length === 0) {
+    var globals = ['productVariants', 'variants', 'theme.variants'];
+    globals.forEach(function (key) {
+      try {
+        var val = window[key];
+        if (Array.isArray(val) && val[0]?.price !== undefined) {
+          variants = val;
+        }
+      } catch (e) {}
+    });
+  }
+
+  // Strategy D: Fetch from Shopify's AJAX API as last resort
+  if (variants.length === 0) {
+    console.warn('[Bundler] Falling back to AJAX API — async!');
+    return fetch(window.location.pathname + '.js')
+      .then(res => res.json())
+      .then(product => {
+        var matched = product.variants.find(v => v.id === currentVariantId);
+        return matched ? matched.price / 100 : null;
+      });
+  }
+
+  // ── Step 3: Match variant ──
   var matched = variants.find(function (v) { return v.id === currentVariantId; });
 
   if (!matched) {
@@ -427,8 +468,9 @@ function getSelectedVariantPrice() {
   }
 
   console.log('[Bundler] Matched variant:', matched.title, '→ $' + (matched.price / 100).toFixed(2));
-  return matched.price / 100; // cents → dollars
+  return matched.price / 100;
 }
+
 
 // ── Step 3 — Discount calculation ──────────────
 function calcDiscountedPrice(basePrice, qty, discountType, discountValue) {
@@ -452,22 +494,24 @@ function calcDiscountedPrice(basePrice, qty, discountType, discountValue) {
   return { final: Math.max(0, final), original: total };
 }
 
-// ── Step 4 — Widget prices update karo ─────────
+// ── Step 4 — updating Widget prices ─────────
 function updateBundlerPrices() {
+ 
   var bundlerOptions = document.querySelectorAll('.bundler-qb__option');
   if (bundlerOptions.length === 0) {
     console.log('[Bundler] No widget options found');
     return;
   }
 
-  // Latest variant price lo
+  // get Latest variant 
   var basePrice = getSelectedVariantPrice();
+  
   if (!basePrice || isNaN(basePrice)) {
-    console.error('[Bundler] Invalid base price — aborting update');
+    console.error('[Bundler] Invalid base price — aborting update',basePrice);
     return;
   }
 
-  // Bundle data fetch karo (cached hoga mostly)
+  // fetch Bundle data
   fetchBundlerData().then(function (bundle) {
     if (!bundle) {
       console.warn('[Bundler] No bundle data available');
@@ -510,9 +554,36 @@ function updateBundlerPrices() {
   });
 }
 
-// ── Step 5 — Variant ID change watch karo ──────
+ // List of ALL known selectors across popular Shopify themes
+function getVariantIdElement() {
+ 
+  var selectors = [
+    'input.product-variant-id',              // Debut, Simple
+    'input[name="id"]',                      // Dawn, Horizon, Refresh
+    'select[name="id"]',                     // Some older themes (dropdown)
+    'input[name="variant"]',                 // Some custom themes
+    'input[name="variant_id"]',              // Some third-party themes
+    'form[action*="/cart/add"] input[name="id"]',   // More specific Dawn
+    'form.product-form input[name="id"]',    // Craft, Sense
+    'form[data-product-form] input[name="id"]', // Impulse, Turbo
+    '[data-product-select]',                 // Some themes use data attributes
+    '#product-select',                       // Very old themes
+  ];
+
+  for (var i = 0; i < selectors.length; i++) {
+    var el = document.querySelector(selectors[i]);
+    if (el) {
+      console.log('[Bundler] Variant ID element found with selector:', selectors[i]);
+      return el;
+    }
+  }
+
+  return null; // nothing found
+}
+
+// ── Step 5 —watching  Variant ID change──────
 function watchVariantChange() {
-  var variantIdEl = document.querySelector('input.product-variant-id');
+  var variantIdEl = getVariantIdElement();
   if (!variantIdEl) {
     console.warn('[Bundler] Cannot watch — variant input not found');
     return;
@@ -534,7 +605,7 @@ function watchVariantChange() {
 }
 
 // ── Step 6 — Radio change listener (backup) ────
-document.querySelectorAll('.product-form__input input[type="radio"]').forEach(function (input) {
+document.querySelectorAll('.product-form__input input[type="radio"] ').forEach(function (input) {
   input.addEventListener('change', function () {
     console.log('[Bundler] Radio changed:', this.name, '=', this.value);
     // MutationObserver handle karega — no extra action needed

@@ -138,3 +138,36 @@ model WidgetSettings {
   @@index([shop])
   @@index([shop, bundleId])
 }
+
+model Shop {
+  id         String        @id @default(cuid())
+  shopDomain String        @unique
+  planName   String        @default("free")
+  createdAt  DateTime      @default(now())
+  settings   ShopSetting?
+}
+
+model ShopSetting {
+  id               String   @id @default(cuid())
+  shopId           String   @unique
+  shop             Shop     @relation(fields: [shopId], references: [id])
+  primaryColor     String   @default("#3b82f6")
+  secondaryColor   String   @default("#4a4a6a")
+  accentColor      String   @default("#1d4ed8")
+  backgroundColor  String   @default("#ffffff")
+  brandingRemoved  Boolean  @default(false)
+}
+
+model ShopPlan {
+  id                   Int       @id @default(autoincrement())
+  shop                 String    @unique        // one plan record per shop
+  plan                 String    @default("free") // "free" | "pro" | "advanced"
+  subscriptionId       String?                  // Shopify AppSubscription GID
+  status               String    @default("active") // "active" | "cancelled" | "expired"
+  trialEndsAt          DateTime?                // when trial expires
+  billingStartedAt     DateTime?                // when paid billing began
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  @@index([shop])
+}

@@ -2,7 +2,7 @@
 
 client_id = "8077e7ea8b4019ea709f16552d40d310"
 name = "BUNDLE KIT"
-application_url = "https://puts-cow-semester-aware.trycloudflare.com"
+application_url = "https://bundlekit.kaswebtechsolutions.com"
 embedded = true
 
 [build]
@@ -40,11 +40,11 @@ api_version = "2026-04"
 scopes = "read_products,write_products,read_inventory,write_inventory,read_orders,write_orders,read_draft_orders,write_draft_orders,read_order_edits,write_order_edits,read_fulfillments,write_fulfillments,write_discounts"
 
 [auth]
-redirect_urls = [ "https://puts-cow-semester-aware.trycloudflare.com/api/auth" ]
+redirect_urls = [ "https://bundlekit.kaswebtechsolutions.com/api/auth" ]
 [capabilities]
 bundles = true
 
 [app_proxy]
- url = "https://puts-cow-semester-aware.trycloudflare.com"
+ url = "https://bundlekit.kaswebtechsolutions.com"
  subpath = "bundler"
  prefix = "apps"
