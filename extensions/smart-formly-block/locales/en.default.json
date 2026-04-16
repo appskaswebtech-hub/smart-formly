@@ -1,0 +1,21 @@
+{
+  "smartformly": {
+    "form": {
+      "name": "SmartFormly Form",
+      "settings": {
+        "form_id": {
+          "label": "Form ID"
+        },
+        "app_url": {
+          "label": "App URL"
+        },
+        "max_width": {
+          "label": "Max width"
+        },
+        "section_padding": {
+          "label": "Section padding"
+        }
+      }
+    }
+  }
+}

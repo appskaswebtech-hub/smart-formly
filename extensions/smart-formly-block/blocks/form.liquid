@@ -1,0 +1,302 @@
+{% comment %}
+  SmartFormly - Form Block
+  Renders a form from the SmartFormly app in the storefront.
+  App URL resolves automatically from the app-owned shop metafield.
+  Merchant only needs to enter the Form ID.
+{% endcomment %}
+
+{%- assign app_url = app.metafields.smartformly.app_url | default: "" -%}
+{% if block.settings.form_id == blank %}
+  {% if request.design_mode %}
+    <div style="padding: 40px; text-align: center; border: 2px dashed #ccc; border-radius: 8px; color: #666; font-family: sans-serif;">
+      <p style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">SmartFormly Form</p>
+      <p style="font-size: 13px;">Enter a Form ID in the block settings to display your form.</p>
+    </div>
+  {% endif %}
+{% elsif app_url == blank %}
+  {% if request.design_mode %}
+    <div style="padding: 20px; text-align: center; border: 2px dashed #f59e0b; border-radius: 8px; color: #92400e; font-family: sans-serif; font-size: 13px;">
+      SmartFormly isn't fully configured yet. Please open the SmartFormly app from your Shopify admin once to initialize it.
+    </div>
+  {% endif %}
+{% else %}
+  <div
+    id="smartformly-form-{{ block.settings.form_id }}"
+    class="smartformly-wrapper"
+    data-form-id="{{ block.settings.form_id }}"
+    data-app-url="{{ app_url }}"
+    style="
+      max-width: {{ block.settings.max_width }}px;
+      margin: 0 auto;
+      padding: {{ block.settings.section_padding }}px 0;
+    "
+  >
+    <div class="smartformly-loading" style="text-align: center; padding: 40px 0; color: #999;">
+      Loading form...
+    </div>
+  </div>
+
+  <style>
+    .smartformly-wrapper { font-family: inherit; }
+    .smartformly-form {
+      padding: var(--sf-padding, 30px);
+      border: var(--sf-border-size, 2px) solid var(--sf-border-color, #000);
+      border-radius: var(--sf-border-radius, 1px);
+      background: var(--sf-bg, transparent);
+      box-shadow: var(--sf-shadow, none);
+    }
+    .smartformly-form h2 { font-size: 20px; font-weight: 600; margin: 0 0 4px 0; }
+    .smartformly-form .sf-description { font-size: 13px; color: #6B7280; margin: 0 0 16px 0; }
+    .smartformly-form .sf-banner { margin-bottom: 16px; }
+    .smartformly-form .sf-banner img { max-width: 100%; height: auto; object-fit: cover; border-radius: 4px; }
+    .smartformly-fields { display: flex; flex-wrap: wrap; gap: 16px; }
+    .smartformly-field { width: 100%; }
+    .smartformly-field.half-width { width: calc(50% - 8px); }
+    .smartformly-field label { display: block; margin-bottom: 6px; font-weight: 500; }
+    .smartformly-field input[type="text"],
+    .smartformly-field input[type="email"],
+    .smartformly-field input[type="tel"],
+    .smartformly-field input[type="phone"],
+    .smartformly-field textarea,
+    .smartformly-field select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--sf-input-border, #000);
+      border-radius: var(--sf-input-radius, 1px);
+      background: var(--sf-input-bg, #fff);
+      font-size: var(--sf-input-font-size, 14px);
+      color: var(--sf-input-color, #000);
+      font-family: inherit;
+      box-sizing: border-box;
+    }
+    .smartformly-field input:focus,
+    .smartformly-field textarea:focus,
+    .smartformly-field select:focus {
+      outline: none;
+      border-color: var(--sf-input-focus, #5C6AC4);
+    }
+    .smartformly-field textarea { resize: vertical; min-height: 80px; }
+    .smartformly-field .sf-checkbox-group { display: flex; flex-direction: column; gap: 6px; }
+    .smartformly-field .sf-checkbox-group label { display: flex; align-items: center; gap: 8px; font-weight: normal; margin-bottom: 0; }
+    .smartformly-submit { width: 100%; margin-top: 4px; }
+    .smartformly-submit button { padding: 10px 24px; font-weight: 600; cursor: pointer; font-family: inherit; transition: opacity 0.2s; }
+    .smartformly-submit button:hover { opacity: 0.9; }
+    .smartformly-submit button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .smartformly-success { padding: 20px; text-align: center; color: #059669; font-size: 15px; font-weight: 500; }
+    .smartformly-error { padding: 10px 14px; background: #FEE2E2; color: #DC2626; border-radius: 6px; font-size: 13px; margin-bottom: 12px; }
+    .sf-field-error { color: #DC2626; font-size: 12px; margin-top: 4px; }
+    @media (max-width: 600px) {
+      .smartformly-field.half-width { width: 100%; }
+    }
+  </style>
+
+  <script>
+    (function() {
+      const wrapper = document.getElementById('smartformly-form-{{ block.settings.form_id }}');
+      const formId = wrapper.dataset.formId;
+      const appUrl = (wrapper.dataset.appUrl || '').replace(/\/$/, '');
+
+      async function loadForm() {
+        try {
+          const res = await fetch(appUrl + '/api/forms/' + formId);
+          if (!res.ok) throw new Error('Form not found');
+          const data = await res.json();
+          renderForm(data);
+        } catch (err) {
+          wrapper.innerHTML = '<div style="padding:20px;text-align:center;color:#999;">Unable to load form. Please check the Form ID.</div>';
+        }
+      }
+
+      function renderForm(config) {
+        const fields = typeof config.fields === 'string' ? JSON.parse(config.fields) : config.fields;
+        const settings = typeof config.settings === 'string' ? JSON.parse(config.settings) : config.settings;
+        const design = settings.design || {};
+
+        const cssVars = {
+          '--sf-padding': (design.formPadding || '30') + 'px',
+          '--sf-border-size': (design.borderSize || '2') + 'px',
+          '--sf-border-color': design.borderColor || '#000',
+          '--sf-border-radius': (design.borderRadius || '1') + 'px',
+          '--sf-bg': design.bgType === 'color' ? (design.bgColor || '#fff') :
+                     design.bgType === 'gradient' ? 'linear-gradient(135deg,' + (design.bgColor||'#fff') + ',' + (design.bgColor2||'#f0f0f0') + ')' : 'transparent',
+          '--sf-shadow': design.bgShadow && design.bgShadow !== 'none' ? design.bgShadow : 'none',
+          '--sf-input-border': design.inputBorderColor || '#000',
+          '--sf-input-radius': (design.inputBorderRadius || '1') + 'px',
+          '--sf-input-bg': design.inputBg || '#fff',
+          '--sf-input-font-size': (design.inputFontSize || '14') + 'px',
+          '--sf-input-color': design.inputFontColor || '#000',
+          '--sf-input-focus': design.inputBorderFocusColor || '#5C6AC4',
+        };
+
+        let html = '<form class="smartformly-form" style="';
+        for (const [k, v] of Object.entries(cssVars)) html += k + ':' + v + ';';
+        html += '">';
+
+        if (design.formBannerUrl) {
+          html += '<div class="sf-banner" style="text-align:' + (design.formBannerAlignment || 'center') + '">';
+          html += '<img src="' + design.formBannerUrl + '" style="height:' + (design.formBannerHeight || '200') + 'px;max-width:' + (design.formBannerWidth || '100%') + '">';
+          html += '</div>';
+        }
+
+        html += '<h2>' + escHtml(config.formName || 'Form') + '</h2>';
+
+        if (design.formDescription) {
+          html += '<p class="sf-description">' + escHtml(design.formDescription) + '</p>';
+        }
+
+        html += '<div class="smartformly-error" style="display:none" id="sf-error-' + formId + '"></div>';
+
+        html += '<div class="smartformly-fields">';
+        fields.forEach(function(f) {
+          const halfClass = f.halfWidth ? ' half-width' : '';
+          const centerStyle = f.fieldInCenter ? 'text-align:center;' : '';
+          const labelStyle = 'font-size:' + (design.labelFontSize || '14') + 'px;color:' + (design.labelColor || '#000') + ';';
+          const req = f.required ? '<span style="color:red;margin-left:2px">*</span>' : '';
+
+          html += '<div class="smartformly-field' + halfClass + '" style="' + centerStyle + '">';
+
+          if (design.labelStyle !== 'floating') {
+            html += '<label style="' + labelStyle + '">' + escHtml(f.label) + req + '</label>';
+          }
+
+          switch (f.type) {
+            case 'textarea':
+              html += '<textarea name="' + escHtml(f.label) + '" placeholder="' + escHtml(f.placeholder || '') + '"' + (f.required ? ' required' : '') + '></textarea>';
+              break;
+            case 'select':
+              html += '<select name="' + escHtml(f.label) + '"' + (f.required ? ' required' : '') + '>';
+              html += '<option value="">Please select</option>';
+              (f.options || []).forEach(function(o) { html += '<option value="' + escHtml(o) + '">' + escHtml(o) + '</option>'; });
+              html += '</select>';
+              break;
+            case 'checkbox':
+              html += '<div class="sf-checkbox-group">';
+              (f.options || []).forEach(function(o) {
+                html += '<label><input type="checkbox" name="' + escHtml(f.label) + '" value="' + escHtml(o) + '"> ' + escHtml(o) + '</label>';
+              });
+              html += '</div>';
+              break;
+            case 'file':
+              html += '<input type="file" name="' + escHtml(f.label) + '"' + (f.required ? ' required' : '') + '>';
+              break;
+            default:
+              html += '<input type="' + (f.type || 'text') + '" name="' + escHtml(f.label) + '" placeholder="' + escHtml(f.placeholder || '') + '"' + (f.required ? ' required' : '') + '>';
+          }
+
+          html += '</div>';
+        });
+
+        const btnAlign = design.buttonAlignment || 'full';
+        const btnJustify = btnAlign === 'full' ? 'stretch' : btnAlign === 'center' ? 'center' : btnAlign === 'right' ? 'flex-end' : 'flex-start';
+        html += '<div class="smartformly-submit" style="display:flex;justify-content:' + btnJustify + '">';
+        html += '<button type="submit" style="';
+        html += 'width:' + (btnAlign === 'full' ? '100%' : 'auto') + ';';
+        html += 'background:' + (design.buttonBg || '#000') + ';';
+        html += 'color:' + (design.buttonTextColor || '#fff') + ';';
+        html += 'border:' + (design.buttonBorderWidth || '1') + 'px solid ' + (design.buttonBorderColor || '#000') + ';';
+        html += 'border-radius:' + (design.buttonBorderRadius || '2') + 'px;';
+        html += 'font-size:' + (design.buttonFontSize || '16') + 'px;';
+        html += '">' + escHtml(design.buttonText || settings.submitLabel || 'Submit') + '</button>';
+        html += '</div>';
+
+        html += '</div></form>';
+
+        wrapper.innerHTML = html;
+
+        const form = wrapper.querySelector('form');
+        form.addEventListener('submit', function(e) {
+          e.preventDefault();
+          submitForm(form, fields, settings);
+        });
+      }
+
+      async function submitForm(form, fields, settings) {
+        const btn = form.querySelector('button[type="submit"]');
+        const errEl = document.getElementById('sf-error-' + formId);
+        btn.disabled = true;
+        btn.textContent = 'Submitting...';
+        errEl.style.display = 'none';
+
+        const data = {};
+        fields.forEach(function(f) {
+          if (f.type === 'checkbox') {
+            const checked = form.querySelectorAll('input[name="' + f.label + '"]:checked');
+            data[f.label] = Array.from(checked).map(function(c) { return c.value; });
+          } else if (f.type === 'file') {
+            data[f.label] = '[file]';
+          } else {
+            const el = form.querySelector('[name="' + f.label + '"]');
+            data[f.label] = el ? el.value : '';
+          }
+        });
+
+        try {
+          const res = await fetch(appUrl + '/api/submit/' + formId, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+          });
+          const result = await res.json();
+
+          if (res.ok && result.success) {
+            wrapper.innerHTML = '<div class="smartformly-success">' +
+              escHtml(result.message || settings.successMessage || 'Thank you! Your form has been submitted.') +
+              '</div>';
+          } else {
+            errEl.textContent = result.error || 'Something went wrong. Please try again.';
+            errEl.style.display = 'block';
+            btn.disabled = false;
+            btn.textContent = (settings.design && settings.design.buttonText) || settings.submitLabel || 'Submit';
+          }
+        } catch (err) {
+          errEl.textContent = 'Network error. Please try again.';
+          errEl.style.display = 'block';
+          btn.disabled = false;
+          btn.textContent = (settings.design && settings.design.buttonText) || settings.submitLabel || 'Submit';
+        }
+      }
+
+      function escHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      }
+
+      loadForm();
+    })();
+  </script>
+{% endif %}
+
+{% schema %}
+{
+  "name": "Smart Formly",
+  "target": "section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "form_id",
+      "label": "Form ID",
+      "info": "Enter the Form ID from your SmartFormly app dashboard"
+    },
+    {
+      "type": "range",
+      "id": "max_width",
+      "label": "Max width",
+      "min": 400,
+      "max": 1200,
+      "step": 50,
+      "unit": "px",
+      "default": 600
+    },
+    {
+      "type": "range",
+      "id": "section_padding",
+      "label": "Section padding",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "px",
+      "default": 20
+    }
+  ]
+}
+{% endschema %}

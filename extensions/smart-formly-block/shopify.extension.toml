@@ -1,0 +1,12 @@
+api_version = "2025-01"
+
+[[extensions]]
+name = "SmartFormly"
+handle = "smart-formly-block"
+
+uid = "b6e78f32-b464-3f93-fdf4-9265df8aeaaa73b1a718"
+
+type = "theme"
+
+  [extensions.capabilities]
+  block_progress = false
