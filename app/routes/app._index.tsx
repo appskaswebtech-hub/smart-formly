@@ -1,4 +1,5 @@
 import type { LoaderFunctionArgs } from "@remix-run/node";
+import { checkAppAccess } from '../utils/checkAccess.server';
 import { json } from "@remix-run/node";
 import { useLoaderData, useNavigate } from "@remix-run/react";
 import {
@@ -23,10 +24,41 @@ import {
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
 
+// export const loader = async ({ request }: LoaderFunctionArgs) => {
+// const { session } = await authenticate.admin(request);
+//   const shop = session.shop;
+//   const totalBundles = await db.bundle.count({ where: { shop } });
+//   const activeBundles = await db.bundle.count({ where: { shop, status: "ACTIVE" } });
+//   const pausedBundles = await db.bundle.count({ where: { shop, status: "PAUSED" } });
+
+//   const recentBundles = await db.bundle.findMany({
+//     where: { shop },
+//     orderBy: { createdAt: "desc" },
+//     take: 5,
+//     include: { quantityBreaks: true },
+//   });
+
+//   return json({ shop, totalBundles, activeBundles, pausedBundles, recentBundles });
+// };
+
+
+
+// -----------A---------------
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
+  const { admin, billing, session } = await authenticate.admin(request);
+
+  const { hasAccess } = await checkAppAccess(admin, billing);
+
   const shop = session.shop;
 
+  // If the store does not have access, return a flag
+  if (!hasAccess) {
+    return json({
+      hasAccess: false,
+    });
+  }
+
+  // Proceed with loading the normal data for the dashboard
   const totalBundles = await db.bundle.count({ where: { shop } });
   const activeBundles = await db.bundle.count({ where: { shop, status: "ACTIVE" } });
   const pausedBundles = await db.bundle.count({ where: { shop, status: "PAUSED" } });
@@ -38,14 +70,65 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     include: { quantityBreaks: true },
   });
 
-  return json({ shop, totalBundles, activeBundles, pausedBundles, recentBundles });
-};
+  return json({
+    hasAccess: true,
+    totalBundles,
+    activeBundles,
+    pausedBundles,
+    recentBundles,
+    shopName : shop
+  });
+}
+// -----------A---------------
+
+
+
 
 export default function Index() {
   const { totalBundles, activeBundles, pausedBundles, recentBundles } =
     useLoaderData<typeof loader>();
   const navigate = useNavigate();
+  // ----------------------
+const data = useLoaderData();
+console.log("LOADER DATA:", data);
+if(!data.hasAccess){
+ return (
+  <Page>
+    <Banner status="critical" title="Access Restricted">
 
+      <BlockStack gap="200">
+        
+        <Text as="p">
+          Your store <b>{data.shopName}</b> is currently on{" "}
+          <b>{data.storePlan}</b> plan.
+        </Text>
+
+        <Text as="p">
+          This app is only available for stores with the{" "}
+          <b>Advanced App Plan</b>.
+        </Text>
+
+        <Text as="p">
+          You currently do not have an active subscription, so access to
+          Bundles is disabled.
+        </Text>
+
+        <Text as="p">
+          Once you upgrade, all features (Bundles, Quantity Breaks, Settings)
+          will be unlocked immediately.
+        </Text>
+
+        <Button primary url="/app/billing">
+          Upgrade to Advanced Plan
+        </Button>
+
+      </BlockStack>
+
+    </Banner>
+  </Page>
+);
+}
+// ---------------------------
   return (
     <Page title="Dashboard">
       <BlockStack gap="600">

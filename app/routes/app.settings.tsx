@@ -40,9 +40,9 @@ interface SettingsForm {
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
-  const shopRecord = await db.shop.findUnique({
-    where: { shopDomain: session.shop },
-    include: { settings: true },
+  const shopRecord = await db.widgetSettings.findFirst({
+    where: { shop: session.shop },
+    // include: { settings: true },
   });
 
   if (!shopRecord) throw new Error("Shop not found");
@@ -68,8 +68,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const { session } = await authenticate.admin(request);
   const formData = await request.formData();
 
-  const shopRecord = await db.shop.findUnique({
-    where: { shopDomain: session.shop },
+  const shopRecord = await db.widgetSettings.findUnique({
+    where: { shop: session.shop },
   });
   if (!shopRecord) throw new Error("Shop not found");
 
@@ -460,3 +460,4 @@ export default function Settings() {
     </Frame>
   );
 }
+

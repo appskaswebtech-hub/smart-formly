@@ -3,6 +3,7 @@
 client_id = "8077e7ea8b4019ea709f16552d40d310"
 name = "BUNDLE KIT"
 application_url = "https://bundlekit.kaswebtechsolutions.com"
+
 embedded = true
 
 [build]

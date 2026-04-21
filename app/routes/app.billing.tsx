@@ -349,7 +349,8 @@ export default function BillingPage() {
                           (isSubmitting && submittingPlan === plan.key) ||
                           !!actionData?.confirmationUrl
                         }
-                        onClick={() => setSubmittingPlan(plan.key)}
+                      onClick={() => setSubmittingPlan(plan.key)}
+                       
                       >
                         {plan.price === 0
                           ? "Use Free Plan"

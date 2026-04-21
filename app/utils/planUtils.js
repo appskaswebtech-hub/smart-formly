@@ -82,33 +82,70 @@ export async function syncPlanFromShopify(admin, shop) {
 // ─────────────────────────────────────────────────────────────
 // Save / update plan in DB after billing approval
 // ─────────────────────────────────────────────────────────────
-export async function updateShopPlan(shop, planKey, subscriptionId = null) {
-  try {
-    if (!PLAN_KEYS.includes(planKey)) {
-      throw new Error(`Invalid plan key: ${planKey}`);
-    }
+// export async function updateShopPlan(shop, planKey, subscriptionId = null) {
+//   try {
+//     if (!PLAN_KEYS.includes(planKey)) {
+//       throw new Error(`Invalid plan key: ${planKey}`);
+//     }
 
-    const saved = await prisma.shopPlan.upsert({
-      where:  { shop },
-      update: {
-        planName:       planKey,
-        subscriptionId: subscriptionId,
-      },
-      create: {
-        shop,
-        planName:       planKey,
-        subscriptionId: subscriptionId,
-      },
-    });
+//     const saved = await prisma.shopPlan.upsert({
+//       where:  { shop },
+//       update: {
+//         planName:       planKey,
+//         subscriptionId: subscriptionId,
+//       },
+//       create: {
+//         shop,
+//         planName:       planKey,
+//         subscriptionId: subscriptionId,
+//       },
+//     });
 
-    return {
-      ...PLANS[planKey],
-      subscriptionId: saved.subscriptionId,
-    };
-  } catch (err) {
-    console.error("[planUtils] updateShopPlan error:", err);
-    throw err;
-  }
+//     return {
+//       ...PLANS[planKey],
+//       subscriptionId: saved.subscriptionId,
+//     };
+//   } catch (err) {
+//     console.error("[planUtils] updateShopPlan error:", err);
+//     throw err;
+//   }
+// }
+
+export async function updateShopPlan(
+  shop,
+  planKey,
+  subscriptionId
+) {
+  const now = new Date();
+
+  const isPaidPlan = planKey !== "free";
+
+  return prisma.shopPlan.upsert({
+    where: { shop },
+
+    update: {
+      plan: planKey,
+      subscriptionId: subscriptionId || null,
+      status: isPaidPlan ? "active" : "cancelled",
+
+      billingStartedAt: isPaidPlan ? now : null,
+
+      trialEndsAt: null,
+    },
+
+    create: {
+      shop,
+      plan: planKey,
+      subscriptionId: subscriptionId || null,
+      status: "active",
+
+      billingStartedAt: isPaidPlan ? now : null,
+
+      trialEndsAt: isPaidPlan
+        ? new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+        : null,
+    },
+  });
 }
 
 // ─────────────────────────────────────────────────────────────

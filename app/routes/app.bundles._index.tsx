@@ -1,7 +1,7 @@
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { useLoaderData, useNavigate, useSubmit, useSearchParams } from "@remix-run/react";
-import { useState, useCallback } from "react";
+import { useState, useCallback,useEffect } from "react";
 import {
   Page,
   Layout,
@@ -16,15 +16,28 @@ import {
   TextField,
   Pagination,
   Checkbox,
+  Banner
 } from "@shopify/polaris";
 import { PlusIcon, SearchIcon, DeleteIcon, EditIcon } from "@shopify/polaris-icons";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
+import { checkAppAccess } from '../utils/checkAccess.server';
 
 const PAGE_SIZE = 10;
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
+  const { session , admin ,billing } = await authenticate.admin(request);
+  // ---------------------
+   const { hasAccess } = await checkAppAccess(admin, billing);
+  if (!hasAccess) {
+    return json({ hasAccess: false });
+  }
+   const bundless = await db.bundle.findMany({
+    where: { shop: session.shop },
+  });
+
+  // return json({ hasAccess: true, bundless });
+  // ---------------------
   const shop = session.shop;
   const url = new URL(request.url);
   const search = url.searchParams.get("search") || "";
@@ -49,7 +62,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     db.bundle.count({ where }),
   ]);
 
-  return json({ bundles, total, page, search });
+  return json({ bundles, total, page, search, hasAccess: true, bundless });
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -116,7 +129,34 @@ export default function BundlesList() {
       setSelectedIds(bundles.map((b: any) => b.id));
     }
   };
+// ------------------------
+const data = useLoaderData();
 
+ if (!data.hasAccess) {
+    return (
+      <Page>
+        <Banner status="critical" title="Upgrade Required">
+          <p>
+            You don’t have access to Bundles.
+           
+          </p>
+           <Text as="p">
+          You currently do not have an active subscription, so access to
+          Bundles is disabled.
+        </Text>
+
+        <Text as="p">
+          Once you upgrade, all features (Bundles, Quantity Breaks, Settings)
+          will be unlocked immediately.
+        </Text>
+        </Banner>
+         <Button primary url="/app/billing">
+          Upgrade to Advanced Plan
+        </Button>
+      </Page>
+    );
+  }
+// ------------------------
   return (
     <Page
       title="Bundles"
