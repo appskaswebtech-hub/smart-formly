@@ -18,16 +18,24 @@ import { authenticate } from "../shopify.server";
 import db from "../db.server";
 import { syncBundleConfigToDiscount } from "../utils/syncDiscount.server";
 
+
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { session, admin } = await authenticate.admin(request);
   const shop = session.shop;
   const formData = await request.formData();
+  console.log("AAAAAAAAAAA",formData);
   const bundleType = formData.get("bundleType") as string;
-
+  let bundleName = "";
+  if (bundleType == 'VOLUME_DISCOUNT'){
+    bundleName = "Volume discount";
+  }
+  else if(bundleType == 'QUANTITY_BREAKS'){
+     bundleName = "Quantity breaks";
+};
   const bundle = await db.bundle.create({
     data: {
       shop,
-      name: "Quantity break",
+      name: bundleName,
       title: "BUY IN BULK AND GET A DISCOUNT!",
       bundleType,
       status: "ACTIVE",
@@ -79,7 +87,17 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   // ✅ Sync config to discount function after create
   await syncBundleConfigToDiscount(admin, shop);
 
+if (bundleType === "VOLUME_DISCOUNT") {
+  return redirect(`/app/volume/bundles/${bundle.id}`);
+}
+
+else if (bundleType === "QUANTITY_BREAKS") {
   return redirect(`/app/bundles/${bundle.id}`);
+}
+
+else {
+  return redirect(`/app/bundles/${bundle.id}`);
+}
 };
 
 const BUNDLE_TYPES = [
@@ -98,7 +116,26 @@ const BUNDLE_TYPES = [
       ],
     },
   },
+// Volume discount type
+ {
+    type: "VOLUME_DISCOUNT",
+    label: "Volume discount",
+    badge: "",
+    badgeTone: "info" as const,
+    description: "Offer tiered discounts based on quantity purchased",
+    preview: {
+      title: "Buy in bulk and get a discount!",
+      subtitle: "To more you buy, the more you save!",
+      breaks: [
+        { label: "Buy 2 and get a discount!", price: "$126.00", original: "$140.00", saving: "Save 10%!" },
+        { label: "Buy 4 and get a discount!", price: "$70.00", original: "$140.00", saving: "Save 50%!" },
+      ],
+    },
+  },
 ];
+
+
+
 
 export default function BundlesNew() {
   const navigate = useNavigate();
@@ -111,13 +148,12 @@ export default function BundlesNew() {
     formData.set("bundleType", bundleType);
     submit(formData, { method: "post" });
   };
-
   return (
     <Page
       title="Select the bundle type which suits you best"
       backAction={{ content: "Back", onAction: () => navigate("/app/bundles") }}
     >
-      <InlineGrid columns={1} gap="400">
+      <InlineGrid columns={2} gap="400">
         {BUNDLE_TYPES.map((bt) => (
           <Card key={bt.type}>
             <BlockStack gap="400">
@@ -137,8 +173,12 @@ export default function BundlesNew() {
               >
                 <BlockStack gap="300">
                   <Text as="p" variant="bodySm" alignment="center" fontWeight="bold">
-                    ─── {bt.preview.title.toUpperCase()} ───
+                   ─── {bt.preview.title.toUpperCase()} ───
                   </Text>
+                  <Text as="p" variant="bodySm" alignment="center">
+                    {bt.preview.subtitle}
+                  </Text>
+                  
                   {bt.preview.breaks.map((brk, i) => (
                     <Box
                       key={i}
@@ -164,7 +204,7 @@ export default function BundlesNew() {
                         </InlineStack>
                         <BlockStack inlineAlign="end">
                           {brk.saving && (
-                            <Badge tone="critical">{brk.saving}</Badge>
+                            <Badge tone ="critical">{brk.saving}</Badge>
                           )}
                           <Text as="span" variant="bodyMd" fontWeight="bold">
                             {brk.price}
@@ -198,7 +238,7 @@ export default function BundlesNew() {
             </BlockStack>
           </Card>
         ))}
-      </InlineGrid>
+      </InlineGrid>  
     </Page>
   );
 }

@@ -42,7 +42,6 @@ model Bundle {
   name                  String
   title                 String
   bundleType            String              @default("QUANTITY_BREAKS")
-
   prioritySequence      Int                 @default(100)
   status                String              @default("ACTIVE")
   showWidget            Boolean             @default(true)

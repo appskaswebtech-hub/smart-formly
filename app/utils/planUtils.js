@@ -12,13 +12,16 @@ export async function getShopPlanFromDB(shop) {
       where: { shop },
     });
 
-    const planKey  = shopPlan?.planName ?? "free";
+    const planKey  = shopPlan?.plan ?? "free";
     const planData = PLANS[planKey]     ?? DEFAULT_PLAN;
+    const planStatus = shopPlan.status  ?? "active";
+
 
     return {
       ...planData,
       dbId:           shopPlan?.id             ?? null,
       subscriptionId: shopPlan?.subscriptionId ?? null,
+      planStatus: planStatus ?? null,
     };
   } catch (err) {
     console.error("[planUtils] getShopPlanFromDB error:", err);

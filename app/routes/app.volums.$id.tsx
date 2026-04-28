@@ -42,8 +42,6 @@ import { WidgetPreview } from "../components/WidgetPreview";
 import { syncBundleConfigToDiscount } from "../utils/syncDiscount.server";
 
 
-
-
 // ---------------------
 
 import { useAppBridge } from "@shopify/app-bridge-react";
@@ -462,14 +460,13 @@ const removeProduct = (id: string) => {
         },
       ]}
     >
-     
       <Layout>
         <Layout.Section>
           <BlockStack gap="400">
             <Banner tone="info" onDismiss={() => {}}>
               <p>
-                Quantity break widget will be displayed above add to cart buttons on product pages.
-                Discounts are automatically applied at checkout.
+            AAAAAAAAAAAAAAAAAAAAAA    Quantity break widget will be displayed above add to cart buttons on product pages.
+                Discounts are automatically applied at checkout. AAAAAAAAAAAAAAAAAAAAAA
               </p>
             </Banner>
 

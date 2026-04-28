@@ -35,7 +35,7 @@ import {
   RadioButton,
   InlineGrid,
 } from "@shopify/polaris";
-import { DeleteIcon, PlusIcon } from "@shopify/polaris-icons";
+import { DeleteIcon, PlusIcon,ProductIcon,DeliveryIcon,OrderFulfilledIcon } from "@shopify/polaris-icons";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
 import { WidgetPreview } from "../components/WidgetPreview";
@@ -329,6 +329,7 @@ const removeProduct = (id: string) => {
   // ─── Form State ───
   const [name, setName] = useState(bundle.name);
   const [title, setTitle] = useState(bundle.title);
+  const [description, setDescription] = useState(bundle.description);
   const [status, setStatus] = useState(bundle.status);
   const [showWidget, setShowWidget] = useState(bundle.showWidget);
   const [prioritySequence, setPrioritySequence] = useState(String(bundle.prioritySequence));
@@ -467,9 +468,9 @@ const removeProduct = (id: string) => {
         <Layout.Section>
           <BlockStack gap="400">
             <Banner tone="info" onDismiss={() => {}}>
-              <p>
-                Quantity break widget will be displayed above add to cart buttons on product pages.
-                Discounts are automatically applied at checkout.
+              <p>               
+          Use volume discount if you can't use the standalone bundle, for example, to combine the discount with subscriptions.Volume discount widget will be displayed below the add to cart buttons on product pages.
+           The discount will be automatically applied at checkout.
               </p>
             </Banner>
 
@@ -491,6 +492,13 @@ const removeProduct = (id: string) => {
                   value={title}
                   onChange={setTitle}
                   helpText="Title will be displayed in bundle widgets."
+                  autoComplete="off"
+                />
+                <TextField
+                  label="Description"
+                  value="The more you buy, the more you save!"
+                  onChange={setDescription}
+                  helpText="Description will be displayed in bundle widgets under bundle title."
                   autoComplete="off"
                 />
               </BlockStack>
@@ -517,14 +525,14 @@ const removeProduct = (id: string) => {
                     options={statusOptions}
                     value={status}
                     onChange={setStatus}
-                    helpText="Set the status to paused if you want to stop applying discounts."
+                    helpText="Set the status to paused if you want to stop applying discounts and hide this bundle in your shop."
                   />
                   <Select
                     label="Show bundle widget for this bundle"
                     options={showWidgetOptions}
                     value={String(showWidget)}
                     onChange={(val) => setShowWidget(val === "true")}
-                    helpText="Hide bundle widget on product pages."
+                    helpText="Hide bundle widget on product pages. This setting won't prevent discounts from being applied."
                   />
                 </InlineGrid>
                 <Divider />
@@ -553,17 +561,32 @@ const removeProduct = (id: string) => {
                   Discount combinations
                 </Text>
                 <Checkbox
-                  label="Product Discounts"
+                  label={
+                    <InlineStack gap="200" blockAlign="center">
+                      <Text as="span">Product Discounts</Text>
+                      <ProductIcon width="20" height="20" />
+                    </InlineStack>
+                  }
                   checked={productDiscounts}
                   onChange={setProductDiscounts}
                 />
                 <Checkbox
-                  label="Order Discounts"
+                  label={
+                   <InlineStack gap="200" blockAlign="center">
+                     <Text as="span">Order Discounts</Text>
+                     <OrderFulfilledIcon width="20" height="20" />
+                   </InlineStack>
+                 }
                   checked={orderDiscounts}
                   onChange={setOrderDiscounts}
-                />
+                  />
                 <Checkbox
-                  label="Shipping Discounts"
+                  label={
+                   <InlineStack gap="200" blockAlign="center">
+                     <Text as="span">Shipping Discounts</Text>
+                     <DeliveryIcon width="20" height="20" />
+                   </InlineStack>
+                 }
                   checked={shippingDiscounts}
                   onChange={setShippingDiscounts}
                 />
@@ -575,10 +598,10 @@ const removeProduct = (id: string) => {
               <BlockStack gap="400">
                 <InlineStack align="space-between" blockAlign="center">
                   <Text as="h2" variant="headingMd">
-                    Quantity breaks
+                    Volume discounts
                   </Text>
                   <Button icon={PlusIcon} onClick={addBreak}>
-                    Add quantity break
+                    Add Volume discounts
                   </Button>
                 </InlineStack>
 
@@ -587,7 +610,7 @@ const removeProduct = (id: string) => {
                     <BlockStack gap="300">
                       <InlineStack align="space-between" blockAlign="center">
                         <Text as="h3" variant="headingSm">
-                          QUANTITY BREAK #{idx + 1}
+                          VOLUME DISCOUNT #{idx + 1}
                         </Text>
                         {idx > 0 && (
                           <Button
@@ -609,7 +632,7 @@ const removeProduct = (id: string) => {
                           onChange={(val) => updateBreak(idx, "type", val)}
                           helpText={
                             idx === 0
-                              ? "The first option needs to always be fixed quantity for one item."
+                              ? "Select the type of volume discount you prefer."
                               : "Select the type of volume discount you prefer."
                           }
                         />
@@ -618,13 +641,9 @@ const removeProduct = (id: string) => {
                           type="number"
                           value={String(qb.quantity)}
                           onChange={(val) => updateBreak(idx, "quantity", parseInt(val) || 0)}
-                          helpText={
-                            idx === 0
-                              ? "The first option needs to always be for only one item."
-                              : undefined
-                          }
+                          
                           autoComplete="off"
-                          disabled={idx === 0}
+                          // disabled={idx === 0}
                         />
                       </InlineGrid>
 
@@ -656,7 +675,7 @@ const removeProduct = (id: string) => {
                           }
                           suffix={qb.discountType === "PERCENTAGE" ? "%" : "$"}
                           autoComplete="off"
-                          disabled={idx === 0}
+                          // disabled={idx === 0}
                         />
                       </InlineGrid>
 
@@ -665,14 +684,14 @@ const removeProduct = (id: string) => {
                           label="Savings text"
                           value={qb.savingsText}
                           onChange={(val) => updateBreak(idx, "savingsText", val)}
-                          helpText="{{discount_value}} and {{discount_unit}} placeholders will be replaced."
+                          helpText="The {{discount_value}} and {{discount_unit}} placeholders will be automatically replaced with the correct value."
                           autoComplete="off"
                         />
                         <TextField
                           label="Description"
                           value={qb.description}
                           onChange={(val) => updateBreak(idx, "description", val)}
-                          helpText="{{quantity}}, {{max_quantity}} and {{min_value}} placeholders will be replaced."
+                          helpText="The {{quantity}}, {{max_quantity}} and {{min_value}} placeholders will be automatically replaced with the correct value."
                           autoComplete="off"
                         />
                       </InlineGrid>

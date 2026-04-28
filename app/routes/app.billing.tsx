@@ -250,9 +250,15 @@ export default function BillingPage() {
           title={`You are currently on the ${currentPlan.toUpperCase()} plan`}
           tone="info"
         >
-          <Text as="p">
+
+          {/* <Text as="p">
             Upgrade below to unlock all features on your real store.
-          </Text>
+          </Text> */}
+           <Text as="p">
+    {currentPlan.toUpperCase() === "ADVANCED"
+      ? "Great news! All features are now unlocked on your live store."
+      : "Upgrade below to unlock all features on your real store."}
+  </Text>
         </Banner>
 
         {/* Pricing Cards */}

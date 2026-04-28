@@ -70,7 +70,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       const planKey  = activeSub.name.toLowerCase();
       const planMeta = PLANS[planKey];
 
-    //  await updateShopPlan(shop, planKey, activeSub.id);
+     await updateShopPlan(shop, planKey, activeSub.id);
 
       console.log(`[billing-return] ✅ Plan updated → ${planKey} for ${shop}`);
 
