@@ -39,19 +39,19 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   switch (intent) {
     case "save-basic":
       // Save basic settings
-      return Response.json({ success: true, message: "Basic settings saved!" });
+      return json({ success: true, message: "Basic settings saved!" });
     case "save-domains":
       // Save blocked domains
-      return Response.json({ success: true, message: "Blocked domains saved!" });
+      return json({ success: true, message: "Blocked domains saved!" });
     case "save-smtp":
       // Save SMTP settings
-      return Response.json({ success: true, message: "Domain setup saved!" });
+      return json({ success: true, message: "Domain setup saved!" });
     case "save-payment":
       // Save payment integration
-      return Response.json({ success: true, message: "Payment integration saved!" });
+      return json({ success: true, message: "Payment integration saved!" });
     case "save-email-provider":
       // Save email service provider
-      return Response.json({ success: true, message: "Email service provider saved!" });
+      return json({ success: true, message: "Email service provider saved!" });
     case "save-zerobounce":
       // Save zerobounce key
       return json({ success: true, message: "Zerobounce key saved!" });

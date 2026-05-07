@@ -182,22 +182,43 @@ export async function getForm(id: string, shopDomain: string) {
 }
 
 // ── Create form ───────────────────────────────────────────────────────
+// export async function createForm(
+//   shopDomain: string,
+//   formName: string,
+//   fields: FormField[],
+//   settings: FormSettings
+// ) {
+//   return db.formConfig.create({
+//     data: {
+//       shopDomain,
+//       formName,
+//       fields: JSON.stringify(fields),
+//       settings: JSON.stringify(settings),
+//     },
+//   });
+// }
+
 export async function createForm(
   shopDomain: string,
   formName: string,
   fields: FormField[],
-  settings: FormSettings
+  data: {
+    settings: FormSettings;
+    design: any;
+    isActive: boolean;
+  }
 ) {
   return db.formConfig.create({
     data: {
       shopDomain,
       formName,
       fields: JSON.stringify(fields),
-      settings: JSON.stringify(settings),
+      settings: JSON.stringify(data.settings),
+      design: JSON.stringify(data.design),
+      isActive: data.isActive,
     },
   });
 }
-
 // ── Update form ───────────────────────────────────────────────────────
 export async function updateForm(
   id: string,

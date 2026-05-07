@@ -2,29 +2,34 @@
 
 client_id = "519f3f2e9f32742e36c1aa1d83c3e967"
 name = "SmartFormly"
-application_url = "https://example.com"
+application_url = "https://smartformly.kaswebtechsolutions.com"
 embedded = true
 
 [build]
 automatically_update_urls_on_dev = true
-dev_store_url = "checkout-feedback.myshopify.com"
+dev_store_url = "test-all-app-working.myshopify.com"
 
 [webhooks]
 api_version = "2026-07"
 
   [[webhooks.subscriptions]]
-  topics = [ "app/scopes_update" ]
   uri = "/webhooks/app/scopes_update"
+  topics = [ "app/scopes_update" ]
 
   [[webhooks.subscriptions]]
-  topics = [ "app/uninstalled" ]
   uri = "/webhooks/app/uninstalled"
+  topics = [ "app/uninstalled" ]
+
+  [[webhooks.subscriptions]]
+  uri = "/webhooks"
+  compliance_topics = [ "customers/data_request", "customers/redact", "shop/redact" ]
 
 [access_scopes]
-scopes = "write_script_tags,read_script_tags"
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "read_script_tags,write_script_tags"
 
 [auth]
-redirect_urls = [ "https://example.com/api/auth" ]
+redirect_urls = [ "https://smartformly.kaswebtechsolutions.com/api/auth" ]
 
 [pos]
 embedded = false

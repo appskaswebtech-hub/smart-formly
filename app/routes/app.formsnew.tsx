@@ -883,12 +883,10 @@
 //   );
 // }
 
-
-
 import { useAppBridge } from "@shopify/app-bridge-react";
-import { useState } from "react";
-import { json, type ActionFunctionArgs, type LoaderFunctionArgs } from "@remix-run/node";
-import { useNavigate, useSubmit } from "@remix-run/react";
+import { useState, useEffect, useRef } from "react";
+import { json, redirect, type ActionFunctionArgs, type LoaderFunctionArgs } from "@remix-run/node";
+import { useSubmit, useActionData, useNavigation } from "@remix-run/react";
 import { authenticate } from "../shopify.server";
 import { createForm } from "../models/form.server";
 import type { FormField, FormSettings } from "../models/form.server";
@@ -965,16 +963,55 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   return json({});
 };
 
+// export const action = async ({ request }: ActionFunctionArgs) => {
+//   const { session } = await authenticate.admin(request);
+//   try {
+//     const body      = await request.formData();
+//     const formName  = body.get("formName") as string;
+//     const fields    = JSON.parse(body.get("fields") as string) as FormField[];
+//     const rawSettings = JSON.parse(body.get("settings") as string);
+//     const { isActive, ...settings } = rawSettings;
+
+//     if (!formName?.trim()) return json({ error: "Form name is required" }, { status: 422 });
+//     if (!fields || fields.length === 0) return json({ error: "Add at least one field" }, { status: 422 });
+
+//     await createForm(session.shop, formName, fields, settings, isActive ?? false);
+
+//     // ✅ Server-side redirect with ?created=1 so My Forms page can show the toast
+//     return redirect("/app/formsly?created=1");
+//   } catch (error) {
+//     console.error("🔥 FORM SAVE ERROR:", error);
+//     return json({ error: error instanceof Error ? error.message : "Unknown error" }, { status: 500 });
+//   }
+// };
+
+
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { session } = await authenticate.admin(request);
-  const body = await request.formData();
-  const formName = body.get("formName") as string;
-  const fields   = JSON.parse(body.get("fields") as string) as FormField[];
-  const settings = JSON.parse(body.get("settings") as string) as FormSettings;
-  if (!formName?.trim()) return json({ error: "Form name is required" }, { status: 422 });
-  if (fields.length === 0) return json({ error: "Add at least one field" }, { status: 422 });
-  const form = await createForm(session.shop, formName, fields, settings);
-  return Response.json({ success: true, formId: form.id });
+  try {
+    const body     = await request.formData();
+    const formName = body.get("formName") as string;
+    const fields   = JSON.parse(body.get("fields") as string) as FormField[];
+    const rawSettings = JSON.parse(body.get("settings") as string);
+
+    // ✅ Extract all three — design was being left behind before
+    const { isActive, design, ...settings } = rawSettings;
+
+    if (!formName?.trim()) return json({ error: "Form name is required" }, { status: 422 });
+    if (!fields || fields.length === 0) return json({ error: "Add at least one field" }, { status: 422 });
+
+    // ✅ Call with the object shape that createForm actually expects
+    await createForm(session.shop, formName, fields, {
+      settings,
+      design,
+      isActive: isActive === true, // strict boolean — "Save & publish" passes true
+    });
+
+    return redirect("/app/formsly?created=1");
+  } catch (error) {
+    console.error("🔥 FORM SAVE ERROR:", error);
+    return json({ error: error instanceof Error ? error.message : "Unknown error" }, { status: 500 });
+  }
 };
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -989,6 +1026,8 @@ const FIELD_TYPES = [
   { type: "checkbox", label: "Checkbox",         icon: "☑" },
   { type: "file",     label: "File upload",      icon: "⬆" },
 ] as const;
+
+
 
 const defaultSettings: FormSettings = {
   recipientEmail: "", successMessage: "Thank you! Your form has been submitted.",
@@ -1014,9 +1053,16 @@ const defaultDesign: DesignSettings = {
    COMPONENT
    ═══════════════════════════════════════════════════════════════════════ */
 export default function NewForm() {
-  const navigate = useNavigate();
-  const submit   = useSubmit();
-  const shopify  = useAppBridge();
+ 
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+const [bannerPreview, setBannerPreview] = useState<string>("");
+ 
+  const submit     = useSubmit();
+  const actionData = useActionData<typeof action>();
+  const navigation = useNavigation();
+  const shopify    = useAppBridge();
+
+  const saving = navigation.state === "submitting";
 
   const [formName, setFormName] = useState("My Form");
   const [fields, setFields]     = useState<FormField[]>([]);
@@ -1025,13 +1071,22 @@ export default function NewForm() {
   const [activeTab, setActiveTab] = useState(0);
   const [activeDesignTab, setActiveDesignTab] = useState(0);
   const [error, setError]       = useState("");
-  const [saving, setSaving]     = useState(false);
   const [optionInputs, setOptionInputs] = useState<Record<string, string>>({});
   const [expandedFieldId, setExpandedFieldId] = useState<string | null>(null);
   const [showAddElement, setShowAddElement]   = useState(false);
 
+  // Add this ref near your other state declarations
+  const bannerInputRef = useRef<HTMLInputElement>(null);
   const d = design;
   const setD = (patch: Partial<DesignSettings>) => setDesign(prev => ({ ...prev, ...patch }));
+
+  // ── Only handle errors here — success is handled by server redirect ──
+  useEffect(() => {
+    if (!actionData) return;
+    if ((actionData as any).error) {
+      setError((actionData as any).error);
+    }
+  }, [actionData]);
 
   // ── Field helpers ────────────────────────────────────────────────────
   function addField(type: FormField["type"]) {
@@ -1071,34 +1126,31 @@ export default function NewForm() {
   }
 
   // ── Save ─────────────────────────────────────────────────────────────
-  async function handleSave(isActive: boolean) {
+  function handleSave(isActive: boolean) {
     if (!formName.trim()) { setError("Form name is required"); return; }
     if (fields.length === 0) { setError("Add at least one field"); return; }
-    setError(""); setSaving(true);
+    setError("");
     const fd = new FormData();
     fd.append("formName", formName);
     fd.append("fields", JSON.stringify(fields));
     fd.append("settings", JSON.stringify({ ...settings, design, isActive }));
-    const res = await fetch("/app/formsnew", { method: "POST", body: fd });
-    const data = await res.json();
-    setSaving(false);
-    if (data.success) {
-      shopify.toast.show("Form saved successfully!");
-      setTimeout(() => navigate("/app/formsly"), 1200);
-    } else { setError(data.error ?? "Something went wrong"); }
+    submit(fd, { method: "POST" });
   }
 
   // ── Tabs ─────────────────────────────────────────────────────────────
   const mainTabs = [
-    { id: "settings", content: "Form settings" },
-    { id: "design",   content: "Form design" },
+    { id: "settings",    content: "Form settings" },
+    { id: "design",      content: "Form design" },
     { id: "integration", content: "Form integration" },
   ];
   const designTabs = [
-    { id: "heading", content: "Form heading" }, { id: "elements", content: "Form elements" },
-    { id: "captcha", content: "Captcha" }, { id: "form", content: "Form" },
-    { id: "input", content: "Input" }, { id: "button", content: "Submit button" },
-    { id: "layout", content: "Layout" },
+    { id: "heading",  content: "Form heading" },
+    { id: "elements", content: "Form elements" },
+    { id: "captcha",  content: "Captcha" },
+    { id: "form",     content: "Form" },
+    { id: "input",    content: "Input" },
+    { id: "button",   content: "Submit button" },
+    { id: "layout",   content: "Layout" },
   ];
 
   // ── Styles ───────────────────────────────────────────────────────────
@@ -1158,20 +1210,22 @@ export default function NewForm() {
             ))}
           </div>
         </BlockStack>
-        {fields.length > 0 && (<><Divider /><BlockStack gap="200">
-          <Text as="h3" variant="headingSm" fontWeight="semibold">Form fields ({fields.length})</Text>
-          {fields.map(f => (
-            <div key={f.id} style={{padding:"8px 12px",background:"#F9FAFB",border:"1px solid #E5E7EB",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-              <div style={{display:"flex",alignItems:"center",gap:6}}>
-                <Text as="span" variant="bodySm" fontWeight="semibold">{f.label}</Text>
-                <Badge>{f.type}</Badge>
-                {f.required && <Badge tone="attention">Required</Badge>}
-                {f.halfWidth && <Badge tone="info">½</Badge>}
+        {fields.length > 0 && (
+          <><Divider /><BlockStack gap="200">
+            <Text as="h3" variant="headingSm" fontWeight="semibold">Form fields ({fields.length})</Text>
+            {fields.map(f => (
+              <div key={f.id} style={{padding:"8px 12px",background:"#F9FAFB",border:"1px solid #E5E7EB",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                <div style={{display:"flex",alignItems:"center",gap:6}}>
+                  <Text as="span" variant="bodySm" fontWeight="semibold">{f.label}</Text>
+                  <Badge>{f.type}</Badge>
+                  {f.required && <Badge tone="attention">Required</Badge>}
+                  {f.halfWidth && <Badge tone="info">½</Badge>}
+                </div>
+                <button onClick={()=>deleteField(f.id)} style={{...iconBtn,color:"#C0392B"}}>✕</button>
               </div>
-              <button onClick={()=>deleteField(f.id)} style={{...iconBtn,color:"#C0392B"}}>✕</button>
-            </div>
-          ))}
-        </BlockStack></>)}
+            ))}
+          </BlockStack></>
+        )}
       </BlockStack>
     );
   }
@@ -1179,44 +1233,181 @@ export default function NewForm() {
   /* ═════════════════════════════════════════════════════════════════════
      TAB: FORM HEADING
      ═════════════════════════════════════════════════════════════════ */
-  function renderHeadingTab() {
-    return (
-      <BlockStack gap="500">
-        <BlockStack gap="300">
-          <Text as="h3" variant="headingSm" fontWeight="semibold">Form banner</Text>
-          <TextField label="Banner image URL" value={d.formBannerUrl} onChange={v=>setD({formBannerUrl:v})} placeholder="https://..." autoComplete="off" />
-          <Button variant="secondary" onClick={()=>{}}>Add Image</Button>
-        </BlockStack>
-        <Divider />
-        <BlockStack gap="300">
-          <Text as="h3" variant="headingSm" fontWeight="semibold">Form title</Text>
-          <TextField label="Title" value={formName} onChange={setFormName} autoComplete="off" multiline={2} />
-        </BlockStack>
-        <Divider />
-        <BlockStack gap="300">
-          <Text as="h3" variant="headingSm" fontWeight="semibold">Description</Text>
-          <TextField label="Description" value={d.formDescription} onChange={v=>setD({formDescription:v})} placeholder="Add a description..." autoComplete="off" multiline={4} />
-        </BlockStack>
-        <Divider />
-        <BlockStack gap="300">
-          <Text as="h3" variant="headingSm" fontWeight="semibold">Position and size</Text>
-          <TextField label="Image height" value={d.formBannerHeight} onChange={v=>setD({formBannerHeight:v})} autoComplete="off" suffix="px" />
-          <TextField label="Image width" value={d.formBannerWidth} onChange={v=>setD({formBannerWidth:v})} autoComplete="off" />
-          <RadioGroup label="Image alignment" value={d.formBannerAlignment}
-            options={[{label:"Left",value:"left"},{label:"Center",value:"center"},{label:"Right",value:"right"}]}
-            onChange={v=>setD({formBannerAlignment:v as any})} />
-        </BlockStack>
-      </BlockStack>
-    );
+  // function renderHeadingTab() {
+  //   return (
+  //     <BlockStack gap="500">
+  //       <BlockStack gap="300">
+  //         <Text as="h3" variant="headingSm" fontWeight="semibold">Form banner</Text>
+  //         <TextField label="Banner image URL" value={d.formBannerUrl} onChange={v=>setD({formBannerUrl:v})} placeholder="https://..." autoComplete="off" />
+  //         <Button variant="secondary" onClick={()=>{}}>Add Image</Button>
+  //       </BlockStack>
+  //       <Divider />
+  //       <BlockStack gap="300">
+  //         <Text as="h3" variant="headingSm" fontWeight="semibold">Form title</Text>
+  //         <TextField label="Title" value={formName} onChange={setFormName} autoComplete="off" multiline={2} />
+  //       </BlockStack>
+  //       <Divider />
+  //       <BlockStack gap="300">
+  //         <Text as="h3" variant="headingSm" fontWeight="semibold">Description</Text>
+  //         <TextField label="Description" value={d.formDescription} onChange={v=>setD({formDescription:v})} placeholder="Add a description..." autoComplete="off" multiline={4} />
+  //       </BlockStack>
+  //       <Divider />
+  //       <BlockStack gap="300">
+  //         <Text as="h3" variant="headingSm" fontWeight="semibold">Position and size</Text>
+  //         <TextField label="Image height" value={d.formBannerHeight} onChange={v=>setD({formBannerHeight:v})} autoComplete="off" suffix="px" />
+  //         <TextField label="Image width" value={d.formBannerWidth} onChange={v=>setD({formBannerWidth:v})} autoComplete="off" />
+  //         <RadioGroup label="Image alignment" value={d.formBannerAlignment}
+  //           options={[{label:"Left",value:"left"},{label:"Center",value:"center"},{label:"Right",value:"right"}]}
+  //           onChange={v=>setD({formBannerAlignment:v as any})} />
+  //       </BlockStack>
+  //     </BlockStack>
+  //   );
+  // }
+
+function renderHeadingTab() {
+  function handleBannerUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setBannerFile(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const dataUrl = ev.target?.result as string;
+      setBannerPreview(dataUrl);
+      setD({ formBannerUrl: dataUrl });
+    };
+    reader.readAsDataURL(file);
   }
 
+  function handleRemoveBanner() {
+    setBannerFile(null);
+    setBannerPreview("");
+    setD({ formBannerUrl: "" });
+    // Reset input so same file can be re-selected
+    if (bannerInputRef.current) bannerInputRef.current.value = "";
+  }
+
+  return (
+    <BlockStack gap="500">
+      <BlockStack gap="300">
+        <Text as="h3" variant="headingSm" fontWeight="semibold">Form banner</Text>
+
+        {/* ── Hidden real file input ── */}
+        <input
+          ref={bannerInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleBannerUpload}
+          style={{ display: "none" }}
+        />
+
+        {/* ── Preview or upload area ── */}
+        {bannerPreview ? (
+          <div style={{ borderRadius: 8, overflow: "hidden", border: "1px solid #E5E7EB" }}>
+            <div style={{ position: "relative" }}>
+              <img
+                src={bannerPreview}
+                alt="Banner preview"
+                style={{ width: "100%", height: 160, objectFit: "cover", display: "block" }}
+              />
+              <button
+                type="button"
+                onClick={handleRemoveBanner}
+                style={{
+                  position: "absolute", top: 8, right: 8,
+                  background: "rgba(0,0,0,0.6)", color: "#fff",
+                  border: "none", borderRadius: 6, padding: "4px 10px",
+                  cursor: "pointer", fontSize: 12, fontFamily: "inherit",
+                }}
+              >
+                ✕ Remove
+              </button>
+            </div>
+            <div style={{ padding: "8px 12px", background: "#F9FAFB", borderTop: "1px solid #E5E7EB" }}>
+              <button
+                type="button"
+                onClick={() => bannerInputRef.current?.click()}
+                style={{
+                  background: "none", border: "none", cursor: "pointer",
+                  color: "#5C6AC4", fontSize: 13, fontFamily: "inherit",
+                  fontWeight: 500, padding: 0,
+                }}
+              >
+                🔄 Replace image
+              </button>
+              {bannerFile && (
+                <Text as="p" variant="bodySm" tone="subdued">
+                  {bannerFile.name} ({(bannerFile.size / 1024).toFixed(1)} KB)
+                </Text>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div
+            onClick={() => bannerInputRef.current?.click()}
+            style={{
+              display: "flex", flexDirection: "column", alignItems: "center",
+              justifyContent: "center", gap: 8, padding: "32px 16px",
+              border: "2px dashed #D1D5DB", borderRadius: 8,
+              cursor: "pointer", background: "#F9FAFB",
+              transition: "border-color .15s, background .15s",
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.borderColor = "#5C6AC4";
+              e.currentTarget.style.background = "#EEF0FB";
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.borderColor = "#D1D5DB";
+              e.currentTarget.style.background = "#F9FAFB";
+            }}
+          >
+            <span style={{ fontSize: 32 }}>🖼️</span>
+            <Text as="p" variant="bodySm" fontWeight="semibold">Click to upload banner image</Text>
+            <Text as="p" variant="bodySm" tone="subdued">PNG, JPG, GIF, WebP supported</Text>
+            <div style={{
+              marginTop: 4, padding: "6px 16px",
+              background: "#5C6AC4", color: "#fff",
+              borderRadius: 6, fontSize: 13, fontWeight: 500,
+            }}>
+              Browse files
+            </div>
+          </div>
+        )}
+      </BlockStack>
+
+      <Divider />
+      <BlockStack gap="300">
+        <Text as="h3" variant="headingSm" fontWeight="semibold">Form title</Text>
+        <TextField label="Title" value={formName} onChange={setFormName} autoComplete="off" multiline={2} />
+      </BlockStack>
+      <Divider />
+      <BlockStack gap="300">
+        <Text as="h3" variant="headingSm" fontWeight="semibold">Description</Text>
+        <TextField label="Description" value={d.formDescription} onChange={v=>setD({formDescription:v})} placeholder="Add a description..." autoComplete="off" multiline={4} />
+      </BlockStack>
+      <Divider />
+      <BlockStack gap="300">
+        <Text as="h3" variant="headingSm" fontWeight="semibold">Position and size</Text>
+        <TextField label="Image height" value={d.formBannerHeight} onChange={v=>setD({formBannerHeight:v})} autoComplete="off" suffix="px" />
+        <TextField label="Image width" value={d.formBannerWidth} onChange={v=>setD({formBannerWidth:v})} autoComplete="off" />
+        <RadioGroup label="Image alignment" value={d.formBannerAlignment}
+          options={[{label:"Left",value:"left"},{label:"Center",value:"center"},{label:"Right",value:"right"}]}
+          onChange={v=>setD({formBannerAlignment:v as any})} />
+      </BlockStack>
+    </BlockStack>
+  );
+}
+
   /* ═════════════════════════════════════════════════════════════════════
-     TAB: FORM ELEMENTS (collapsible cards)
+     TAB: FORM ELEMENTS
      ═════════════════════════════════════════════════════════════════ */
   function renderElementsTab() {
     return (
       <BlockStack gap="400">
-        {fields.length===0 && <div style={{padding:"40px 20px",textAlign:"center",color:"#9CA3AF",fontSize:13,border:"2px dashed #E5E7EB",borderRadius:8}}>No fields yet. Click "Add element" below.</div>}
+        {fields.length===0 && (
+          <div style={{padding:"40px 20px",textAlign:"center",color:"#9CA3AF",fontSize:13,border:"2px dashed #E5E7EB",borderRadius:8}}>
+            No fields yet. Click "Add element" below.
+          </div>
+        )}
         {fields.map((field, idx) => {
           const isExp = expandedFieldId === field.id;
           const ft = FIELD_TYPES.find(f=>f.type===field.type);
@@ -1239,7 +1430,9 @@ export default function NewForm() {
                   <BlockStack gap="300">
                     <Text as="h4" variant="headingSm" fontWeight="semibold">Details</Text>
                     <TextField label="Field label" value={field.label} onChange={v=>updateField(field.id,{label:v})} autoComplete="off" />
-                    {field.type!=="checkbox"&&field.type!=="file"&&<TextField label="Placeholder" value={field.placeholder??""} onChange={v=>updateField(field.id,{placeholder:v})} autoComplete="off" />}
+                    {field.type!=="checkbox"&&field.type!=="file"&&(
+                      <TextField label="Placeholder" value={field.placeholder??""} onChange={v=>updateField(field.id,{placeholder:v})} autoComplete="off" />
+                    )}
                   </BlockStack>
                   {(field.type==="select"||field.type==="checkbox")&&(
                     <BlockStack gap="200">
@@ -1256,7 +1449,9 @@ export default function NewForm() {
                       </InlineStack>
                     </BlockStack>
                   )}
-                  {field.type==="email"&&<><Divider /><Checkbox label="Send submission email to user" checked={field.sendSubmissionEmail??false} onChange={v=>updateField(field.id,{sendSubmissionEmail:v})} helpText="Send a copy to this email" /></>}
+                  {field.type==="email"&&(
+                    <><Divider /><Checkbox label="Send submission email to user" checked={field.sendSubmissionEmail??false} onChange={v=>updateField(field.id,{sendSubmissionEmail:v})} helpText="Send a copy to this email" /></>
+                  )}
                   <Divider />
                   <BlockStack gap="300">
                     <Text as="h4" variant="headingSm" fontWeight="semibold">Field layout settings</Text>
@@ -1266,7 +1461,9 @@ export default function NewForm() {
                     </div>
                     <Checkbox label="Field in center" checked={field.fieldInCenter??false} onChange={v=>updateField(field.id,{fieldInCenter:v})} />
                   </BlockStack>
-                  {field.type==="email"&&<><Divider /><BlockStack gap="200"><Text as="h4" variant="headingSm" fontWeight="semibold">Validation</Text><Checkbox label="Add email validation field" checked={field.emailValidation??false} onChange={v=>updateField(field.id,{emailValidation:v})} /></BlockStack></>}
+                  {field.type==="email"&&(
+                    <><Divider /><BlockStack gap="200"><Text as="h4" variant="headingSm" fontWeight="semibold">Validation</Text><Checkbox label="Add email validation field" checked={field.emailValidation??false} onChange={v=>updateField(field.id,{emailValidation:v})} /></BlockStack></>
+                  )}
                 </div>
               )}
             </div>
@@ -1274,20 +1471,26 @@ export default function NewForm() {
         })}
         <div style={{position:"relative"}}>
           <Button variant="plain" onClick={()=>setShowAddElement(!showAddElement)}>+ Add element</Button>
-          {showAddElement&&<div style={{position:"absolute",top:"100%",left:0,zIndex:10,marginTop:4,background:"#fff",border:"1px solid #D1D5DB",borderRadius:8,boxShadow:"0 4px 12px rgba(0,0,0,0.1)",padding:8,minWidth:220}}>
-            {FIELD_TYPES.map(ft=><button key={ft.type} onClick={()=>addField(ft.type as FormField["type"])}
-              style={{display:"flex",alignItems:"center",gap:10,width:"100%",padding:"8px 10px",background:"none",border:"none",borderRadius:6,cursor:"pointer",fontSize:13,fontFamily:"inherit",textAlign:"left"}}
-              onMouseEnter={e=>(e.currentTarget.style.background="#F3F4F6")} onMouseLeave={e=>(e.currentTarget.style.background="none")}>
-              <span style={{width:24,height:24,borderRadius:4,background:"#EEF0FB",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:"#5C6AC4"}}>{ft.icon}</span>{ft.label}
-            </button>)}
-          </div>}
+          {showAddElement && (
+            <div style={{position:"absolute",top:"100%",left:0,zIndex:10,marginTop:4,background:"#fff",border:"1px solid #D1D5DB",borderRadius:8,boxShadow:"0 4px 12px rgba(0,0,0,0.1)",padding:8,minWidth:220}}>
+              {FIELD_TYPES.map(ft=>(
+                <button key={ft.type} onClick={()=>addField(ft.type as FormField["type"])}
+                  style={{display:"flex",alignItems:"center",gap:10,width:"100%",padding:"8px 10px",background:"none",border:"none",borderRadius:6,cursor:"pointer",fontSize:13,fontFamily:"inherit",textAlign:"left"}}
+                  onMouseEnter={e=>(e.currentTarget.style.background="#F3F4F6")}
+                  onMouseLeave={e=>(e.currentTarget.style.background="none")}>
+                  <span style={{width:24,height:24,borderRadius:4,background:"#EEF0FB",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:"#5C6AC4"}}>{ft.icon}</span>
+                  {ft.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </BlockStack>
     );
   }
 
   /* ═════════════════════════════════════════════════════════════════════
-     TAB: FORM (Background, Position, Border)
+     TAB: FORM
      ═════════════════════════════════════════════════════════════════ */
   function renderFormTab() {
     return (
@@ -1295,7 +1498,9 @@ export default function NewForm() {
         <BlockStack gap="300">
           <Text as="h3" variant="headingSm" fontWeight="bold">Background</Text>
           <RadioGroup label="Background type" value={d.bgType}
-            options={[{label:"Transparent",value:"transparent"},{label:"Color",value:"color"},{label:"Gradient",value:"gradient"},{label:"Image",value:"image"}]}
+            options={[{label:"Transparent",value:"transparent"},{label:"Color",value:"color"},{label:"Gradient",value:"gradient"}
+              // ,{label:"Image",value:"image"}
+            ]}
             onChange={v=>setD({bgType:v as any})} />
           {(d.bgType==="color"||d.bgType==="gradient")&&<ColorInput label="Background color" value={d.bgColor} onChange={v=>setD({bgColor:v})} />}
           {d.bgType==="gradient"&&<ColorInput label="Gradient end color" value={d.bgColor2} onChange={v=>setD({bgColor2:v})} />}
@@ -1323,7 +1528,7 @@ export default function NewForm() {
   }
 
   /* ═════════════════════════════════════════════════════════════════════
-     TAB: INPUT (Input field, font, label)
+     TAB: INPUT
      ═════════════════════════════════════════════════════════════════ */
   function renderInputTab() {
     return (
@@ -1417,7 +1622,6 @@ export default function NewForm() {
     );
   }
 
-  // ── Background helper ────────────────────────────────────────────────
   function getFormBg(): string {
     if (d.bgType==="transparent") return "transparent";
     if (d.bgType==="color") return d.bgColor;
@@ -1429,13 +1633,19 @@ export default function NewForm() {
      MAIN RENDER
      ═════════════════════════════════════════════════════════════════ */
   return (
-    <Page title="Create Form" backAction={{content:"Forms",url:"/app/formsly"}}
-      primaryAction={{content:saving?"Saving…":"Save & publish",onAction:()=>handleSave(true),loading:saving}}
-      secondaryActions={[{content:"Save as draft",onAction:()=>handleSave(false)}]}>
+    <Page
+      title="Create Form"
+      backAction={{ content: "Forms", url: "/app/formsly" }}
+      primaryAction={{
+        content: saving ? "Saving…" : "Save & publish",
+        onAction: () => handleSave(true),
+        loading: saving,
+      }}
+      secondaryActions={[{ content: "Save as draft", onAction: () => handleSave(false) }]}
+    >
       {error && <Box paddingBlockEnd="400"><Banner tone="critical"><p>{error}</p></Banner></Box>}
 
       <div style={{display:"grid",gridTemplateColumns:"1fr 420px",gap:20,alignItems:"start"}}>
-        {/* Left: Builder */}
         <Card>
           <BlockStack gap="400">
             <Tabs tabs={mainTabs} selected={activeTab} onSelect={setActiveTab} />
@@ -1447,7 +1657,6 @@ export default function NewForm() {
           </BlockStack>
         </Card>
 
-        {/* Right: Preview */}
         <div style={{position:"sticky",top:20}}>
           <Card>
             <BlockStack gap="300">
@@ -1457,14 +1666,18 @@ export default function NewForm() {
               </InlineStack>
               <Divider />
               <div style={{
-                background:getFormBg(), border:`${d.borderSize}px solid ${d.borderColor}`,
-                borderRadius:`${d.borderRadius}px`, padding:`${d.formPadding}px`,
-                maxWidth:d.formWidth, margin:"0 auto", fontFamily:"sans-serif",
-                boxShadow:d.bgShadow!=="none"?d.bgShadow:undefined,
+                background: getFormBg(),
+                border: `${d.borderSize}px solid ${d.borderColor}`,
+                borderRadius: `${d.borderRadius}px`,
+                padding: `${d.formPadding}px`,
+                maxWidth: d.formWidth, margin: "0 auto", fontFamily: "sans-serif",
+                boxShadow: d.bgShadow !== "none" ? d.bgShadow : undefined,
               }}>
-                {d.formBannerUrl && <div style={{marginBottom:16,textAlign:d.formBannerAlignment}}>
-                  <img src={d.formBannerUrl} alt="Banner" style={{maxWidth:d.formBannerWidth,height:`${d.formBannerHeight}px`,objectFit:"cover",borderRadius:4}} />
-                </div>}
+                {d.formBannerUrl && (
+                  <div style={{marginBottom:16,textAlign:d.formBannerAlignment}}>
+                    <img src={d.formBannerUrl} alt="Banner" style={{maxWidth:d.formBannerWidth,height:`${d.formBannerHeight}px`,objectFit:"cover",borderRadius:4}} />
+                  </div>
+                )}
                 <h2 style={{fontSize:20,fontWeight:600,marginBottom:4,marginTop:0}}>{formName||"Form Title"}</h2>
                 {d.formDescription && <p style={{fontSize:13,color:"#6B7280",marginTop:0,marginBottom:16}}>{d.formDescription}</p>}
                 {fields.length===0 ? (
@@ -1473,48 +1686,13 @@ export default function NewForm() {
                   <div style={{display:"flex",flexWrap:"wrap",gap:16}}>
                     {fields.map(f => (
                       <div key={f.id} style={{width:f.halfWidth?"calc(50% - 8px)":"100%",textAlign:f.fieldInCenter?"center":"left"}}>
-                        {/* BLOCK labels */}
-                        {d.labelStyle === "block" && (
-                          <>
-                            <label style={{ display: "block", marginBottom: 6, fontSize: `${d.labelFontSize}px`, fontWeight: 500, color: d.labelColor }}>
-                              {f.label}{f.required && <span style={{ color: "red", marginLeft: 2 }}>*</span>}
-                            </label>
-                            {renderPreview(f)}
-                          </>
-                        )}
-                        {/* INLINE labels */}
-                        {d.labelStyle === "inline" && (
-                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                            <label style={{ fontSize: `${d.labelFontSize}px`, fontWeight: 500, color: d.labelColor, whiteSpace: "nowrap", minWidth: "30%" }}>
-                              {f.label}{f.required && <span style={{ color: "red", marginLeft: 2 }}>*</span>}
-                            </label>
-                            <div style={{ flex: 1 }}>{renderPreview(f)}</div>
-                          </div>
-                        )}
-                        {/* FLOATING labels */}
-                        {d.labelStyle === "floating" && (
-                          <div style={{ position: "relative" }}>
-                            {renderPreview(f)}
-                            <label style={{
-                              position: "absolute", top: 4, left: 10,
-                              fontSize: 10, color: d.labelColor, opacity: 0.6,
-                              pointerEvents: "none",
-                            }}>
-                              {f.label}{f.required && <span style={{ color: "red", marginLeft: 2 }}>*</span>}
-                            </label>
-                          </div>
-                        )}
+                        {d.labelStyle==="block" && (<><label style={{display:"block",marginBottom:6,fontSize:`${d.labelFontSize}px`,fontWeight:500,color:d.labelColor}}>{f.label}{f.required&&<span style={{color:"red",marginLeft:2}}>*</span>}</label>{renderPreview(f)}</>)}
+                        {d.labelStyle==="inline" && (<div style={{display:"flex",alignItems:"center",gap:8}}><label style={{fontSize:`${d.labelFontSize}px`,fontWeight:500,color:d.labelColor,whiteSpace:"nowrap",minWidth:"30%"}}>{f.label}{f.required&&<span style={{color:"red",marginLeft:2}}>*</span>}</label><div style={{flex:1}}>{renderPreview(f)}</div></div>)}
+                        {d.labelStyle==="floating" && (<div style={{position:"relative"}}>{renderPreview(f)}<label style={{position:"absolute",top:4,left:10,fontSize:10,color:d.labelColor,opacity:0.6,pointerEvents:"none"}}>{f.label}{f.required&&<span style={{color:"red",marginLeft:2}}>*</span>}</label></div>)}
                       </div>
                     ))}
-                    <div style={{width:"100%",display:"flex",
-                      justifyContent:d.buttonAlignment==="full"?"stretch":d.buttonAlignment==="center"?"center":d.buttonAlignment==="right"?"flex-end":"flex-start"}}>
-                      <button style={{
-                        width:d.buttonAlignment==="full"?"100%":"auto", padding:"10px 24px",
-                        background:d.buttonBg, color:d.buttonTextColor,
-                        border:`${d.buttonBorderWidth}px solid ${d.buttonBorderColor}`,
-                        borderRadius:`${d.buttonBorderRadius}px`, fontSize:Number(d.buttonFontSize),
-                        fontWeight:600, cursor:"pointer", fontFamily:"inherit",
-                      }}>{d.buttonText||settings.submitLabel||"Submit"}</button>
+                    <div style={{width:"100%",display:"flex",justifyContent:d.buttonAlignment==="full"?"stretch":d.buttonAlignment==="center"?"center":d.buttonAlignment==="right"?"flex-end":"flex-start"}}>
+                      <button style={{width:d.buttonAlignment==="full"?"100%":"auto",padding:"10px 24px",background:d.buttonBg,color:d.buttonTextColor,border:`${d.buttonBorderWidth}px solid ${d.buttonBorderColor}`,borderRadius:`${d.buttonBorderRadius}px`,fontSize:Number(d.buttonFontSize),fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{d.buttonText||settings.submitLabel||"Submit"}</button>
                     </div>
                   </div>
                 )}

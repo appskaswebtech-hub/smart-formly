@@ -34,13 +34,13 @@ model FormConfig {
   shopDomain  String
   formName    String
   slug        String   @default("")
-  fields      String   @default("[]")   // JSON string
-  settings    String   @default("{}")   // JSON string
+  fields      String   @default("[]")
+  settings    String   @default("{}")
+  design      String   @default("{}")   // ✅ ADD THIS
   isActive    Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   submissions FormSubmission[]
-
 }
 
 model FormSubmission {

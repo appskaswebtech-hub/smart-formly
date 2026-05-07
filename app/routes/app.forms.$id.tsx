@@ -1389,9 +1389,10 @@
 // }
 
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   json,
+  redirect,
   type ActionFunctionArgs,
   type LoaderFunctionArgs,
 } from "@remix-run/node";
@@ -1507,6 +1508,24 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 /* ═══════════════════════════════════════════════════════════════════════════
    ACTION
    ═══════════════════════════════════════════════════════════════════════ */
+// export const action = async ({ request, params }: ActionFunctionArgs) => {
+//   const { session } = await authenticate.admin(request);
+//   const { id } = params;
+//   if (!id) return json({ error: "Form ID required" }, { status: 400 });
+
+//   const body     = await request.formData();
+//   const formName = body.get("formName") as string;
+//   const fields   = JSON.parse(body.get("fields") as string) as FormField[];
+//   const settings = JSON.parse(body.get("settings") as string) as FormSettings;
+//   const isActive = body.get("isActive") === "true";
+
+//   if (!formName?.trim()) return json({ error: "Form name is required" }, { status: 422 });
+//   if (!fields || fields.length === 0) return json({ error: "Add at least one field" }, { status: 422 });
+
+//   await updateForm(id, session.shop, { formName, fields, settings, isActive });
+//   return json({ success: true });
+// };
+
 export const action = async ({ request, params }: ActionFunctionArgs) => {
   const { session } = await authenticate.admin(request);
   const { id } = params;
@@ -1522,9 +1541,10 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
   if (!fields || fields.length === 0) return json({ error: "Add at least one field" }, { status: 422 });
 
   await updateForm(id, session.shop, { formName, fields, settings, isActive });
-  return json({ success: true });
-};
 
+  // ✅ Server-side redirect — same pattern as create form
+  return redirect("/app/formsly?updated=1");
+};
 /* ═══════════════════════════════════════════════════════════════════════════
    COMPONENT
    ═══════════════════════════════════════════════════════════════════════ */
@@ -1536,7 +1556,10 @@ export default function EditForm() {
   const navigation = useNavigation();
   const shopify    = useAppBridge();
   const saving     = navigation.state === "submitting";
-
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [bannerPreview, setBannerPreview] = useState<string>("");
+  // Add this ref near your other state declarations
+const bannerInputRef = useRef<HTMLInputElement>(null);
   // Restore saved design from settings if it exists
   const savedDesign = (form.settings as any)?.design;
 
@@ -1558,6 +1581,7 @@ export default function EditForm() {
   const d = design;
   const setD = (patch: Partial<DesignSettings>) => setDesign(prev => ({ ...prev, ...patch }));
 
+ 
   /* ═════════════════════════════════════════════════════════════════════
      FIELD HELPERS
      ═════════════════════════════════════════════════════════════════ */
@@ -1597,24 +1621,44 @@ export default function EditForm() {
     setOptionInputs(p => ({ ...p, [fid]: "" }));
   }
 
+  useEffect(() => {
+  if (!actionData) return;
+  if ((actionData as any).error) {
+    setClientError((actionData as any).error);
+  }
+}, [actionData]);
   /* ═════════════════════════════════════════════════════════════════════
      SAVE
      ═════════════════════════════════════════════════════════════════ */
+  // function handleSave(isActive: boolean) {
+  //   if (!formName.trim()) { setClientError("Form name is required"); return; }
+  //   if (fields.length === 0) { setClientError("Add at least one field"); return; }
+  //   setClientError("");
+
+  //   const fd = new FormData();
+  //   fd.append("formName", formName);
+  //   fd.append("fields", JSON.stringify(fields));
+  //   fd.append("settings", JSON.stringify({ ...settings, design }));
+  //   fd.append("isActive", String(isActive));
+
+  //   submit(fd, { method: "POST" });
+  //   shopify.toast.show("Form updated successfully!");
+  // }
+
   function handleSave(isActive: boolean) {
-    if (!formName.trim()) { setClientError("Form name is required"); return; }
-    if (fields.length === 0) { setClientError("Add at least one field"); return; }
-    setClientError("");
+  if (!formName.trim()) { setClientError("Form name is required"); return; }
+  if (fields.length === 0) { setClientError("Add at least one field"); return; }
+  setClientError("");
 
-    const fd = new FormData();
-    fd.append("formName", formName);
-    fd.append("fields", JSON.stringify(fields));
-    fd.append("settings", JSON.stringify({ ...settings, design }));
-    fd.append("isActive", String(isActive));
+  const fd = new FormData();
+  fd.append("formName", formName);
+  fd.append("fields", JSON.stringify(fields));
+  fd.append("settings", JSON.stringify({ ...settings, design }));
+  fd.append("isActive", String(isActive));
 
-    submit(fd, { method: "POST" });
-    shopify.toast.show("Form updated successfully!");
-  }
-
+  submit(fd, { method: "POST" });
+  // ✅ Toast removed — will show on My Forms page via ?updated=1
+}
   /* ═════════════════════════════════════════════════════════════════════
      TABS
      ═════════════════════════════════════════════════════════════════ */
@@ -1712,36 +1756,169 @@ export default function EditForm() {
   /* ═════════════════════════════════════════════════════════════════════
      TAB: FORM HEADING
      ═════════════════════════════════════════════════════════════════ */
-  function renderHeadingTab() {
-    return (
-      <BlockStack gap="500">
-        <BlockStack gap="300">
-          <Text as="h3" variant="headingSm" fontWeight="semibold">Form banner</Text>
-          <TextField label="Banner image URL" value={d.formBannerUrl} onChange={v=>setD({formBannerUrl:v})} placeholder="https://..." autoComplete="off" />
-          <Button variant="secondary" onClick={()=>{}}>Add Image</Button>
-        </BlockStack>
-        <Divider />
-        <BlockStack gap="300">
-          <Text as="h3" variant="headingSm" fontWeight="semibold">Form title</Text>
-          <TextField label="Title" value={formName} onChange={setFormName} autoComplete="off" multiline={2} />
-        </BlockStack>
-        <Divider />
-        <BlockStack gap="300">
-          <Text as="h3" variant="headingSm" fontWeight="semibold">Description</Text>
-          <TextField label="Description" value={d.formDescription} onChange={v=>setD({formDescription:v})} placeholder="Add a description..." autoComplete="off" multiline={4} />
-        </BlockStack>
-        <Divider />
-        <BlockStack gap="300">
-          <Text as="h3" variant="headingSm" fontWeight="semibold">Position and size</Text>
-          <TextField label="Image height" value={d.formBannerHeight} onChange={v=>setD({formBannerHeight:v})} autoComplete="off" suffix="px" />
-          <TextField label="Image width" value={d.formBannerWidth} onChange={v=>setD({formBannerWidth:v})} autoComplete="off" />
-          <RadioGroup label="Image alignment" value={d.formBannerAlignment}
-            options={[{label:"Left",value:"left"},{label:"Center",value:"center"},{label:"Right",value:"right"}]}
-            onChange={v=>setD({formBannerAlignment:v as any})} />
-        </BlockStack>
-      </BlockStack>
-    );
+  // function renderHeadingTab() {
+  //   return (
+  //     <BlockStack gap="500">
+  //       <BlockStack gap="300">
+  //         <Text as="h3" variant="headingSm" fontWeight="semibold">Form banner</Text>
+  //         <TextField label="Banner image URL" value={d.formBannerUrl} onChange={v=>setD({formBannerUrl:v})} placeholder="https://..." autoComplete="off" />
+  //         <Button variant="secondary" onClick={()=>{}}>Add Image</Button>
+  //       </BlockStack>
+  //       <Divider />
+  //       <BlockStack gap="300">
+  //         <Text as="h3" variant="headingSm" fontWeight="semibold">Form title</Text>
+  //         <TextField label="Title" value={formName} onChange={setFormName} autoComplete="off" multiline={2} />
+  //       </BlockStack>
+  //       <Divider />
+  //       <BlockStack gap="300">
+  //         <Text as="h3" variant="headingSm" fontWeight="semibold">Description</Text>
+  //         <TextField label="Description" value={d.formDescription} onChange={v=>setD({formDescription:v})} placeholder="Add a description..." autoComplete="off" multiline={4} />
+  //       </BlockStack>
+  //       <Divider />
+  //       <BlockStack gap="300">
+  //         <Text as="h3" variant="headingSm" fontWeight="semibold">Position and size</Text>
+  //         <TextField label="Image height" value={d.formBannerHeight} onChange={v=>setD({formBannerHeight:v})} autoComplete="off" suffix="px" />
+  //         <TextField label="Image width" value={d.formBannerWidth} onChange={v=>setD({formBannerWidth:v})} autoComplete="off" />
+  //         <RadioGroup label="Image alignment" value={d.formBannerAlignment}
+  //           options={[{label:"Left",value:"left"},{label:"Center",value:"center"},{label:"Right",value:"right"}]}
+  //           onChange={v=>setD({formBannerAlignment:v as any})} />
+  //       </BlockStack>
+  //     </BlockStack>
+  //   );
+  // }
+function renderHeadingTab() {
+  function handleBannerUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setBannerFile(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const dataUrl = ev.target?.result as string;
+      setBannerPreview(dataUrl);
+      setD({ formBannerUrl: dataUrl });
+    };
+    reader.readAsDataURL(file);
   }
+
+  function handleRemoveBanner() {
+    setBannerFile(null);
+    setBannerPreview("");
+    setD({ formBannerUrl: "" });
+    // Reset input so same file can be re-selected
+    if (bannerInputRef.current) bannerInputRef.current.value = "";
+  }
+
+  return (
+    <BlockStack gap="500">
+      <BlockStack gap="300">
+        <Text as="h3" variant="headingSm" fontWeight="semibold">Form banner</Text>
+
+        {/* ── Hidden real file input ── */}
+        <input
+          ref={bannerInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleBannerUpload}
+          style={{ display: "none" }}
+        />
+
+        {/* ── Preview or upload area ── */}
+        {bannerPreview ? (
+          <div style={{ borderRadius: 8, overflow: "hidden", border: "1px solid #E5E7EB" }}>
+            <div style={{ position: "relative" }}>
+              <img
+                src={bannerPreview}
+                alt="Banner preview"
+                style={{ width: "100%", height: 160, objectFit: "cover", display: "block" }}
+              />
+              <button
+                type="button"
+                onClick={handleRemoveBanner}
+                style={{
+                  position: "absolute", top: 8, right: 8,
+                  background: "rgba(0,0,0,0.6)", color: "#fff",
+                  border: "none", borderRadius: 6, padding: "4px 10px",
+                  cursor: "pointer", fontSize: 12, fontFamily: "inherit",
+                }}
+              >
+                ✕ Remove
+              </button>
+            </div>
+            <div style={{ padding: "8px 12px", background: "#F9FAFB", borderTop: "1px solid #E5E7EB" }}>
+              <button
+                type="button"
+                onClick={() => bannerInputRef.current?.click()}
+                style={{
+                  background: "none", border: "none", cursor: "pointer",
+                  color: "#5C6AC4", fontSize: 13, fontFamily: "inherit",
+                  fontWeight: 500, padding: 0,
+                }}
+              >
+                🔄 Replace image
+              </button>
+              {bannerFile && (
+                <Text as="p" variant="bodySm" tone="subdued">
+                  {bannerFile.name} ({(bannerFile.size / 1024).toFixed(1)} KB)
+                </Text>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div
+            onClick={() => bannerInputRef.current?.click()}
+            style={{
+              display: "flex", flexDirection: "column", alignItems: "center",
+              justifyContent: "center", gap: 8, padding: "32px 16px",
+              border: "2px dashed #D1D5DB", borderRadius: 8,
+              cursor: "pointer", background: "#F9FAFB",
+              transition: "border-color .15s, background .15s",
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.borderColor = "#5C6AC4";
+              e.currentTarget.style.background = "#EEF0FB";
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.borderColor = "#D1D5DB";
+              e.currentTarget.style.background = "#F9FAFB";
+            }}
+          >
+            <span style={{ fontSize: 32 }}>🖼️</span>
+            <Text as="p" variant="bodySm" fontWeight="semibold">Click to upload banner image</Text>
+            <Text as="p" variant="bodySm" tone="subdued">PNG, JPG, GIF, WebP supported</Text>
+            <div style={{
+              marginTop: 4, padding: "6px 16px",
+              background: "#5C6AC4", color: "#fff",
+              borderRadius: 6, fontSize: 13, fontWeight: 500,
+            }}>
+              Browse files
+            </div>
+          </div>
+        )}
+      </BlockStack>
+
+      <Divider />
+      <BlockStack gap="300">
+        <Text as="h3" variant="headingSm" fontWeight="semibold">Form title</Text>
+        <TextField label="Title" value={formName} onChange={setFormName} autoComplete="off" multiline={2} />
+      </BlockStack>
+      <Divider />
+      <BlockStack gap="300">
+        <Text as="h3" variant="headingSm" fontWeight="semibold">Description</Text>
+        <TextField label="Description" value={d.formDescription} onChange={v=>setD({formDescription:v})} placeholder="Add a description..." autoComplete="off" multiline={4} />
+      </BlockStack>
+      <Divider />
+      <BlockStack gap="300">
+        <Text as="h3" variant="headingSm" fontWeight="semibold">Position and size</Text>
+        <TextField label="Image height" value={d.formBannerHeight} onChange={v=>setD({formBannerHeight:v})} autoComplete="off" suffix="px" />
+        <TextField label="Image width" value={d.formBannerWidth} onChange={v=>setD({formBannerWidth:v})} autoComplete="off" />
+        <RadioGroup label="Image alignment" value={d.formBannerAlignment}
+          options={[{label:"Left",value:"left"},{label:"Center",value:"center"},{label:"Right",value:"right"}]}
+          onChange={v=>setD({formBannerAlignment:v as any})} />
+      </BlockStack>
+    </BlockStack>
+  );
+}
+
 
   /* ═════════════════════════════════════════════════════════════════════
      TAB: FORM ELEMENTS (collapsible cards)
@@ -1843,7 +2020,9 @@ export default function EditForm() {
         <BlockStack gap="300">
           <Text as="h3" variant="headingSm" fontWeight="bold">Background</Text>
           <RadioGroup label="Background type" value={d.bgType}
-            options={[{label:"Transparent",value:"transparent"},{label:"Color",value:"color"},{label:"Gradient",value:"gradient"},{label:"Image",value:"image"}]}
+            options={[{label:"Transparent",value:"transparent"},{label:"Color",value:"color"},{label:"Gradient",value:"gradient"}
+              // ,{label:"Image",value:"image"}
+            ]}
             onChange={v=>setD({bgType:v as any})} />
           {(d.bgType==="color"||d.bgType==="gradient")&&<ColorInput label="Background color" value={d.bgColor} onChange={v=>setD({bgColor:v})} />}
           {d.bgType==="gradient"&&<ColorInput label="Gradient end color" value={d.bgColor2} onChange={v=>setD({bgColor2:v})} />}
