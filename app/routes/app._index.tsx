@@ -47,16 +47,19 @@ import db from "../db.server";
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, billing, session } = await authenticate.admin(request);
 
-  const { hasAccess } = await checkAppAccess(admin, billing);
+  const access = await checkAppAccess(admin, billing);
+const { hasAccess, storePlan, activePlan, isDevStore } = access;
 
   const shop = session.shop;
 
   // If the store does not have access, return a flag
-  if (!hasAccess) {
-    return json({
-      hasAccess: false,
-    });
-  }
+ if (!hasAccess) {
+  return json({ 
+    hasAccess: false,
+    shopName: shop,
+    storePlan: access.storePlan, // plans.js se aayega
+  });
+}
 
   // Proceed with loading the normal data for the dashboard
   const totalBundles = await db.bundle.count({ where: { shop } });
@@ -85,11 +88,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 
 export default function Index() {
-  const { totalBundles, activeBundles, pausedBundles, recentBundles } =
-    useLoaderData<typeof loader>();
+const data = useLoaderData<typeof loader>();
+const { totalBundles, activeBundles, pausedBundles, recentBundles } = data;
   const navigate = useNavigate();
   // ----------------------
-const data = useLoaderData();
 console.log("LOADER DATA:", data);
 if(!data.hasAccess){
  return (

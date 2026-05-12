@@ -28,13 +28,18 @@ const PAGE_SIZE = 10;
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session , admin ,billing } = await authenticate.admin(request);
   // ---------------------
-   const { hasAccess } = await checkAppAccess(admin, billing);
+   const access = await checkAppAccess(admin, billing);
+const { hasAccess, storePlan } = access;
   if (!hasAccess) {
-    return json({ hasAccess: false });
-  }
-   const bundless = await db.bundle.findMany({
-    where: { shop: session.shop },
+  return json({ 
+    hasAccess: false,
+    shopName: session.shop,
+    storePlan: access.storePlan,
   });
+}
+  //  const bundless = await db.bundle.findMany({
+  //   where: { shop: session.shop },
+  // });
 
   // return json({ hasAccess: true, bundless });
   // ---------------------
@@ -62,7 +67,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     db.bundle.count({ where }),
   ]);
 
-  return json({ bundles, total, page, search, hasAccess: true, bundless });
+  return json({ bundles, total, page, search, hasAccess: true });
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -90,7 +95,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function BundlesList() {
-  const { bundles, total, page, search } = useLoaderData<typeof loader>();
+ // const { bundles, total, page, search } = useLoaderData<typeof loader>();
+const data = useLoaderData<typeof loader>();
+const { bundles, total, page, search } = data;
   const navigate = useNavigate();
   const submit = useSubmit();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -130,7 +137,7 @@ export default function BundlesList() {
     }
   };
 // ------------------------
-const data = useLoaderData();
+// const data = useLoaderData();
 
  if (!data.hasAccess) {
     return (
@@ -149,10 +156,8 @@ const data = useLoaderData();
           Once you upgrade, all features (Bundles, Quantity Breaks, Settings)
           will be unlocked immediately.
         </Text>
+         <Button url="/app/billing">Upgrade</Button>
         </Banner>
-         <Button primary url="/app/billing">
-          Upgrade to Advanced Plan
-        </Button>
       </Page>
     );
   }
@@ -230,7 +235,7 @@ const data = useLoaderData();
                             Showing {bundles.length} of {total} bundle{total !== 1 ? "s" : ""}
                           </Text>
                         </InlineStack>
-                        {selectedIds.length > 0 && (
+                        {/* {selectedIds.length > 0 && (
                           <Button
                             variant="plain"
                             tone="critical"
@@ -239,7 +244,85 @@ const data = useLoaderData();
                           >
                             Delete selected
                           </Button>
-                        )}
+                        )} */}
+
+
+                        {selectedIds.length > 0 && (
+  <InlineStack gap="0">
+
+    {/* Selected count */}
+    <Box
+      padding="300"
+      borderWidth="025"
+      borderColor="border"
+      background="bg-surface"
+      borderStartStartRadius="200"
+      borderEndStartRadius="200"
+    >
+      <InlineStack gap="200" blockAlign="center">
+        <Checkbox
+          label=""
+          labelHidden
+          checked
+          onChange={() => {}}
+        />
+
+        <Text as="span" variant="bodyMd">
+          {selectedIds.length} selected
+        </Text>
+      </InlineStack>
+    </Box>
+
+    {/* Activate */}
+    <Box
+      padding="300"
+      borderWidth="025"
+      borderColor="border"
+      background="bg-surface"
+    >
+      <Button
+        variant="plain"
+        onClick={() => alert("Activate clicked")}
+      >
+        Activate
+      </Button>
+    </Box>
+
+    {/* Pause */}
+    <Box
+      padding="300"
+      borderWidth="025"
+      borderColor="border"
+      background="bg-surface"
+    >
+      <Button
+        variant="plain"
+        onClick={() => alert("Pause clicked")}
+      >
+        Pause
+      </Button>
+    </Box>
+
+    {/* Delete */}
+    <Box
+      padding="300"
+      borderWidth="025"
+      borderColor="border"
+      background="bg-surface"
+      borderStartEndRadius="200"
+      borderEndEndRadius="200"
+    >
+      <Button
+        variant="plain"
+        tone="critical"
+        onClick={handleBulkDelete}
+      >
+        Delete
+      </Button>
+    </Box>
+
+  </InlineStack>
+)}
                       </InlineStack>
                     </Box>
 

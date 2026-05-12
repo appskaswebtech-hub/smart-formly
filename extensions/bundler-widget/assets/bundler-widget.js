@@ -305,7 +305,7 @@
       applyColors(root, data.colors);
     }
         // if (data.bundles && data.bundles.length > 0) {
-        //   renderWidget(root, data.bundles[1], basePrice, currency);
+        //   renderWidget(root, data.bundles[0], basePrice, currency);
         // } 
   if (data.bundles && data.bundles.length > 0) {
   var matchedBundle = data.bundles.find(function(b) {
