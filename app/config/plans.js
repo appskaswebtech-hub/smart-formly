@@ -8,6 +8,13 @@ export const PLANS = {
     bundleLimit: Infinity,
     trialDays:   0,
   },
+  pro: {
+    name:        "pro",
+    label:       "Pro",
+    price:       10.99,
+    bundleLimit: Infinity,
+    trialDays:   0,
+  },
   advanced: {
     name:        "advanced",
     label:       "Advanced",

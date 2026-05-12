@@ -485,6 +485,7 @@ const removeProduct = (id: string) => {
                   onChange={setName}
                   helpText="Bundle name will be displayed in checkout."
                   autoComplete="off"
+                  readOnly
                 />
                 <TextField
                   label="Title"

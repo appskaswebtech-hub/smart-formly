@@ -79,6 +79,17 @@ const PLANS_UI: PlanUI[] = [
     ],
   },
   {
+    key:      "pro",
+    color:    "#f6f6f7",
+    popular:  false,
+    features: [
+       "Real Store",
+      "Upto five Bundles",
+      "Smart discounts",
+      "Priority support",
+    ],
+  },
+  {
     key:      "advanced",
     color:    "#f3f0ff",
     popular:  true,

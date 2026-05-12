@@ -195,3 +195,55 @@ export async function deleteBundle(shop: string, bundleId: string) {
     where: { id: bundleId },
   });
 }
+
+
+
+  //UPDATE COLOR OF WIDGET
+  // ============================================
+// SHOP SETTINGS - Colors & Spacing
+// ============================================
+
+function getDefaults() {
+  return {
+    primary_color: "#1a1a2e",
+    selected_bg: "#f0f4ff",
+    badge_bg: "#1a1a2e",
+    badge_text: "#ffffff",
+    text_color: "#333333",
+    border_color: "#e0e0e0",
+    original_price_color: "#999999",
+    margin_top: 16,
+    margin_bottom: 16,
+  };
+}
+
+export async function getShopColors(shopDomain: string, widgetType: string) {
+  const shopRecord = await prisma.shop.findUnique({
+    where: { shopDomain },
+  });
+  if (!shopRecord) return getDefaults();
+  const settings = await prisma.shopSetting.findUnique({
+    where: {
+      shopId_widgetType: {
+        shopId: shopRecord.id,
+        widgetType: widgetType, // ← dynamic
+      },
+    },
+    select: {
+      primary_color: true,
+      selected_bg: true,
+      badge_bg: true,
+      badge_text: true,
+      text_color: true,
+      border_color: true,
+      original_price_color: true,
+      margin_top: true,
+      margin_bottom: true,
+    },
+  });
+
+  return settings ?? getDefaults();
+}
+
+
+

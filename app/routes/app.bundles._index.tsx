@@ -290,7 +290,14 @@ const data = useLoaderData();
                             </Text>
                             <Button
                               variant="plain"
-                              onClick={() => navigate(`/app/bundles/${bundle.id}`)}
+                              onClick={() =>
+                                    navigate(
+                                      bundle.bundleType === "QUANTITY_BREAKS"
+                                        ? `/app/bundles/${bundle.id}`
+                                        : `/app/volume/bundles/${bundle.id}`
+                                    )
+                                  }
+                              // onClick={() => navigate(`/app/bundles/${bundle.id}`)}
                             >
                               Edit
                             </Button>

@@ -27,7 +27,7 @@ export default function App() {
         <Link to="/app/bundles">
           Bundles
         </Link>
-        <Link to="/app/settings">
+        <Link to="/app/settings1">
           Settings
         </Link>
         <Link to="/app/billing">

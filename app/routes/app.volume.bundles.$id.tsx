@@ -38,7 +38,7 @@ import {
 import { DeleteIcon, PlusIcon,ProductIcon,DeliveryIcon,OrderFulfilledIcon } from "@shopify/polaris-icons";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
-import { WidgetPreview } from "../components/WidgetPreview";
+import { WidgetPreviewVolume } from "../components/WidgetPreviewVolume";
 import { syncBundleConfigToDiscount } from "../utils/syncDiscount.server";
 
 
@@ -486,6 +486,7 @@ const removeProduct = (id: string) => {
                   onChange={setName}
                   helpText="Bundle name will be displayed in checkout."
                   autoComplete="off"
+                  readOnly
                 />
                 <TextField
                   label="Title"
@@ -781,13 +782,13 @@ const removeProduct = (id: string) => {
 
         {/* Widget Preview */}
         <Layout.Section variant="oneThird">
-          <Box position="sticky" insetBlockStart="400">
+          <Box position="sticky" insetBlockStart="500">
             <Card>
-              <BlockStack gap="200">
+              <BlockStack gap="100">
                 <Text as="h2" variant="headingMd">
                   Widget preview
                 </Text>
-                <WidgetPreview
+                <WidgetPreviewVolume
                   title={title}
                   breaks={quantityBreaks.map((qb: any) => ({
                     quantity: qb.quantity,

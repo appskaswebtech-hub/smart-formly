@@ -143,18 +143,32 @@ model Shop {
   shopDomain String        @unique
   planName   String        @default("free")
   createdAt  DateTime      @default(now())
-  settings   ShopSetting?
+  settings   ShopSetting[] // ✅ ? hatao — array banao (one-to-many)
 }
 
 model ShopSetting {
   id               String   @id @default(cuid())
-  shopId           String   @unique
+  shopId           String
+  widgetType       String   @default("volume")
+
   shop             Shop     @relation(fields: [shopId], references: [id])
-  primaryColor     String   @default("#3b82f6")
-  secondaryColor   String   @default("#4a4a6a")
-  accentColor      String   @default("#1d4ed8")
-  backgroundColor  String   @default("#ffffff")
+
+  // Colors
+  primary_color            String @default("#1a1a2e")
+  selected_bg             String @default("#f0f4ff")
+  badge_bg                String @default("#1a1a2e")
+  badge_text              String @default("#ffffff")
+  text_color              String @default("#333333")
+  border_color            String @default("#e0e0e0")
+  original_price_color    String @default("#999999")
+
+  // Spacing
+  margin_top              Int @default(16)
+  margin_bottom           Int @default(16)
+
   brandingRemoved  Boolean  @default(false)
+
+  @@unique([shopId, widgetType])
 }
 
 model ShopPlan {

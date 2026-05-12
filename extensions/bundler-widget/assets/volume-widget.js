@@ -1,5 +1,5 @@
 /**
- * Bundler – Quantity Breaks Widget (Debug version)
+ * Bundler – Quantity Breaks Widget (Modified for Badge Click → Add to Cart)
  */
 (function () {
   'use strict';
@@ -42,88 +42,95 @@
   function renderWidget(root, bundle, basePrice, currencySymbol) {
     console.log('[Volume] Rendering widget for bundle:', bundle.title, 'basePrice:', basePrice);
 
-    var colors = {
-      primary:    root.dataset.primaryColor   || '#1a1a2e',
-      selectedBg: root.dataset.selectedBg     || '#f0f4ff',
-      badgeBg:    root.dataset.badgeBg        || '#1a1a2e',
-      badgeText:  root.dataset.badgeText      || '#ffffff',
-      text:       root.dataset.textColor      || '#333333',
-      border:     root.dataset.borderColor    || '#e0e0e0',
-      original:   root.dataset.originalColor  || '#999999',
-    };
-
-    root.style.setProperty('--bundler-primary',     colors.primary);
-    root.style.setProperty('--bundler-selected-bg', colors.selectedBg);
-    root.style.setProperty('--bundler-badge-bg',    colors.badgeBg);
-    root.style.setProperty('--bundler-badge-text',  colors.badgeText);
-    root.style.setProperty('--bundler-text',        colors.text);
-    root.style.setProperty('--bundler-border',      colors.border);
-    root.style.setProperty('--bundler-original',    colors.original);
-
     var breaks = bundle.quantityBreaks;
     if (!breaks || breaks.length === 0) {
-      console.warn('[Bundler] No quantity breaks found');
-      root.classList.add('bundler-qb--hidden');
+      console.warn('[Volume] No quantity breaks found');
+      root.classList.add('bdlrkit-bundler-vd--hidden');
       return;
     }
 
     console.log('[Volume] Quantity breaks:', breaks.length);
 
     // Build HTML
-    var html = '<div class="bundler-qb__title">' + bundle.title + '</div>';
-    html += '<div class="bundler-qb__options">';
+    var html = '<div class="bdlrkit-bundler-vd__title">' + bundle.title + '</div>';
+    html += '<div class="bdlrkit-bundler-vd__options">';
 
     breaks.forEach(function (qb, idx) {
       var prices  = calcPrice(basePrice, qb.quantity, qb.discountType, qb.discountValue);
       var savings = qb.discountValue > 0 ? template(qb.savingsText, qb) : '';
       var desc    = template(qb.description, qb);
-      var sel     = idx === 0 ? ' bundler-qb__option--selected' : '';
 
-      html += '<div class="bundler-qb__option' + sel + '"'
-            + ' data-index="' + idx + '"'
-            + ' data-qty="' + qb.quantity + '"'
-            + ' data-break-id="' + qb.id + '"'
-            + ' data-bundle-id="' + bundle.id + '"'
-            + ' role="radio"'
-            + ' aria-checked="' + (idx === 0 ? 'true' : 'false') + '"'
-            + ' tabindex="0">'
-            + '  <span class="bundler-qb__radio"><span class="bundler-qb__radio-inner"></span></span>'
-            + '  <span class="bundler-qb__label">' + desc + '</span>'
-            + '  <span class="bundler-qb__prices">';
+      html += '<div class="bdlrkit-bundler-vd__option" data-index="' + idx + '" data-qty="' + qb.quantity + '" data-break-id="' + qb.id + '" data-bundle-id="' + bundle.id + '">';
 
-      if (savings) {
-        html += '<span class="bundler-qb__badge">' + savings + '</span>';
-      }
-      html += '<span class="bundler-qb__price">' + formatMoney(prices.final, currencySymbol) + '</span>';
+      // radio
+      // html += '<span class="bdlrkit-bundler-vd__radio"><span class="bdlrkit-bundler-vd__radio-inner"></span></span>';
+
+      // content wrapper
+      html += '<div class="bdlrkit-bundler-vd__content">';
+
+      // 🔹 TOP ROW (title + prices)
+      html += '<div class="bdlrkit-bundler-vd__top">';
+      html +=   '<span class="bdlrkit-bundler-vd__label">' + desc + '</span>';
+
+      html +=   '<span class="bdlrkit-bundler-vd__prices">';
+
       if (prices.original) {
-        html += '<span class="bundler-qb__original">' + formatMoney(prices.original, currencySymbol) + '</span>';
+        html += '<span class="bdlrkit-bundler-vd__original">' 
+             + formatMoney(prices.original, currencySymbol) 
+             + '</span>';
       }
-      html += '  </span></div>';
+
+      html += '<span class="bdlrkit-bundler-vd__price">' 
+           + formatMoney(prices.final, currencySymbol) 
+           + '</span>';
+
+      html +=   '</span>';
+      html += '</div>';
+
+      // 🔹 BADGE BELOW
+      if (savings) {
+        html += '<span class="bdlrkit-bundler-vd__badge"'
+                  + ' data-index="' + idx + '"'
+                  + ' data-qty="' + qb.quantity + '"'
+                  + ' data-break-id="' + qb.id + '"'
+                  + ' data-bundle-id="' + bundle.id + '"'
+                  + ' data-save="' + qb.discountValue + '"'
+                  + ' tabindex="0"'
+                  + ' role="button"'
+                  + '>'
+                   + savings +
+                  '</span>';
+      }
+
+      html += '</div></div>';
     });
 
     html += '</div>';
     root.innerHTML = html;
-    root.classList.add('bundler-qb--loaded');
+    root.classList.add('bdlrkit-bundler-vd--loaded');
 
     // ── Interaction ──
-    var options = root.querySelectorAll('.bundler-qb__option');
+    var options = root.querySelectorAll('.bdlrkit-bundler-vd__option');
+    var saveBadges = root.querySelectorAll('.bdlrkit-bundler-vd__badge');
     var selectedQty = breaks[0]?.quantity || 1;
     var selectedBreakId = breaks[0]?.id || '';
     var selectedBundleId = bundle.id || '';
     console.log('[Volume] Initial selectedQty:', selectedQty);
+    
+    function selectOption(optionEl) {
+      // Get badge data if available
+      var badge = optionEl.querySelector('.bdlrkit-bundler-vd__badge');
+      if (badge) {
+        selectedQty = parseInt(badge.dataset.qty, 10);
+        selectedBreakId = badge.dataset.breakId || '';
+        selectedBundleId = badge.dataset.bundleId || '';
+      } else {
+        // Fallback to option element data
+        selectedQty = parseInt(optionEl.dataset.qty, 10) || selectedQty;
+        selectedBreakId = optionEl.dataset.breakId || selectedBreakId;
+        selectedBundleId = optionEl.dataset.bundleId || selectedBundleId;
+      }
 
-    function selectOption(el) {
-      // Deselect all
-      options.forEach(function (o) {
-        o.classList.remove('bundler-qb__option--selected');
-        o.setAttribute('aria-checked', 'false');
-      });
-      el.classList.add('bundler-qb__option--selected');
-      el.setAttribute('aria-checked', 'true');
-
-      selectedQty = parseInt(el.dataset.qty, 10);
-      selectedBreakId = el.dataset.breakId || '';
-      selectedBundleId = el.dataset.bundleId || '';
       console.log('[Volume] Option selected → qty:', selectedQty, 'breakId:', selectedBreakId, 'bundleId:', selectedBundleId);
 
       // Update ALL quantity inputs on the page
@@ -133,6 +140,7 @@
       qtyInputs.forEach(function (qtyInput, i) {
         console.log('[Volume] Updating input #' + i, 'from', qtyInput.value, 'to', selectedQty);
         qtyInput.value = selectedQty;
+  
         qtyInput.setAttribute('value', selectedQty);
         qtyInput.dispatchEvent(new Event('input', { bubbles: true }));
         qtyInput.dispatchEvent(new Event('change', { bubbles: true }));
@@ -144,7 +152,6 @@
     }
 
     // Helper: add bundler properties to a cart body object
-    // Different properties = Shopify creates SEPARATE cart lines
     function injectBundlerProperties(body) {
       var props = {
         '_bundler_break_id': selectedBreakId,
@@ -173,27 +180,6 @@
       return body;
     }
 
-    // Intercept form submit to force correct quantity + add hidden fields
-    var forms = document.querySelectorAll(
-      'form[action*="/cart/add"], form.product-form, .product-form form, product-form form'
-    );
-    console.log('[Volume] Found forms to intercept:', forms.length);
-
-    forms.forEach(function (form, i) {
-      console.log('[Volume] Intercepting form #' + i, form.action || form.className);
-      form.addEventListener('submit', function (e) {
-        console.log('[Volume] Form submit intercepted! qty:', selectedQty, 'breakId:', selectedBreakId);
-        var qtyInput = form.querySelector('input[name="quantity"]');
-        if (qtyInput) {
-          qtyInput.value = selectedQty;
-        }
-        // Add hidden property fields for separate cart lines
-        ensureHidden(form, 'properties[_bundler_break_id]', selectedBreakId);
-        ensureHidden(form, 'properties[_bundler_bundle_id]', selectedBundleId);
-        ensureHidden(form, 'properties[_bundler_qty]', String(selectedQty));
-      }, true);
-    });
-
     function ensureHidden(form, name, value) {
       var input = form.querySelector('input[name="' + name + '"]');
       if (!input) {
@@ -205,34 +191,171 @@
       input.value = value;
     }
 
-    // Intercept fetch calls to /cart/add.js — override qty + inject properties
-    var originalFetch = window.fetch;
-    window.fetch = function (url, opts) {
-      if (typeof url === 'string' && url.includes('/cart/add')) {
-        console.log('[Volume] 🔥 Fetch intercepted:', url);
-        console.log('[Volume] Current selectedQty:', selectedQty, 'breakId:', selectedBreakId);
-        try {
-          if (opts && opts.body) {
-            if (typeof opts.body === 'string') {
-              var body = JSON.parse(opts.body);
-              console.log('[Volume] Original fetch body:', JSON.stringify(body));
-              body = injectBundlerProperties(body);
-              opts.body = JSON.stringify(body);
-              console.log('[Volume] Modified fetch body:', opts.body);
-            } else if (opts.body instanceof FormData) {
-              console.log('[Volume] FormData body, setting quantity + properties');
-              opts.body.set('quantity', selectedQty);
-              opts.body.set('properties[_bundler_break_id]', selectedBreakId);
-              opts.body.set('properties[_bundler_bundle_id]', selectedBundleId);
-              opts.body.set('properties[_bundler_qty]', String(selectedQty));
-            }
-          }
-        } catch (e) {
-          console.error('[Volume] Fetch intercept error:', e);
+    // ════════════════════════════════════════════════════════════
+    // NEW: Add to Cart trigger function
+    // ════════════════════════════════════════════════════════════
+    function triggerAddToCart() {
+      console.log('[Bundler] 🛒 Triggering Add to Cart with qty:', selectedQty, 'breakId:', selectedBreakId);
+      
+      // METHOD 1: Form Submit (Recommended)
+      var form = document.querySelector(
+        'form[action*="/cart/add"], form.product-form, .product-form form, product-form form'
+      );
+      
+      if (form) {
+        console.log('[Bundler] Found form, submitting...');
+        
+        // Update quantity input
+        var qtyInput = form.querySelector('input[name="quantity"]');
+        if (qtyInput) {
+          qtyInput.value = selectedQty;
+         
         }
+        
+        // Add/Update hidden bundler properties
+        ensureHidden(form, 'properties[_bundler_break_id]', selectedBreakId);
+        ensureHidden(form, 'properties[_bundler_bundle_id]', selectedBundleId);
+        ensureHidden(form, 'properties[_bundler_qty]', String(selectedQty));
+        
+        console.log('[Bundler] Hidden fields added, submitting form...');
+        form.submit();
+      } else {
+        console.error('[Bundler] ⚠️ Add to Cart form not found, using fallback fetch...');
+        fallbackFetchAddToCart();
       }
-      return originalFetch.call(this, url, opts);
-    };
+    }
+
+    function fallbackFetchAddToCart() {
+      console.log('[Bundler] Using fallback Fetch API method...');
+      
+      // Get variant ID
+      var variantIdEl = document.querySelector('input[name="id"]') || 
+                        document.querySelector('input.product-variant-id');
+      
+      if (!variantIdEl) {
+        console.error('[Bundler] ❌ Variant ID not found');
+        return;
+      }
+      
+      var variantId = variantIdEl.value || variantIdEl.getAttribute('value');
+      
+      var payload = {
+        id: variantId,
+        quantity: selectedQty,
+        properties: {
+          '_bundler_break_id': selectedBreakId,
+          '_bundler_bundle_id': selectedBundleId,
+          '_bundler_qty': String(selectedQty)
+        }
+      };
+      
+      console.log('[Volume] Fallback payload:', JSON.stringify(payload));
+      
+      fetch('/cart/add.js', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload)
+      })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        console.log('[Volume] ✅ Item added to cart:', data);
+        // Optional: Show success message or redirect
+      
+      })
+      .catch(function(err) {
+        console.error('[Volume] ❌ Add to cart error:', err);
+      });
+    }
+
+    // ════════════════════════════════════════════════════════════
+    // NEW: Badge Click Handler - Triggers Add to Cart
+    // ════════════════════════════════════════════════════════════
+    saveBadges.forEach(function (badge) {
+      badge.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Extract badge data
+        var qty = parseInt(badge.getAttribute('data-qty'), 10);
+        var breakId = badge.getAttribute('data-break-id');
+        var bundleId = badge.getAttribute('data-bundle-id');
+        var saveValue = badge.getAttribute('data-save');
+        
+        console.log('[Bundler] Badge clicked → qty:', qty, 'breakId:', breakId, 'bundleId:', bundleId, 'save:', saveValue + '%');
+        
+        // Update global variables
+        selectedQty = qty;
+        selectedBreakId = breakId;
+        selectedBundleId = bundleId;
+        
+        // Select the option (visual update)
+        selectOption(badge.closest('.bdlrkit-bundler-vd__option'));
+        
+        // Trigger Add to Cart
+        triggerAddToCart();
+      });
+      
+      // Keyboard support
+      badge.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          this.click();
+        }
+      });
+    });
+
+    // Intercept form submit to force correct quantity + add hidden fields
+    // var forms = document.querySelectorAll(
+    //   'form[action*="/cart/add"], form.product-form, .product-form form, product-form form'
+    // );
+    // console.log('[Volume] Found forms to intercept:', forms.length);
+
+    // forms.forEach(function (form, i) {
+    //   console.log('[Volume] Intercepting form #' + i, form.action || form.className);
+    //   form.addEventListener('submit', function (e) {
+    //     console.log('[Volume] Form submit intercepted! qty:', selectedQty, 'breakId:', selectedBreakId);
+    //     var qtyInput = form.querySelector('input[name="quantity"]');
+    //     if (qtyInput) {
+    //       qtyInput.value = selectedQty;
+          
+    //     }
+    //     // Add hidden property fields for separate cart lines
+    //     ensureHidden(form, 'properties[_bundler_break_id]', selectedBreakId);
+    //     ensureHidden(form, 'properties[_bundler_bundle_id]', selectedBundleId);
+    //     ensureHidden(form, 'properties[_bundler_qty]', String(selectedQty));
+    //   }, true);
+    // });
+
+    // Intercept fetch calls to /cart/add.js — override qty + inject properties
+    // var originalFetch = window.fetch;
+    // window.fetch = function (url, opts) {
+    //   if (typeof url === 'string' && url.includes('/cart/add')) {
+    //     console.log('[Volume] 🔥 Fetch intercepted:', url);
+    //     console.log('[Volume] Current selectedQty:', selectedQty, 'breakId:', selectedBreakId);
+    //     try {
+    //       if (opts && opts.body) {
+    //         if (typeof opts.body === 'string') {
+    //           var body = JSON.parse(opts.body);
+    //           console.log('[Volume] Original fetch body:', JSON.stringify(body));
+    //           body = injectBundlerProperties(body);
+    //           opts.body = JSON.stringify(body);
+    //           console.log('[Volume] Modified fetch body:', opts.body);
+    //         } else if (opts.body instanceof FormData) {
+    //           console.log('[Volume] FormData body, setting quantity + properties');
+    //           opts.body.set('quantity', selectedQty);
+    //           opts.body.set('properties[_bundler_break_id]', selectedBreakId);
+    //           opts.body.set('properties[_bundler_bundle_id]', selectedBundleId);
+    //           opts.body.set('properties[_bundler_qty]', String(selectedQty));
+    //         }
+    //       }
+    //     } catch (e) {
+    //       console.error('[Volume] Fetch intercept error:', e);
+    //     }
+    //   }
+    //   return originalFetch.call(this, url, opts);
+    // };
 
     // Also intercept XMLHttpRequest for older themes
     var originalXHRSend = XMLHttpRequest.prototype.send;
@@ -259,24 +382,6 @@
       return originalXHRSend.call(this, body);
     };
 
-    // Click handler
-    options.forEach(function (opt) {
-      opt.addEventListener('click', function () {
-        selectOption(this);
-      });
-      opt.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          selectOption(this);
-        }
-      });
-    });
-
-    // Auto-select first option
-    if (options.length > 0) {
-      selectOption(options[0]);
-    }
-
     console.log('[Volume] ✅ Widget rendered successfully');
   }
 
@@ -288,7 +393,7 @@
     var currency     = root.dataset.currencySymbol || '$';
     var shop         = root.dataset.shop;
     var proxyPath    = root.dataset.proxyPath || '/apps/bundler';
-
+    var widgetType = root.dataset.widgetType || 'volume-widget';
     console.log('[Volume] Init widget:', { productId: productId, rawPrice: rawPrice, shop: shop, proxyPath: proxyPath });
 
     var basePrice = parseFloat(rawPrice);
@@ -297,7 +402,7 @@
     }
     if (isNaN(basePrice) || basePrice <= 0) {
       console.error('[Volume] Invalid base price:', rawPrice);
-      root.classList.add('bundler-qb--hidden');
+      root.classList.add('bdlrkit-bundler-vd--hidden');
       return;
     }
 
@@ -305,7 +410,8 @@
 
     var url = proxyPath + '/api/widget-data'
             + '?shop=' + encodeURIComponent(shop)
-            + '&productId=' + encodeURIComponent(productId);
+            + '&productId=' + encodeURIComponent(productId)
+             + '&widgetType=' + encodeURIComponent(widgetType);
 
     console.log('[Volume] Fetching:', url);
 
@@ -316,23 +422,33 @@
       })
       .then(function (data) {
         console.log('[Volume] API data:', JSON.stringify(data).substring(0, 200));
-        if (data.bundles && data.bundles.length > 0) {
-          renderWidget(root, data.bundles[0], basePrice, currency);
-        } else {
+        if (data.colors) {
+      applyColors(root, data.colors);
+    }
+        // if (data.bundles && data.bundles.length > 0) {
+        //   renderWidget(root, data.bundles[0], basePrice, currency);
+        // } 
+          if (data.bundles && data.bundles.length > 0) {
+  var matchedBundle = data.bundles.find(function(b) {
+    return b.name === "Volume discount";
+  });
+  var bundle = matchedBundle;
+  renderWidget(root, bundle, basePrice, currency);
+}else {
           console.warn('[Volume] No bundles found for this product');
-          root.classList.add('bundler-qb--hidden');
+          root.classList.add('bdlrkit-bundler-vd--hidden');
         }
       })
       .catch(function (err) {
         console.error('[Volume] Widget load error:', err);
-        root.classList.add('bundler-qb--hidden');
+        root.classList.add('bdlrkit-bundler-vd--hidden');
       });
   }
  
   /* ─── Boot ─────────────────────────────────── */
 
   function boot() {
-    var roots = document.querySelectorAll('.bundler-qb');
+    var roots = document.querySelectorAll('.bdlrkit-bundler-vd');
     console.log('[Volume] Boot — found widget roots:', roots.length);
     roots.forEach(function (root) {
       if (root.dataset.bundlerInit) return;
@@ -353,13 +469,15 @@
 })();
 
 
+// ════════════════════════════════════════════════════════════════════
 // Price update function for widgets Start
+// ════════════════════════════════════════════════════════════════════
 
 var bundlerDataCache = null;
 
 // ── Step 1 — Fetching bundle data from API─────
 function fetchBundlerData() {
-  var root = document.querySelector('.bundler-qb');
+  var root = document.querySelector('.bdlrkit-bundler-vd');
   if (!root) return Promise.resolve(null);
 
   var shop      = root.dataset.shop;
@@ -453,9 +571,9 @@ function getSelectedVariantPrice() {
   if (variants.length === 0) {
     console.warn('[Bundler] Falling back to AJAX API — async!');
     return fetch(window.location.pathname + '.js')
-      .then(res => res.json())
-      .then(product => {
-        var matched = product.variants.find(v => v.id === currentVariantId);
+      .then(function(res) { return res.json(); })
+      .then(function(product) {
+        var matched = product.variants.find(function(v) { return v.id === currentVariantId; });
         return matched ? matched.price / 100 : null;
       });
   }
@@ -498,7 +616,7 @@ function calcDiscountedPrice(basePrice, qty, discountType, discountValue) {
 // ── Step 4 — updating Widget prices ─────────
 function updateBundlerPrices() {
  
-  var bundlerOptions = document.querySelectorAll('.bundler-qb__option');
+  var bundlerOptions = document.querySelectorAll('.bdlrkit-bundler-vd__option');
   if (bundlerOptions.length === 0) {
     console.log('[Bundler] No widget options found');
     return;
@@ -537,7 +655,7 @@ function updateBundlerPrices() {
       var prices = calcDiscountedPrice(basePrice, qb.quantity, qb.discountType, qb.discountValue);
 
       // Original (strikethrough) price
-      option.querySelectorAll('.bundler-qb__original').forEach(function (el) {
+      option.querySelectorAll('.bdlrkit-bundler-vd__original').forEach(function (el) {
         if (prices.original) {
           el.innerText      = '$' + prices.original.toFixed(2);
           el.style.display  = '';
@@ -547,7 +665,7 @@ function updateBundlerPrices() {
       });
 
       // Final discounted price
-      var finalEl = option.querySelector('.bundler-qb__price');
+      var finalEl = option.querySelector('.bdlrkit-bundler-vd__price');
       if (finalEl) {
         finalEl.innerText = '$' + prices.final.toFixed(2);
       }
@@ -616,7 +734,18 @@ document.querySelectorAll('.product-form__input input[type="radio"] ').forEach(f
 // ── Boot ────────────────────────────────────────
 watchVariantChange();
 
-// ═══════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════════
 // Price update function for widgets End
+// ════════════════════════════════════════════════════════════════════
 
-
+function applyColors(root, colors) {
+  root.style.setProperty('--bundler-primary',     colors.primary_color        || '#1a1a2e');
+  root.style.setProperty('--bundler-selected-bg', colors.selected_bg          || '#f0f4ff');
+  root.style.setProperty('--bundler-badge-bg',    colors.badge_bg             || '#1a1a2e');
+  root.style.setProperty('--bundler-badge-text',  colors.badge_text           || '#ffffff');
+  root.style.setProperty('--bundler-text',        colors.text_color           || '#333333');
+  root.style.setProperty('--bundler-border',      colors.border_color         || '#e0e0e0');
+  root.style.setProperty('--bundler-original',    colors.original_price_color || '#999999');
+  root.style.marginTop    = (colors.margin_top    || 16) + 'px';
+  root.style.marginBottom = (colors.margin_bottom || 16) + 'px';
+}

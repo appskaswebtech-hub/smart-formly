@@ -17,13 +17,12 @@ import {
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
 import { syncBundleConfigToDiscount } from "../utils/syncDiscount.server";
-
+import { Prisma } from "@prisma/client";
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { session, admin } = await authenticate.admin(request);
   const shop = session.shop;
   const formData = await request.formData();
-  console.log("AAAAAAAAAAA",formData);
   const bundleType = formData.get("bundleType") as string;
   let bundleName = "";
   if (bundleType == 'VOLUME_DISCOUNT'){
@@ -32,6 +31,46 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   else if(bundleType == 'QUANTITY_BREAKS'){
      bundleName = "Quantity breaks";
 };
+
+let quantityBreaksData: Prisma.QuantityBreakCreateWithoutBundleInput[] = [];
+
+if (bundleName === "Quantity breaks") {
+  quantityBreaksData = [
+    {
+      shop,
+      type: "FIXED_QUANTITY",
+      quantity: 1,
+      discountType: "PERCENTAGE",
+      discountValue: 0,
+      savingsText: "",
+      description: "Buy 1",
+      sortOrder: 0,
+    },
+    {
+      shop,
+      type: "FIXED_QUANTITY",
+      quantity: 2,
+      discountType: "PERCENTAGE",
+      discountValue: 10,
+      savingsText: "Save {{discount_value}}{{discount_unit}}",
+      description: "Buy {{quantity}} and get a discount!",
+      sortOrder: 1,
+    },
+  ];
+} else if (bundleName === "Volume discount") {
+  quantityBreaksData = [
+    {
+      shop,
+      type: "FIXED_QUANTITY",
+      quantity: 2,
+      discountType: "PERCENTAGE",
+      discountValue: 10,
+      savingsText: "Save {{discount_value}}{{discount_unit}}",
+      description: "Buy {{quantity}} and get a discount!",
+      sortOrder: 1,
+    },
+  ];
+}
   const bundle = await db.bundle.create({
     data: {
       shop,
@@ -40,29 +79,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       bundleType,
       status: "ACTIVE",
       quantityBreaks: {
-        create: [
-          {
-            shop,
-            type: "FIXED_QUANTITY",
-            quantity: 1,
-            discountType: "PERCENTAGE",
-            discountValue: 0,
-            savingsText: "",
-            description: "Buy 1",
-            sortOrder: 0,
-          },
-          {
-            shop,
-            type: "FIXED_QUANTITY",
-            quantity: 2,
-            discountType: "PERCENTAGE",
-            discountValue: 10,
-            savingsText: "Save {{discount_value}}{{discount_unit}}",
-            description: "Buy {{quantity}} and get a discount!",
-            sortOrder: 1,
-          },
-        ],
-      },
+        create: quantityBreaksData,},
       discountCombination: {
         create: {
           shop,

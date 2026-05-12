@@ -42,44 +42,26 @@
   function renderWidget(root, bundle, basePrice, currencySymbol) {
     console.log('[Bundler] Rendering widget for bundle:', bundle.title, 'basePrice:', basePrice);
 
-    var colors = {
-      primary:    root.dataset.primaryColor   || '#1a1a2e',
-      selectedBg: root.dataset.selectedBg     || '#f0f4ff',
-      badgeBg:    root.dataset.badgeBg        || '#1a1a2e',
-      badgeText:  root.dataset.badgeText      || '#ffffff',
-      text:       root.dataset.textColor      || '#333333',
-      border:     root.dataset.borderColor    || '#e0e0e0',
-      original:   root.dataset.originalColor  || '#999999',
-    };
-
-    root.style.setProperty('--bundler-primary',     colors.primary);
-    root.style.setProperty('--bundler-selected-bg', colors.selectedBg);
-    root.style.setProperty('--bundler-badge-bg',    colors.badgeBg);
-    root.style.setProperty('--bundler-badge-text',  colors.badgeText);
-    root.style.setProperty('--bundler-text',        colors.text);
-    root.style.setProperty('--bundler-border',      colors.border);
-    root.style.setProperty('--bundler-original',    colors.original);
-
     var breaks = bundle.quantityBreaks;
     if (!breaks || breaks.length === 0) {
       console.warn('[Bundler] No quantity breaks found');
-      root.classList.add('bundler-qb--hidden');
+      root.classList.add('bdlrkit-bundler-qb--hidden');
       return;
     }
 
     console.log('[Bundler] Quantity breaks:', breaks.length);
 
     // Build HTML
-    var html = '<div class="bundler-qb__title">' + bundle.title + '</div>';
-    html += '<div class="bundler-qb__options">';
+    var html = '<div class="bdlrkit-bundler-qb__title">' + bundle.title + '</div>';
+    html += '<div class="bdlrkit-bundler-qb__options">';
 
     breaks.forEach(function (qb, idx) {
       var prices  = calcPrice(basePrice, qb.quantity, qb.discountType, qb.discountValue);
       var savings = qb.discountValue > 0 ? template(qb.savingsText, qb) : '';
       var desc    = template(qb.description, qb);
-      var sel     = idx === 0 ? ' bundler-qb__option--selected' : '';
+      var sel     = idx === 0 ? ' bdlrkit-bundler-qb__option--selected' : '';
 
-      html += '<div class="bundler-qb__option' + sel + '"'
+      html += '<div class="bdlrkit-bundler-qb__option' + sel + '"'
             + ' data-index="' + idx + '"'
             + ' data-qty="' + qb.quantity + '"'
             + ' data-break-id="' + qb.id + '"'
@@ -87,26 +69,26 @@
             + ' role="radio"'
             + ' aria-checked="' + (idx === 0 ? 'true' : 'false') + '"'
             + ' tabindex="0">'
-            + '  <span class="bundler-qb__radio"><span class="bundler-qb__radio-inner"></span></span>'
-            + '  <span class="bundler-qb__label">' + desc + '</span>'
-            + '  <span class="bundler-qb__prices">';
+            + '  <span class="bdlrkit-bundler-qb__radio"><span class="bdlrkit-bundler-qb__radio-inner"></span></span>'
+            + '  <span class="bdlrkit-bundler-qb__label">' + desc + '</span>'
+            + '  <span class="bdlrkit-bundler-qb__prices">';
 
       if (savings) {
-        html += '<span class="bundler-qb__badge">' + savings + '</span>';
+        html += '<span class="bdlrkit-bundler-qb__badge">' + savings + '</span>';
       }
-      html += '<span class="bundler-qb__price">' + formatMoney(prices.final, currencySymbol) + '</span>';
+      html += '<span class="bdlrkit-bundler-qb__price">' + formatMoney(prices.final, currencySymbol) + '</span>';
       if (prices.original) {
-        html += '<span class="bundler-qb__original">' + formatMoney(prices.original, currencySymbol) + '</span>';
+        html += '<span class="bdlrkit-bundler-qb__original">' + formatMoney(prices.original, currencySymbol) + '</span>';
       }
       html += '  </span></div>';
     });
 
     html += '</div>';
     root.innerHTML = html;
-    root.classList.add('bundler-qb--loaded');
+    root.classList.add('bdlrkit-bundler-qb--loaded');
 
     // ── Interaction ──
-    var options = root.querySelectorAll('.bundler-qb__option');
+    var options = root.querySelectorAll('.bdlrkit-bundler-qb__option');
     var selectedQty = breaks[0]?.quantity || 1;
     var selectedBreakId = breaks[0]?.id || '';
     var selectedBundleId = bundle.id || '';
@@ -115,10 +97,10 @@
     function selectOption(el) {
       // Deselect all
       options.forEach(function (o) {
-        o.classList.remove('bundler-qb__option--selected');
+        o.classList.remove('bdlrkit-bundler-qb__option--selected');
         o.setAttribute('aria-checked', 'false');
       });
-      el.classList.add('bundler-qb__option--selected');
+      el.classList.add('bdlrkit-bundler-qb__option--selected');
       el.setAttribute('aria-checked', 'true');
 
       selectedQty = parseInt(el.dataset.qty, 10);
@@ -288,6 +270,7 @@
     var currency     = root.dataset.currencySymbol || '$';
     var shop         = root.dataset.shop;
     var proxyPath    = root.dataset.proxyPath || '/apps/bundler';
+    var widgetType = root.dataset.widgetType || 'bundler-widget';
 
     console.log('[Bundler] Init widget:', { productId: productId, rawPrice: rawPrice, shop: shop, proxyPath: proxyPath });
 
@@ -297,7 +280,7 @@
     }
     if (isNaN(basePrice) || basePrice <= 0) {
       console.error('[Bundler] Invalid base price:', rawPrice);
-      root.classList.add('bundler-qb--hidden');
+      root.classList.add('bdlrkit-bundler-qb--hidden');
       return;
     }
 
@@ -305,7 +288,8 @@
 
     var url = proxyPath + '/api/widget-data'
             + '?shop=' + encodeURIComponent(shop)
-            + '&productId=' + encodeURIComponent(productId);
+            + '&productId=' + encodeURIComponent(productId)
+            + '&widgetType=' + encodeURIComponent(widgetType);
 
     console.log('[Bundler] Fetching:', url);
 
@@ -316,24 +300,36 @@
       })
       .then(function (data) {
         console.log('[Bundler] API data:', JSON.stringify(data).substring(0, 200));
-        if (data.bundles && data.bundles.length > 0) {
-          renderWidget(root, data.bundles[0], basePrice, currency);
-        } else {
+        // ✅ Yeh add karo
+    if (data.colors) {
+      applyColors(root, data.colors);
+    }
+        // if (data.bundles && data.bundles.length > 0) {
+        //   renderWidget(root, data.bundles[1], basePrice, currency);
+        // } 
+  if (data.bundles && data.bundles.length > 0) {
+  var matchedBundle = data.bundles.find(function(b) {
+    return b.name === "Quantity breaks";
+  });
+  var bundle = matchedBundle;
+  renderWidget(root, bundle, basePrice, currency);
+}else {
           console.warn('[Bundler] No bundles found for this product');
-          root.classList.add('bundler-qb--hidden');
+          root.classList.add('bdlrkit-bundler-qb--hidden');
         }
       })
       .catch(function (err) {
         console.error('[Bundler] Widget load error:', err);
-        root.classList.add('bundler-qb--hidden');
+        root.classList.add('bdlrkit-bundler-qb--hidden');
       });
   }
 
   /* ─── Boot ─────────────────────────────────── */
 
   function boot() {
-    var roots = document.querySelectorAll('.bundler-qb');
+    var roots = document.querySelectorAll('.bdlrkit-bundler-qb');
     console.log('[Bundler] Boot — found widget roots:', roots.length);
+    // console.log('[Bundler] Boot — found widget roots:', roots);
     roots.forEach(function (root) {
       if (root.dataset.bundlerInit) return;
       root.dataset.bundlerInit = 'true';
@@ -359,7 +355,7 @@ var bundlerDataCache = null;
 
 // ── Step 1 — Fetching bundle data from API─────
 function fetchBundlerData() {
-  var root = document.querySelector('.bundler-qb');
+  var root = document.querySelector('.bdlrkit-bundler-qb');
   if (!root) return Promise.resolve(null);
 
   var shop      = root.dataset.shop;
@@ -497,7 +493,7 @@ function calcDiscountedPrice(basePrice, qty, discountType, discountValue) {
 // ── Step 4 — updating Widget prices ─────────
 function updateBundlerPrices() {
  
-  var bundlerOptions = document.querySelectorAll('.bundler-qb__option');
+  var bundlerOptions = document.querySelectorAll('.bdlrkit-bundler-qb__option');
   if (bundlerOptions.length === 0) {
     console.log('[Bundler] No widget options found');
     return;
@@ -536,7 +532,7 @@ function updateBundlerPrices() {
       var prices = calcDiscountedPrice(basePrice, qb.quantity, qb.discountType, qb.discountValue);
 
       // Original (strikethrough) price
-      option.querySelectorAll('.bundler-qb__original').forEach(function (el) {
+      option.querySelectorAll('.bdlrkit-bundler-qb__original').forEach(function (el) {
         if (prices.original) {
           el.innerText      = '$' + prices.original.toFixed(2);
           el.style.display  = '';
@@ -546,7 +542,7 @@ function updateBundlerPrices() {
       });
 
       // Final discounted price
-      var finalEl = option.querySelector('.bundler-qb__price');
+      var finalEl = option.querySelector('.bdlrkit-bundler-qb__price');
       if (finalEl) {
         finalEl.innerText = '$' + prices.final.toFixed(2);
       }
@@ -618,4 +614,14 @@ watchVariantChange();
 // ═══════════════════════════════════════════════
 // Price update function for widgets End
 
-
+function applyColors(root, colors) {
+  root.style.setProperty('--bundler-primary',     colors.primary_color        || '#1a1a2e');
+  root.style.setProperty('--bundler-selected-bg', colors.selected_bg          || '#f0f4ff');
+  root.style.setProperty('--bundler-badge-bg',    colors.badge_bg             || '#1a1a2e');
+  root.style.setProperty('--bundler-badge-text',  colors.badge_text           || '#ffffff');
+  root.style.setProperty('--bundler-text',        colors.text_color           || '#333333');
+  root.style.setProperty('--bundler-border',      colors.border_color         || '#e0e0e0');
+  root.style.setProperty('--bundler-original',    colors.original_price_color || '#999999');
+  root.style.marginTop    = (colors.margin_top    || 16) + 'px';
+  root.style.marginBottom = (colors.margin_bottom || 16) + 'px';
+}

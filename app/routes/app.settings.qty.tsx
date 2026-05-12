@@ -29,68 +29,136 @@ import { authenticate } from "../shopify.server";
 import db from "../db.server";
 
 interface SettingsForm {
-  primaryColor: string;
-  secondaryColor: string;
-  accentColor: string;
-  backgroundColor: string;
+  primary_color: string;
+  selected_bg: string;
+  badge_bg: string;
+  badge_text: string;
+  text_color: string;
+  border_color: string;
+  original_price_color: string;
+
+  margin_top: number;
+  margin_bottom: number;
+
   brandingRemoved: boolean;
 }
 
-// ─── LOADER ───────────────────────────────────────────────────────────────────
-
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
-  const shopRecord = await db.widgetSettings.findFirst({
-    where: { shop: session.shop },
-    // include: { settings: true },
+
+   const url = new URL(request.url);
+  
+  // ✅ URL se widget type lo, default "volume"
+  const widgetType = url.searchParams.get("widget") ?? " ";
+ 
+  // ✅ widgetSettings nahi, Shop table use karo
+  let shopRecord = await db.shop.findUnique({
+    where: { shopDomain: session.shop },
+    include: { settings: true },
   });
 
-  if (!shopRecord) throw new Error("Shop not found");
+  // Agar Shop record hi nahi hai toh create karo
+  if (!shopRecord) {
+    shopRecord = await db.shop.create({
+      data: {
+        shopDomain: session.shop,
+        planName: "free",
+      },
+      include: { settings: true },
+    });
+  }
 
-  const settings = shopRecord.settings ?? {
-    primaryColor: "#3b82f6",
-    secondaryColor: "#4a4a6a",
-    accentColor: "#1d4ed8",
-    backgroundColor: "#ffffff",
-    brandingRemoved: false,
-  };
+ const settings = await db.shopSetting.findUnique({
+  where: {
+    shopId_widgetType: {
+      shopId: shopRecord.id,
+      widgetType,
+    },
+  },
+});
 
-  return json({
-    settings,
-    shop: session.shop,
-    planName: shopRecord.planName,
-  });
+return json({
+   widgetType, 
+  settings: settings ?? {
+  primary_color: "#3b82f6",
+  selected_bg: "#4a4a6a",
+  badge_bg: "#1a1a2e",
+  badge_text: "#ffffff",
+  text_color: "#333333",
+  border_color: "#e0e0e0",
+  original_price_color: "#999999",
+
+  margin_top: 16,
+  margin_bottom: 16,
+
+  brandingRemoved: false,
+},
+  shop: session.shop,
+  planName: shopRecord.planName,
+});
 };
 
-// // ─── ACTION ───────────────────────────────────────────────────────────────────
+// ─── ACTION ───────────────────────────────────────────────────────────────────
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { session } = await authenticate.admin(request);
   const formData = await request.formData();
-
-  const shopRecord = await db.widgetSettings.findUnique({
-    where: { shop: session.shop },
+  const widgetType = formData.get("widgetType") as string ?? " ";
+  // ✅ Correct table — Shop (not widgetSettings)
+  let shopRecord = await db.shop.findUnique({
+    where: { shopDomain: session.shop },
   });
-  if (!shopRecord) throw new Error("Shop not found");
 
+  // Agar shop record nahi hai toh pehle banao
+  if (!shopRecord) {
+    shopRecord = await db.shop.create({
+      data: {
+        shopDomain: session.shop,
+        planName: "free",
+      },
+    });
+  }
+
+  // Ab ShopSetting upsert karo — ab foreign key error nahi aayega
   await db.shopSetting.upsert({
-    where: { shopId: shopRecord.id },
-    update: {
-      primaryColor: formData.get("primaryColor") as string,
-      secondaryColor: formData.get("secondaryColor") as string,
-      accentColor: formData.get("accentColor") as string,
-      backgroundColor: formData.get("backgroundColor") as string,
+  where: {
+    shopId_widgetType: {
+      shopId: shopRecord.id,  // ✅ shop.id nahi, shopRecord.id
+      widgetType,
     },
-    create: {
-      shopId: shopRecord.id,
-      primaryColor: formData.get("primaryColor") as string,
-      secondaryColor: formData.get("secondaryColor") as string,
-      accentColor: formData.get("accentColor") as string,
-      backgroundColor: formData.get("backgroundColor") as string,
-      brandingRemoved: false,
-    },
-  });
+  },
+  update: {
+  primary_color: formData.get("primary_color") as string,
+  selected_bg: formData.get("selected_bg") as string,
+  badge_bg: formData.get("badge_bg") as string,
+  badge_text: formData.get("badge_text") as string,
+  text_color: formData.get("text_color") as string,
+  border_color: formData.get("border_color") as string,
+  original_price_color: formData.get("original_price_color") as string,
 
+  margin_top: Number(formData.get("margin_top")),
+  margin_bottom: Number(formData.get("margin_bottom")),
+
+  brandingRemoved: formData.get("brandingRemoved") === "true",
+},
+create: {
+  shopId: shopRecord.id,
+  widgetType,
+
+  primary_color: formData.get("primary_color") as string,
+  selected_bg: formData.get("selected_bg") as string,
+  badge_bg: formData.get("badge_bg") as string,
+  badge_text: formData.get("badge_text") as string,
+  text_color: formData.get("text_color") as string,
+  border_color: formData.get("border_color") as string,
+  original_price_color: formData.get("original_price_color") as string,
+
+  margin_top: Number(formData.get("margin_top")),
+  margin_bottom: Number(formData.get("margin_bottom")),
+
+  brandingRemoved: false,
+},
+});
   return json({ success: true });
 };
 
@@ -174,7 +242,7 @@ function LivePreview({ form }: { form: SettingsForm }) {
         border: "1px solid #e5e7eb",
         borderRadius: "10px",
         overflow: "hidden",
-        background: form.backgroundColor,
+        background: form.selected_bg,
       }}
     >
       {/* Title */}
@@ -187,7 +255,7 @@ function LivePreview({ form }: { form: SettingsForm }) {
           textTransform: "uppercase",
           padding: "12px 16px",
           borderBottom: "1px solid #e5e7eb",
-          color: form.primaryColor,
+          color: form.primary_color,
           background: "#f9fafb",
         }}
       >
@@ -195,7 +263,7 @@ function LivePreview({ form }: { form: SettingsForm }) {
       </div>
 
       {/* Rows */}
-      <div style={{ padding: "8px", display: "flex", flexDirection: "column", gap: "6px" }}>
+      {/* <div style={{ padding: "8px", display: "flex", flexDirection: "column", gap: "6px" }}>
         {rows.map((row, i) => (
           <div
             key={i}
@@ -206,8 +274,8 @@ function LivePreview({ form }: { form: SettingsForm }) {
               alignItems: "center",
               padding: "10px 14px",
               borderRadius: "7px",
-              border: `2px solid ${i === selected ? form.primaryColor : "#e5e7eb"}`,
-              background: i === selected ? `${form.primaryColor}18` : "#f9fafb",
+              border: `2px solid ${i === selected ? form.primary_color : "#e5e7eb"}`,
+              background: i === selected ? `${form.primary_color}18` : "#f9fafb",
               cursor: "pointer",
               gap: "8px",
             }}
@@ -218,7 +286,7 @@ function LivePreview({ form }: { form: SettingsForm }) {
                   width: "18px",
                   height: "18px",
                   borderRadius: "50%",
-                  border: `${i === selected ? "5px" : "2px"} solid ${i === selected ? form.primaryColor : "#d1d5db"}`,
+                  border: `${i === selected ? "5px" : "2px"} solid ${i === selected ? form.primary_color : "#d1d5db"}`,
                   background: "#fff",
                   flexShrink: 0,
                 }}
@@ -231,7 +299,7 @@ function LivePreview({ form }: { form: SettingsForm }) {
               {row.badge && (
                 <span
                   style={{
-                    background: form.accentColor,
+                    background: form.selected_bg,
                     color: "#fff",
                     fontSize: "10px",
                     fontWeight: 600,
@@ -256,7 +324,107 @@ function LivePreview({ form }: { form: SettingsForm }) {
             </div>
           </div>
         ))}
+      </div> */}
+      <div
+  style={{
+    padding: "8px",
+    display: "flex",
+    flexDirection: "column",
+    gap: "6px",
+  }}
+>
+  {rows.map((row, i) => (
+    <div
+      key={i}
+      onClick={() => setSelected(i)}
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        padding: "10px 14px",
+        borderRadius: "7px",
+        border: `2px solid ${
+          i === selected ? form.primary_color : form.border_color
+        }`,
+        background:
+          i === selected
+            ? `${form.primary_color}18`
+            : form.selected_bg,
+        cursor: "pointer",
+        gap: "8px",
+      }}
+    >
+      {/* LEFT SIDE */}
+      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        <div
+          style={{
+            width: "18px",
+            height: "18px",
+            borderRadius: "50%",
+            border: `${i === selected ? "5px" : "2px"} solid ${
+              i === selected ? form.primary_color : "#d1d5db"
+            }`,
+            background: "#fff",
+            flexShrink: 0,
+          }}
+        />
+
+        <span
+          style={{
+            fontSize: "13px",
+            color: form.text_color,
+            fontWeight: 500,
+          }}
+        >
+          {row.label}
+        </span>
       </div>
+
+      {/* RIGHT SIDE */}
+      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+        {row.badge && (
+          <span
+            style={{
+              background: form.badge_bg,
+              color: form.badge_text,
+              fontSize: "10px",
+              fontWeight: 600,
+              padding: "3px 9px",
+              borderRadius: "20px",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {row.badge}
+          </span>
+        )}
+
+        <div style={{ textAlign: "right" }}>
+          <div
+            style={{
+              fontSize: "14px",
+              fontWeight: 700,
+              color: form.text_color,
+            }}
+          >
+            {row.price}
+          </div>
+
+          {row.origPrice && (
+            <div
+              style={{
+                fontSize: "11px",
+                color: form.original_price_color,
+                textDecoration: "line-through",
+              }}
+            >
+              {row.origPrice}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  ))}
+</div>
 
       {/* Branding */}
       {!form.brandingRemoved && (
@@ -271,46 +439,70 @@ function LivePreview({ form }: { form: SettingsForm }) {
 // ─── COMPONENT ────────────────────────────────────────────────────────────────
 
 export default function Settings() {
-  const { settings, shop, planName } = useLoaderData<typeof loader>();
+  const { settings, shop, planName, widgetType } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const submit = useSubmit();
   const navigation = useNavigation();
   const isSaving = navigation.state === "submitting";
 
   const [form, setForm] = useState<SettingsForm>({
-    primaryColor: settings.primaryColor,
-    secondaryColor: settings.secondaryColor,
-    accentColor: settings.accentColor,
-    backgroundColor: settings.backgroundColor,
-    brandingRemoved: settings.brandingRemoved,
-  });
+  primary_color: settings.primary_color,
+  selected_bg: settings.selected_bg,
+  badge_bg: settings.badge_bg,
+  badge_text: settings.badge_text,
+  text_color: settings.text_color,
+  border_color: settings.border_color,
+  original_price_color: settings.original_price_color,
+
+  margin_top: settings.margin_top,
+  margin_bottom: settings.margin_bottom,
+
+  brandingRemoved: settings.brandingRemoved,
+});
   const [toastActive, setToastActive] = useState(false);
 
   const updateColor = (field: keyof SettingsForm) => (val: string) =>
     setForm((prev) => ({ ...prev, [field]: val }));
 
-  const handleSave = () => {
-    alert();
-    
-    const fd = new FormData();
-    console.log("AAAAAAAA",fd);
-    return;
-    fd.append("primaryColor", form.primaryColor);
-    fd.append("secondaryColor", form.secondaryColor);
-    fd.append("accentColor", form.accentColor);
-    fd.append("backgroundColor", form.backgroundColor);
-    submit(fd, { method: "post" });
-    setToastActive(true);
-  };
+ const handleSave = () => {
+  const fd = new FormData();
 
-  const handleReset = () =>
-    setForm({
-      primaryColor: "#3b82f6",
-      secondaryColor: "#4a4a6a",
-      accentColor: "#1d4ed8",
-      backgroundColor: "#ffffff",
-      brandingRemoved: false,
-    });
+  fd.append("widgetType", widgetType);
+
+  fd.append("primary_color", form.primary_color);
+  fd.append("selected_bg", form.selected_bg);
+  fd.append("badge_bg", form.badge_bg);
+  fd.append("badge_text", form.badge_text);
+  fd.append("text_color", form.text_color);
+  fd.append("border_color", form.border_color);
+  fd.append("original_price_color", form.original_price_color);
+
+  fd.append("margin_top", String(form.margin_top));
+  fd.append("margin_bottom", String(form.margin_bottom));
+
+  fd.append("brandingRemoved", String(form.brandingRemoved));
+
+  console.log("FORM DATA:", Object.fromEntries(fd.entries()));
+
+  submit(fd, { method: "post" });
+  setToastActive(true);
+};
+
+ const handleReset = () =>
+  setForm({
+    primary_color: "#1a1a2e",
+    selected_bg: "#f0f4ff",
+    badge_bg: "#1a1a2e",
+    badge_text: "#ffffff",
+    text_color: "#333333",
+    border_color: "#e0e0e0",
+    original_price_color: "#999999",
+
+    margin_top: 16,
+    margin_bottom: 16,
+
+    brandingRemoved: false,
+  });
 
   return (
     <Frame>
@@ -322,8 +514,11 @@ export default function Settings() {
       )}
 
       <Page
-        title="Settings"
-        subtitle="Configure your BundleKit widget appearance"
+        title="Quantity break colors"
+         backAction={{
+    content: "Settings",        // Hover pe dikhega
+    url: "/app/settings1",       // Jahan navigate karna hai
+  }}
         primaryAction={{
           content: "Save settings",
           loading: isSaving,
@@ -340,42 +535,68 @@ export default function Settings() {
 
               {/* Widget Colors */}
               <Card>
-                <BlockStack gap="400">
-                  <Text variant="headingMd" as="h2">Widget Colors</Text>
-                  <Divider />
-                  <Text variant="bodySm" as="p" tone="subdued">
-                    Customize colors to match your store theme. Changes apply to all quantity break widgets.
-                  </Text>
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "1fr 1fr",
-                      gap: "24px",
-                    }}
-                  >
-                    <ColorInput
-                      label="Primary Color"
-                      value={form.primaryColor}
-                      onChange={updateColor("primaryColor")}
-                    />
-                    <ColorInput
-                      label="Secondary Color"
-                      value={form.secondaryColor}
-                      onChange={updateColor("secondaryColor")}
-                    />
-                    <ColorInput
-                      label="Badge / Discount Color"
-                      value={form.accentColor}
-                      onChange={updateColor("accentColor")}
-                    />
-                    <ColorInput
-                      label="Background Color"
-                      value={form.backgroundColor}
-                      onChange={updateColor("backgroundColor")}
-                    />
-                  </div>
-                </BlockStack>
-              </Card>
+  <BlockStack gap="400">
+    <Text variant="headingMd" as="h2">Widget Colors</Text>
+    <Divider />
+
+    <Text variant="bodySm" as="p" tone="subdued">
+      Customize colors to match your store theme. Changes apply to all quantity break widgets.
+    </Text>
+
+    {/* COLOR GRID */}
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gap: "24px",
+      }}
+    >
+      <ColorInput
+        label="Primary Color"
+        value={form.primary_color}
+        onChange={updateColor("primary_color")}
+      />
+
+      <ColorInput
+        label="Selected Background"
+        value={form.selected_bg}
+        onChange={updateColor("selected_bg")}
+      />
+
+      <ColorInput
+        label="Badge Background"
+        value={form.badge_bg}
+        onChange={updateColor("badge_bg")}
+      />
+
+      <ColorInput
+        label="Badge Text"
+        value={form.badge_text}
+        onChange={updateColor("badge_text")}
+      />
+
+      <ColorInput
+        label="Text Color"
+        value={form.text_color}
+        onChange={updateColor("text_color")}
+      />
+
+      <ColorInput
+        label="Border Color"
+        value={form.border_color}
+        onChange={updateColor("border_color")}
+      />
+
+      <ColorInput
+        label="Original Price Color"
+        value={form.original_price_color}
+        onChange={updateColor("original_price_color")}
+      />
+    </div>
+
+    <Divider />
+  </BlockStack>
+</Card>
 
               {/* Branding */}
               <Card>

@@ -5,88 +5,37 @@
 {% endcomment %}
 
 <div
-  id="bundler-qb-{{ block.id }}"
-  class="bundler-qb"
+  id="bdlrkit-bundler-vd-{{ block.id }}"
+  class="bdlrkit-bundler-vd"
   data-block-id="{{ block.id }}"
   data-product-id="{{ product.id }}"
   data-variant-id="{{ product.selected_or_first_available_variant.id }}"
   data-product-price="{{ product.selected_or_first_available_variant.price | money_without_currency | replace: ',', '' }}"
   data-product-compare-price="{{ product.selected_or_first_available_variant.compare_at_price | money_without_currency | replace: ',', '' }}"
   data-currency-symbol="{{ cart.currency.symbol }}"
+  data-widget-type="volume-widget"
   data-shop="{{ shop.permanent_domain }}"
   data-proxy-path="/apps/bundler"
-  data-primary-color="{{ block.settings.primary_color }}"
-  data-selected-bg="{{ block.settings.selected_bg }}"
-  data-badge-bg="{{ block.settings.badge_bg }}"
-  data-badge-text="{{ block.settings.badge_text }}"
-  data-text-color="{{ block.settings.text_color }}"
-  data-border-color="{{ block.settings.border_color }}"
-  data-original-color="{{ block.settings.original_price_color }}"
+
   style="margin-top:{{ block.settings.margin_top }}px;margin-bottom:{{ block.settings.margin_bottom }}px;"
 >
   {%- comment -%} Loading skeleton shown until JS hydrates {%- endcomment -%}
-  <div class="bundler-qb__loading">
-    <div class="bundler-qb__skeleton-title"></div>
-    <div class="bundler-qb__skeleton-row"></div>
-    <div class="bundler-qb__skeleton-row"></div>
+  <div class="bdlrkit-bundler-vd__loading">
+    <div class="bdlrkit-bundler-vd__skeleton-title"></div>
+    <div class="bdlrkit-bundler-vd__skeleton-row"></div>
+    <div class="bdlrkit-bundler-vd__skeleton-row"></div>
   </div>
 </div>
 
-{{ 'bundler-widget.css' | asset_url | stylesheet_tag }}
+{{ 'volume-widget.css' | asset_url | stylesheet_tag }}
 <script src="{{ 'volume-widget.js' | asset_url }}" defer></script>
 
 {% schema %}
 {
   "name": "Volume discount element",
-  "target": "section",
+  "target": "section", 
   "templates": ["product"],
   "settings": [
-    {
-      "type": "header",
-      "content": "Colors"
-    },
-    {
-      "type": "color",
-      "id": "primary_color",
-      "label": "Primary / radio color",
-      "default": "#1a1a2e"
-    },
-    {
-      "type": "color",
-      "id": "selected_bg",
-      "label": "Selected row background",
-      "default": "#f0f4ff"
-    },
-    {
-      "type": "color",
-      "id": "badge_bg",
-      "label": "Savings badge background",
-      "default": "#1a1a2e"
-    },
-    {
-      "type": "color",
-      "id": "badge_text",
-      "label": "Savings badge text",
-      "default": "#ffffff"
-    },
-    {
-      "type": "color",
-      "id": "text_color",
-      "label": "Text color",
-      "default": "#333333"
-    },
-    {
-      "type": "color",
-      "id": "border_color",
-      "label": "Border color",
-      "default": "#e0e0e0"
-    },
-    {
-      "type": "color",
-      "id": "original_price_color",
-      "label": "Original price (strikethrough)",
-      "default": "#999999"
-    },
     {
       "type": "header",
       "content": "Spacing"
