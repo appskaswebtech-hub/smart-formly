@@ -340,13 +340,13 @@ export default function Dashboard() {
               </BlockStack>
             </Card>
             <Card>
-              <BlockStack gap="300">
+              {/* <BlockStack gap="300">
                 <Text as="h3" variant="headingMd">Connect integrations</Text>
                 <Text as="p" tone="subdued">
                   Connect forms to tools to track data and manage submissions.
                 </Text>
                 <Button onClick={() => navigate("/app/integrations")}>Setup apps</Button>
-              </BlockStack>
+              </BlockStack> */}
             </Card>
             <Card>
               <BlockStack gap="300">

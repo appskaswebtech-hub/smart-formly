@@ -64,6 +64,9 @@ export default defineConfig({
     }),
     tsconfigPaths(),
   ],
+  resolve: {
+    dedupe: ["react", "react-dom", "react-dom/server"], // ✅ ADD THIS
+  },
   build: {
     assetsInlineLimit: 0,
   },
