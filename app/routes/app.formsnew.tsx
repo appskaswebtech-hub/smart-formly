@@ -883,7 +883,6 @@
 //   );
 // }
 
-import { useAppBridge } from "@shopify/app-bridge-react";
 import { useState, useEffect, useRef } from "react";
 import { json, redirect, type ActionFunctionArgs, type LoaderFunctionArgs } from "@remix-run/node";
 import { useSubmit, useActionData, useNavigation } from "@remix-run/react";
@@ -1060,7 +1059,6 @@ const [bannerPreview, setBannerPreview] = useState<string>("");
   const submit     = useSubmit();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
-  const shopify    = useAppBridge();
 
   const saving = navigation.state === "submitting";
 

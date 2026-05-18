@@ -1,0 +1,23 @@
+{% comment %}
+  SmartFormly — App Embed
+{% endcomment %}
+
+<script>
+  window.SmartFormlyConfig = {
+    shop: {{ shop.permanent_domain | json }},
+    appUrl: {{ app.metafields.smartformly.app_url | default: "" | json }}
+  };
+</script>
+
+{% schema %}
+{
+  "name": "SmartFormly",
+  "target": "body",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "SmartFormly is active on your storefront. Add the SmartFormly section to any page to display your forms."
+    }
+  ]
+}
+{% endschema %}

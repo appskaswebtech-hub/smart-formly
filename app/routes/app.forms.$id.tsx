@@ -7,9 +7,8 @@ import {
   type LoaderFunctionArgs,
 } from "@remix-run/node";
 import {
-  useLoaderData, useSubmit, useActionData, useNavigation, useNavigate,
+  useLoaderData, useSubmit, useActionData, useNavigation,
 } from "@remix-run/react";
-import { useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
 import { getForm, updateForm } from "../models/form.server";
 import type { FormField, FormSettings } from "../models/form.server";
@@ -162,9 +161,7 @@ export default function EditForm() {
   const { form }   = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const submit     = useSubmit();
-  const navigate   = useNavigate();
   const navigation = useNavigation();
-  const shopify    = useAppBridge();
   const saving     = navigation.state === "submitting";
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string>("");
