@@ -61,7 +61,7 @@ const PLANS = [
   {
     id: "base",
     name: "Base",
-    price: 9.9,
+    price: 9.99,
     trialDays: 7,
     highlights: [
       "Full design customization",
@@ -85,7 +85,7 @@ const PLANS = [
   {
     id: "proplus",
     name: "Pro+",
-    price: 25.9,
+    price: 25.99,
     trialDays: 7,
     highlights: [
       "Full design customization",

@@ -1,9 +1,9 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
-client_id = "4baa388aadc2a06ba4421ed1cf4a3a3a"
-name = "SmartFormly"
+client_id = "3f38a42b74df162c873301f3601a7ef5"
 application_url = "https://smartformly.kaswebtechsolutions.com"
 embedded = true
+name = "SmartFormly"
 
 [webhooks]
 api_version = "2026-07"
@@ -16,5 +16,4 @@ scopes = "read_script_tags,write_script_tags"
 redirect_urls = [ "https://smartformly.kaswebtechsolutions.com/api/auth" ]
 
 [build]
-include_config_on_deploy = true
 automatically_update_urls_on_dev = true
