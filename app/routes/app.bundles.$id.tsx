@@ -34,6 +34,7 @@ import {
   Checkbox,
   RadioButton,
   InlineGrid,
+  Link
 } from "@shopify/polaris";
 import { DeleteIcon, PlusIcon } from "@shopify/polaris-icons";
 import { authenticate } from "../shopify.server";
@@ -48,26 +49,6 @@ import { syncBundleConfigToDiscount } from "../utils/syncDiscount.server";
 
 import { useAppBridge } from "@shopify/app-bridge-react";
 // ---------------------
-// ──────────────────────────────────────────────
-// LOADER (unchanged)
-// ──────────────────────────────────────────────
-// export const loader = async ({ params, request }: LoaderFunctionArgs) => {
-//   const { session } = await authenticate.admin(request);
-//   const shop = session.shop;
-
-//   const bundle = await db.bundle.findFirst({
-//     where: { id: params.id, shop },
-//     include: {
-//       quantityBreaks: { orderBy: { sortOrder: "asc" } },
-//       discountCombination: true,
-//       widgetSettings: true,
-//     },
-//   });
-
-//   if (!bundle) throw new Response("Bundle not found", { status: 404 });
-
-//   return json({ bundle, shop });
-// };
 
 // ----------------------
 export const loader = async ({ params, request }: LoaderFunctionArgs) => {
@@ -169,6 +150,8 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
         productSelectionType: data.productSelectionType,
         selectedProductIds: data.selectedProductIds || null,
         applyOnSubscriptions: data.applyOnSubscriptions,
+        integrateKasSubscrb: data.integrateKasSubscrb,
+        integrateKasSubscrbLabel: data.integrateKasSubscrbLabel,
         numberOfRenewals: data.numberOfRenewals,
       },
     });
@@ -335,7 +318,9 @@ const removeProduct = (id: string) => {
   const [productSelectionType, setProductSelectionType] = useState(bundle.productSelectionType);
   const [applyOnSubscriptions, setApplyOnSubscriptions] = useState(bundle.applyOnSubscriptions);
   const [numberOfRenewals, setNumberOfRenewals] = useState(bundle.numberOfRenewals);
-
+  const [integrateKasSubscrb, setIntegrateKasSubscrb] = useState(false);
+  const [integrateKasSubscrbLabel, setIntegrateKasSubscrbLabel] = useState("Subscribe & Save");
+          
   const [quantityBreaks, setQuantityBreaks] = useState(
     bundle.quantityBreaks.map((qb: any) => ({
       id: qb.id,
@@ -706,16 +691,6 @@ const removeProduct = (id: string) => {
                 <Text as="p" variant="bodySm" tone="subdued">
                   Select if you want to apply to all products or only specific products in your shop.
                 </Text>
-
-                {/* {productSelectionType === "SPECIFIC_PRODUCTS" && (
-                  <Banner tone="info">
-                    <p>
-                      Product picker integration will be available with Shopify resource picker.
-                      For now, bundles apply to all products.
-                    </p>
-                  </Banner>
-                )} */}
-
                 {/* ------------------------ */}
            {productSelectionType === "SPECIFIC_PRODUCTS" && (
   <BlockStack gap="300">
@@ -758,6 +733,95 @@ const removeProduct = (id: string) => {
                 {/* ------------------------ */}
               </BlockStack>
             </Card>
+
+            {/* =============== */}
+            <Card padding="0">
+  <div
+    style={{
+      border: "1px solid #dfe3e8",
+      borderRadius: "12px",
+      overflow: "hidden",
+      background: "#fff",
+    }}
+  >
+    {/* Top Content */}
+    <div
+      style={{
+        padding: "24px",
+        borderBottom: "1px solid #e1e3e5",
+      }}
+    >
+      <BlockStack gap="300">
+        
+        {/* Heading */}
+        <Text as="h2" variant="headingMd">
+          KAS SUBSCRIPTION integration
+        </Text>
+
+        {/* Description */}
+        <Text as="p" variant="bodyMd">
+          Check the box below to integrate{" "}
+          <Link
+         url="https://apps.shopify.com/kas-subscription"
+         target="_blank"
+          removeUnderline
+           
+          >
+         KAS SUBSCRIPTION
+          </Link> {""}
+          widget into the quantity break. To show the widget, you must
+          also have auto-charging subscription rules configured for
+          the same products that this quantity break is applied to.
+        </Text>
+      </BlockStack>
+    </div>
+
+    {/* Bottom Content */}
+    <div
+      style={{
+        padding: "24px",
+      }}
+    >
+      <BlockStack gap="400">
+
+      {/* Checkbox */}
+<Checkbox
+  label="Enable KAS SUBSCRIPTION integration"
+  checked={integrateKasSubscrb}
+  onChange={setIntegrateKasSubscrb}
+/>
+
+{/* Show only when checkbox is checked */}
+{integrateKasSubscrb && (
+  <BlockStack gap="200">
+    <Text as="p" variant="bodyMd">
+      Subscription checkbox label:
+    </Text>
+
+    <input
+      type="text"
+      value={integrateKasSubscrbLabel}
+      onChange={(e) =>
+        setIntegrateKasSubscrbLabel(e.target.value)
+      }
+      placeholder="Subscribe & Save"
+      style={{
+        width: "100%",
+        padding: "10px 12px",
+        border: "1px solid #c9cccf",
+        borderRadius: "4px",
+        fontSize: "14px",
+        outline: "none",
+        background: "#fff",
+      }}
+    />
+  </BlockStack>
+)}
+      </BlockStack>
+    </div>
+  </div>
+</Card>
+            {/* =============== */}
           </BlockStack>
         </Layout.Section>
 

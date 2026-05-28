@@ -386,7 +386,7 @@ const removeProduct = (id: string) => {
   }, []);
 
   const handleSave = () => {
-    
+  
     const formData = new FormData();
     formData.set("intent", "save");
     formData.set(

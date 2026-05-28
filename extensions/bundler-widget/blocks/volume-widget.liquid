@@ -17,7 +17,17 @@
   data-shop="{{ shop.permanent_domain }}"
   data-proxy-path="/apps/bundler"
 
-  style="margin-top:{{ block.settings.margin_top }}px;margin-bottom:{{ block.settings.margin_bottom }}px;"
+ style="
+    margin-top:{{ block.settings.margin_top }}px;
+    margin-bottom:{{ block.settings.margin_bottom }}px;
+    --vd-primary: #1a1a2e;
+    --vd-selected-bg: #f0f4ff;
+    --vd-badge-bg: #1a1a2e;
+    --vd-badge-text: #ffffff;
+    --vd-text: #333333;
+    --vd-border: #e0e0e0;
+    --vd-original: #999999;
+  "
 >
   {%- comment -%} Loading skeleton shown until JS hydrates {%- endcomment -%}
   <div class="bdlrkit-bundler-vd__loading">

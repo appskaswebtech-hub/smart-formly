@@ -2,6 +2,7 @@ import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { useLoaderData, useNavigate, useSubmit, useSearchParams } from "@remix-run/react";
 import { useState, useCallback,useEffect } from "react";
+import { Modal,TextContainer} from "@shopify/polaris";
 import {
   Page,
   Layout,
@@ -91,6 +92,20 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     }
   }
 
+   // ✅ NEW: Bulk status update
+  if (intent === "bulkStatus") {
+    const ids = JSON.parse(formData.get("ids") as string) as string[];
+    const status = formData.get("status") as string; // "ACTIVE" ya "PAUSED"
+
+    await db.bundle.updateMany({
+      where: {
+        id:   { in: ids },
+        shop: session.shop,       // ✅ Security: sirf apni shop ke bundles
+      },
+      data: { status },
+    });
+  }
+
   return json({ success: true });
 };
 
@@ -103,7 +118,20 @@ const { bundles, total, page, search } = data;
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchValue, setSearchValue] = useState(search);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-
+// existing states ke neeche add karo
+   const [confirmModal, setConfirmModal] = useState<{
+  open:   boolean;
+  action: "ACTIVE" | "PAUSED" | "delete" | null;
+  title:  string;
+  body:   string;
+  confirmLabel: string;
+}>({
+  open:         false,
+  action:       null,
+  title:        "",
+  body:         "",
+  confirmLabel: "",
+});
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
   const handleSearch = useCallback(() => {
@@ -113,15 +141,38 @@ const { bundles, total, page, search } = data;
     setSearchParams(params);
   }, [searchValue, setSearchParams]);
 
-  const handleBulkDelete = () => {
-    if (!selectedIds.length) return;
-    if (!confirm(`Delete ${selectedIds.length} bundle(s)?`)) return;
-    const formData = new FormData();
-    formData.set("intent", "delete");
-    formData.set("ids", JSON.stringify(selectedIds));
-    submit(formData, { method: "post" });
-    setSelectedIds([]);
+  // const handleBulkDelete = () => {
+  //   if (!selectedIds.length) return;
+  //   if (!confirm(`Delete ${selectedIds.length} bundle(s)?`)) return;
+  //   const formData = new FormData();
+  //   formData.set("intent", "delete");
+  //   formData.set("ids", JSON.stringify(selectedIds));
+  //   submit(formData, { method: "post" });
+  //   setSelectedIds([]);
+  // };
+  const openConfirm = (action: "ACTIVE" | "PAUSED" | "delete") => {
+  if (!selectedIds.length) return;
+
+  const config = {
+    ACTIVE: {
+      title:        "Are you sure you want to activate the selected bundles?",
+      body:         "Activated bundles will start applying discounts immediately on your store.",
+      confirmLabel: "Activate bundles",
+    },
+    PAUSED: {
+      title:        "Are you sure you want to pause the selected bundles?",
+      body:         "Paused bundles will stop applying discounts until activated again.",
+      confirmLabel: "Pause bundles",
+    },
+    delete: {
+      title:        `Are you sure you want to delete ${selectedIds.length} bundle(s)?`,
+      body:         "This action cannot be undone. All selected bundles will be permanently deleted.",
+      confirmLabel: "Delete bundles",
+    },
   };
+
+  setConfirmModal({ open: true, action, ...config[action] });
+};
 
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) =>
@@ -137,8 +188,27 @@ const { bundles, total, page, search } = data;
     }
   };
 // ------------------------
-// const data = useLoaderData();
+const handleConfirm = () => {
+  const { action } = confirmModal;
 
+  if (action === "delete") {
+    const formData = new FormData();
+    formData.set("intent", "delete");
+    formData.set("ids", JSON.stringify(selectedIds));
+    submit(formData, { method: "post" });
+
+  } else if (action === "ACTIVE" || action === "PAUSED") {
+    const formData = new FormData();
+    formData.set("intent", "bulkStatus");
+    formData.set("ids", JSON.stringify(selectedIds));
+    formData.set("status", action);
+    submit(formData, { method: "post" });
+  }
+
+  // Modal band karo + selection clear karo
+  setConfirmModal({ open: false, action: null, title: "", body: "", confirmLabel: "" });
+  setSelectedIds([]);
+};
  if (!data.hasAccess) {
     return (
       <Page>
@@ -235,22 +305,13 @@ const { bundles, total, page, search } = data;
                             Showing {bundles.length} of {total} bundle{total !== 1 ? "s" : ""}
                           </Text>
                         </InlineStack>
-                        {/* {selectedIds.length > 0 && (
-                          <Button
-                            variant="plain"
-                            tone="critical"
-                            icon={DeleteIcon}
-                            onClick={handleBulkDelete}
-                          >
-                            Delete selected
-                          </Button>
-                        )} */}
+                      
 
 
                         {selectedIds.length > 0 && (
-  <InlineStack gap="0">
+                      <InlineStack gap="0">
 
-    {/* Selected count */}
+                         {/* Selected count */}
     <Box
       padding="300"
       borderWidth="025"
@@ -282,7 +343,8 @@ const { bundles, total, page, search } = data;
     >
       <Button
         variant="plain"
-        onClick={() => alert("Activate clicked")}
+       // onClick={() => handleBulkStatus("ACTIVE")}
+       onClick={() => openConfirm("ACTIVE")}
       >
         Activate
       </Button>
@@ -297,7 +359,8 @@ const { bundles, total, page, search } = data;
     >
       <Button
         variant="plain"
-        onClick={() => alert("Pause clicked")}
+       // onClick={() => handleBulkStatus("PAUSED")}
+       onClick={() => openConfirm("PAUSED")}
       >
         Pause
       </Button>
@@ -315,7 +378,8 @@ const { bundles, total, page, search } = data;
       <Button
         variant="plain"
         tone="critical"
-        onClick={handleBulkDelete}
+       // onClick={handleBulkDelete}
+      onClick={() => openConfirm("delete")}
       >
         Delete
       </Button>
@@ -361,6 +425,7 @@ const { bundles, total, page, search } = data;
                                   : "info"
                               }
                             >
+                            
                               {bundle.status === "ACTIVE" ? "Active" : bundle.status === "PAUSED" ? "Paused" : "Draft"}
                             </Badge>
                             <Text as="span" variant="bodySm" tone="subdued">
@@ -417,6 +482,33 @@ const { bundles, total, page, search } = data;
           </BlockStack>
         </Layout.Section>
       </Layout>
+       {/* Confirmation Modal */}
+<Modal
+  open={confirmModal.open}
+  onClose={() =>
+    setConfirmModal({ open: false, action: null, title: "", body: "", confirmLabel: "" })
+  }
+  title={confirmModal.title}
+  primaryAction={{
+    content:     confirmModal.confirmLabel,
+    onAction:    handleConfirm,
+    destructive: confirmModal.action === "delete", // delete pe red button
+  }}
+  secondaryActions={[
+    {
+      content: "No, I changed my mind",
+      onAction: () =>
+        setConfirmModal({ open: false, action: null, title: "", body: "", confirmLabel: "" }),
+    },
+  ]}
+>
+  <Modal.Section>
+    <TextContainer>
+      <Text as="p">{confirmModal.body}</Text>
+    </TextContainer>
+  </Modal.Section>
+</Modal>
     </Page>
   );
 }
+

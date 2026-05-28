@@ -1,33 +1,3 @@
-// // app/config/plans.js
-
-// export const PLANS = {
-//   free: {
-//     name:        "free",
-//     label:       "Free",
-//     price:       0,
-//     bundleLimit: Infinity,
-//     trialDays:   0,
-//   },
-//   pro: {
-//     name:        "pro",
-//     label:       "Pro",
-//     price:       10.99,
-//     bundleLimit: Infinity,
-//     trialDays:   0,
-//   },
-//   advanced: {
-//     name:        "advanced",
-//     label:       "Advanced",
-//     price:       17.99,
-//     bundleLimit: Infinity,
-//     trialDays:   7,
-//   },
-// };
-
-// export const DEFAULT_PLAN = PLANS.free;
-
-// export const PLAN_KEYS = Object.keys(PLANS); // ["free", "advanced"]
-
 
 // ---------12.05.2026--------
 

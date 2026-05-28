@@ -2,9 +2,20 @@ import { Card, BlockStack, Text, InlineStack, Badge, Box, Icon } from "@shopify/
 import { CheckIcon } from "@shopify/polaris-icons";
 import { calculateDiscountedPrice, formatPrice, formatSavingsText } from "../utils/price-calculator";
 import { useState } from "react";
+// ── Template resolver ──
+function resolveTemplate(str: string, qb: QuantityBreak): string {
+  if (!str) return '';
+  const discountUnit = qb.discountType === 'PERCENTAGE' ? '%' : '$';
+  return str
+    .replace(/\{\{quantity\}\}/g,       String(qb.quantity))
+    .replace(/\{\{max_quantity\}\}/g,   String(qb.maxQuantity || ''))
+    .replace(/\{\{discount_value\}\}/g, String(qb.discountValue))
+    .replace(/\{\{discount_unit\}\}/g,  discountUnit);
+}
 
 interface QuantityBreak {
   quantity: number;
+  maxQuantity: number;
   discountType: string;
   discountValue: number;
   description: string;
@@ -81,7 +92,7 @@ export function WidgetPreview({
                     breakItem.discountType,
                     breakItem.discountValue
                   );
-
+                  const resolvedDescription = resolveTemplate(breakItem.description, breakItem);
                   const isSelected = index === selectedIndex;
                   const hasSavings = calculation.savings > 0;
 
@@ -133,7 +144,8 @@ export function WidgetPreview({
                           {/* Description */}
                           <BlockStack gap="100">
                             <Text as="span" variant="bodyMd" fontWeight="semibold">
-                              {breakItem.description}
+                              {/* {breakItem.description} */}
+                              {resolvedDescription}
                             </Text>
                             {breakItem.freeShipping && (
                               <InlineStack gap="100" blockAlign="center">

@@ -23,7 +23,7 @@ import {
   List,
 } from "@shopify/polaris";
 import { authenticate }      from "../shopify.server";
-import { PLANS, PLAN_KEYS }  from "../config/plans";
+import { PLANS, PLAN_KEYS, getPlanByShopifyName }  from "../config/plans";
 import {
   getShopPlanFromDB,
   updateShopPlan,
@@ -106,7 +106,8 @@ const PLANS_UI: PlanUI[] = [
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
   const plan        = await getShopPlanFromDB(session.shop);
-  return json<LoaderData>({ currentPlan: plan.name });
+  const planKey = getPlanByShopifyName(plan.name) ?? "free";
+  return json<LoaderData>({ currentPlan: planKey });
 };
 
 // ─── ACTION ───────────────────────────────────────────────────
@@ -266,7 +267,8 @@ export default function BillingPage() {
             Upgrade below to unlock all features on your real store.
           </Text> */}
            <Text as="p">
-    {currentPlan.toUpperCase() === "ADVANCED"
+   {/* {currentPlan.toUpperCase() === "ADVANCED PLAN" */}
+    {currentPlan === "advanced"
       ? "Great news! All features are now unlocked on your live store."
       : "Upgrade below to unlock all features on your real store."}
   </Text>
@@ -276,7 +278,6 @@ export default function BillingPage() {
         <InlineGrid columns={{ xs: 1, sm: 1, md: 2 }} gap="400">
           {PLANS_UI.map((plan) => {
             const isCurrent = currentPlan === plan.key;
-
             return (
               <div
                 key={plan.key}

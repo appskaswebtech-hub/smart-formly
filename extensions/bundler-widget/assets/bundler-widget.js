@@ -84,6 +84,7 @@
     });
 
     html += '</div>';
+    
     root.innerHTML = html;
     root.classList.add('bdlrkit-bundler-qb--loaded');
 
@@ -305,7 +306,7 @@
       applyColors(root, data.colors);
     }
         // if (data.bundles && data.bundles.length > 0) {
-        //   renderWidget(root, data.bundles[0], basePrice, currency);
+        //   renderWidget(root, data.bundles[1], basePrice, currency);
         // } 
   if (data.bundles && data.bundles.length > 0) {
   var matchedBundle = data.bundles.find(function(b) {
@@ -615,13 +616,13 @@ watchVariantChange();
 // Price update function for widgets End
 
 function applyColors(root, colors) {
-  root.style.setProperty('--bundler-primary',     colors.primary_color        || '#1a1a2e');
-  root.style.setProperty('--bundler-selected-bg', colors.selected_bg          || '#f0f4ff');
-  root.style.setProperty('--bundler-badge-bg',    colors.badge_bg             || '#1a1a2e');
-  root.style.setProperty('--bundler-badge-text',  colors.badge_text           || '#ffffff');
-  root.style.setProperty('--bundler-text',        colors.text_color           || '#333333');
-  root.style.setProperty('--bundler-border',      colors.border_color         || '#e0e0e0');
-  root.style.setProperty('--bundler-original',    colors.original_price_color || '#999999');
+  root.style.setProperty('--qb-primary',     colors.primary_color        || '#1a1a2e');
+  root.style.setProperty('--qb-selected-bg', colors.selected_bg          || '#f0f4ff');
+  root.style.setProperty('--qb-badge-bg',    colors.badge_bg             || '#1a1a2e');
+  root.style.setProperty('--qb-badge-text',  colors.badge_text           || '#ffffff');
+  root.style.setProperty('--qb-text',        colors.text_color           || '#333333');
+  root.style.setProperty('--qb-border',      colors.border_color         || '#e0e0e0');
+  root.style.setProperty('--qb-original',    colors.original_price_color || '#999999');
   root.style.marginTop    = (colors.margin_top    || 16) + 'px';
   root.style.marginBottom = (colors.margin_bottom || 16) + 'px';
 }

@@ -47,6 +47,8 @@ model Bundle {
   showWidget            Boolean             @default(true)
 
   applyOnSubscriptions  Boolean             @default(false)
+  integrateKasSubscrb   Boolean             @default(false)
+  integrateKasSubscrbLabel   String         @default("Subscribe & Save")
   numberOfRenewals      String              @default("Unlimited")
 
   productSelectionType  String              @default("ALL_PRODUCTS")

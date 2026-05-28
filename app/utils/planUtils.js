@@ -50,7 +50,6 @@ export async function syncPlanFromShopify(admin, shop) {
     const responseData  = await response.json();
     const subscriptions =
       responseData.data?.currentAppInstallation?.activeSubscriptions ?? [];
-
     const active = subscriptions.find(
       (sub) =>
         sub.status === "ACTIVE" &&

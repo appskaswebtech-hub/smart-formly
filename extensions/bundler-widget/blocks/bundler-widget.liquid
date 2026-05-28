@@ -16,7 +16,16 @@
   data-widget-type="bundler-widget"
   data-shop="{{ shop.permanent_domain }}"
   data-proxy-path="/apps/bundler"
-  style="margin-top:{{ block.settings.margin_top }}px;margin-bottom:{{ block.settings.margin_bottom }}px;"
+  style="margin-top:{{ block.settings.margin_top }}px;
+  margin-bottom:{{ block.settings.margin_bottom }}px;
+    --qb-primary: #1a1a2e;
+    --qb-selected-bg: #f0f4ff;
+    --qb-badge-bg: #1a1a2e;
+    --qb-badge-text: #ffffff;
+    --qb-text: #333333;
+    --qb-border: #e0e0e0;
+    --qb-original: #999999;
+  "
 >
 
   {%- comment -%} Loading skeleton shown until JS hydrates {%- endcomment -%}

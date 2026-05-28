@@ -193,7 +193,7 @@ export async function syncBundleConfigToDiscount(admin: any, shop: string) {
     {
       variables: {
         automaticAppDiscount: {
-          title: "Bundler Quantity Breaks",
+          title: "Quantity Breaks",
           functionId: bundleFunction.id,
           startsAt: new Date().toISOString(),
           discountClasses: ["PRODUCT"],

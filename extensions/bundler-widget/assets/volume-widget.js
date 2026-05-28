@@ -194,37 +194,82 @@
     // ════════════════════════════════════════════════════════════
     // NEW: Add to Cart trigger function
     // ════════════════════════════════════════════════════════════
-    function triggerAddToCart() {
-      console.log('[Bundler] 🛒 Triggering Add to Cart with qty:', selectedQty, 'breakId:', selectedBreakId);
-      
-      // METHOD 1: Form Submit (Recommended)
-      var form = document.querySelector(
-        'form[action*="/cart/add"], form.product-form, .product-form form, product-form form'
-      );
-      
-      if (form) {
-        console.log('[Bundler] Found form, submitting...');
-        
-        // Update quantity input
-        var qtyInput = form.querySelector('input[name="quantity"]');
-        if (qtyInput) {
-          qtyInput.value = selectedQty;
-         
-        }
-        
-        // Add/Update hidden bundler properties
-        ensureHidden(form, 'properties[_bundler_break_id]', selectedBreakId);
-        ensureHidden(form, 'properties[_bundler_bundle_id]', selectedBundleId);
-        ensureHidden(form, 'properties[_bundler_qty]', String(selectedQty));
-        
-        console.log('[Bundler] Hidden fields added, submitting form...');
-        form.submit();
-      } else {
-        console.error('[Bundler] ⚠️ Add to Cart form not found, using fallback fetch...');
-        fallbackFetchAddToCart();
-      }
-    }
+    function triggerAddToCart(qty, breakId, bundleId) {
+  console.log('[Bundler] 🛒 Adding to cart → qty:', qty, 'breakId:', breakId);
 
+  // ── Variant ID dhundo ──
+  var variantIdEl = document.querySelector([
+    'form[action*="/cart/add"] input[name="id"]',
+    'input[name="id"]',
+    'input.product-variant-id',
+    'select[name="id"]',
+    'input[name="variant_id"]'
+  ].join(','));
+
+  if (!variantIdEl) {
+    console.error('[Bundler] ❌ Variant ID nahi mila');
+    return;
+  }
+
+  var variantId = variantIdEl.value || variantIdEl.getAttribute('value');
+  console.log('[Bundler] Variant ID:', variantId);
+
+  // ── Seedha fetch karo - koi form submit nahi ──
+  fetch('/cart/add.js', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify({
+      id: parseInt(variantId, 10),
+      quantity: qty,                          // ← us badge ka qty
+      properties: {
+        '_bundler_break_id':  breakId,
+        '_bundler_bundle_id': bundleId,
+        '_bundler_qty':       String(qty)
+      }
+    })
+  })
+  .then(function(res) {
+    if (!res.ok) throw new Error('Cart add failed: ' + res.status);
+    return res.json();
+  })
+  .then(function(item) {
+    console.log('[Bundler] ✅ Cart mein add ho gaya:', item.title, '× ' + item.quantity);
+    window.location.href = "/cart";
+    // ── Cart UI update karo (theme ko batao) ──
+    // Method A: Shopify standard event
+    document.dispatchEvent(new CustomEvent('cart:updated', { bubbles: true }));
+
+    // Method B: Dawn / Horizon theme ka event
+    document.dispatchEvent(new CustomEvent('cart-update', { bubbles: true }));
+
+    // Method C: Cart drawer/bubble refresh
+    fetch('/cart.js')
+      .then(function(r) { return r.json(); })
+      .then(function(cart) {
+        // Cart count update karo page pe
+        var countEls = document.querySelectorAll([
+          '.cart-count-bubble span',
+          '#cart-icon-bubble span',
+          '.cart__count',
+          '[data-cart-count]',
+          '.cart-count'
+        ].join(','));
+
+        countEls.forEach(function(el) {
+          el.textContent = cart.item_count;
+        });
+
+        console.log('[Bundler] Cart count updated:', cart.item_count);
+      });
+
+    // Method D: Page redirect (last resort agar drawer nahi khula)
+    // window.location.href = '/cart';
+  })
+  .catch(function(err) {
+    console.error('[Bundler] ❌ Cart error:', err);
+    alert('Cart mein add nahi ho saka. Please page refresh karke try karo.');
+  });
+}
     function fallbackFetchAddToCart() {
       console.log('[Bundler] Using fallback Fetch API method...');
       
@@ -272,39 +317,72 @@
     // ════════════════════════════════════════════════════════════
     // NEW: Badge Click Handler - Triggers Add to Cart
     // ════════════════════════════════════════════════════════════
-    saveBadges.forEach(function (badge) {
-      badge.addEventListener('click', function (e) {
-        e.preventDefault();
-        e.stopPropagation();
+    // saveBadges.forEach(function (badge) {
+    //   badge.addEventListener('click', function (e) {
+    //     e.preventDefault();
+    //     e.stopPropagation();
         
-        // Extract badge data
-        var qty = parseInt(badge.getAttribute('data-qty'), 10);
-        var breakId = badge.getAttribute('data-break-id');
-        var bundleId = badge.getAttribute('data-bundle-id');
-        var saveValue = badge.getAttribute('data-save');
+    //     // Extract badge data
+    //     var qty = parseInt(badge.getAttribute('data-qty'), 10);
+    //     var breakId = badge.getAttribute('data-break-id');
+    //     var bundleId = badge.getAttribute('data-bundle-id');
+    //     var saveValue = badge.getAttribute('data-save');
         
-        console.log('[Bundler] Badge clicked → qty:', qty, 'breakId:', breakId, 'bundleId:', bundleId, 'save:', saveValue + '%');
+    //     console.log('[Bundler] Badge clicked → qty:', qty, 'breakId:', breakId, 'bundleId:', bundleId, 'save:', saveValue + '%');
         
-        // Update global variables
-        selectedQty = qty;
-        selectedBreakId = breakId;
-        selectedBundleId = bundleId;
+    //     // Update global variables
+    //     selectedQty = qty;
+    //     selectedBreakId = breakId;
+    //     selectedBundleId = bundleId;
         
-        // Select the option (visual update)
-        selectOption(badge.closest('.bdlrkit-bundler-vd__option'));
+    //     // Select the option (visual update)
+    //     selectOption(badge.closest('.bdlrkit-bundler-vd__option'));
         
-        // Trigger Add to Cart
-        triggerAddToCart();
-      });
+    //     // Trigger Add to Cart
+    //     triggerAddToCart();
+    //   });
       
-      // Keyboard support
-      badge.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          this.click();
-        }
-      });
+    //   // Keyboard support
+    //   badge.addEventListener('keydown', function (e) {
+    //     if (e.key === 'Enter' || e.key === ' ') {
+    //       e.preventDefault();
+    //       this.click();
+    //     }
+    //   });
+    // });
+
+    // ── Yeh purana handler replace karo ──
+saveBadges.forEach(function(badge) {
+  badge.addEventListener('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // ── Directly badge se data lo ──
+    var qty      = parseInt(badge.getAttribute('data-qty'), 10);
+    var breakId  = badge.getAttribute('data-break-id');
+    var bundleId = badge.getAttribute('data-bundle-id');
+
+    console.log('[Bundler] Badge clicked → qty:', qty, 'breakId:', breakId);
+
+    // Visual selection update
+    options.forEach(function(opt) {
+      opt.classList.remove('bdlrkit-bundler-vd__option--selected');
     });
+    badge.closest('.bdlrkit-bundler-vd__option')
+         .classList.add('bdlrkit-bundler-vd__option--selected');
+
+    // ── Seedha cart mein dalo, global variables pe depend mat karo ──
+    triggerAddToCart(qty, breakId, bundleId);
+  });
+
+  // Keyboard support
+  badge.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      this.click();
+    }
+  });
+});
 
     // Intercept form submit to force correct quantity + add hidden fields
     // var forms = document.querySelectorAll(
@@ -739,13 +817,13 @@ watchVariantChange();
 // ════════════════════════════════════════════════════════════════════
 
 function applyColors(root, colors) {
-  root.style.setProperty('--bundler-primary',     colors.primary_color        || '#1a1a2e');
-  root.style.setProperty('--bundler-selected-bg', colors.selected_bg          || '#f0f4ff');
-  root.style.setProperty('--bundler-badge-bg',    colors.badge_bg             || '#1a1a2e');
-  root.style.setProperty('--bundler-badge-text',  colors.badge_text           || '#ffffff');
-  root.style.setProperty('--bundler-text',        colors.text_color           || '#333333');
-  root.style.setProperty('--bundler-border',      colors.border_color         || '#e0e0e0');
-  root.style.setProperty('--bundler-original',    colors.original_price_color || '#999999');
+  root.style.setProperty('--vd-primary',     colors.primary_color        || '#1a1a2e');
+  root.style.setProperty('--vd-selected-bg', colors.selected_bg          || '#f0f4ff');
+  root.style.setProperty('--vd-badge-bg',    colors.badge_bg             || '#1a1a2e');
+  root.style.setProperty('--vd-badge-text',  colors.badge_text           || '#ffffff');
+  root.style.setProperty('--vd-text',        colors.text_color           || '#333333');
+  root.style.setProperty('--vd-border',      colors.border_color         || '#e0e0e0');
+  root.style.setProperty('--vd-original',    colors.original_price_color || '#999999');
   root.style.marginTop    = (colors.margin_top    || 16) + 'px';
   root.style.marginBottom = (colors.margin_bottom || 16) + 'px';
 }
