@@ -19,7 +19,7 @@ const PLAN_NAME_MAP: Record<string, string> = {
 
 // ─── Loader ───────────────────────────────────────────────────────────────────
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  await authenticate.admin(request);
+  await authenticate.admin(request);  
   return json({});
 };
 

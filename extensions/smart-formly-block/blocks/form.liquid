@@ -1,43 +1,43 @@
 {% comment %}
-  SmartFormly - Form Block
-  Renders a form from the SmartFormly app in the storefront.
-  App URL resolves automatically from the app-owned shop metafield.
-  Merchant only needs to enter the Form ID.
+  SmartFormly — Form Block
+  Supports: inline · centered popup (button / delay / exit_intent) · floating bottom bar (bottom sheet)
+  Features: schedule gate · allow logged-in only · ticket system · custom messages · scroll behavior · after-submit script
 {% endcomment %}
 
 {%- assign app_url = app.metafields.smartformly.app_url | default: "" -%}
+
 {% if block.settings.form_id == blank %}
   {% if request.design_mode %}
-    <div style="padding: 40px; text-align: center; border: 2px dashed #ccc; border-radius: 8px; color: #666; font-family: sans-serif;">
-      <p style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">SmartFormly Form</p>
-      <p style="font-size: 13px;">Enter a Form ID in the block settings to display your form.</p>
+    <div style="padding:40px;text-align:center;border:2px dashed #ccc;border-radius:8px;color:#666;font-family:sans-serif;">
+      <p style="font-size:16px;font-weight:600;margin-bottom:8px;">SmartFormly Form</p>
+      <p style="font-size:13px;">Enter a Form ID in the block settings to display your form.</p>
     </div>
   {% endif %}
 {% elsif app_url == blank %}
   {% if request.design_mode %}
-    <div style="padding: 20px; text-align: center; border: 2px dashed #f59e0b; border-radius: 8px; color: #92400e; font-family: sans-serif; font-size: 13px;">
+    <div style="padding:20px;text-align:center;border:2px dashed #f59e0b;border-radius:8px;color:#92400e;font-family:sans-serif;font-size:13px;">
       SmartFormly isn't fully configured yet. Please open the SmartFormly app from your Shopify admin once to initialize it.
     </div>
   {% endif %}
 {% else %}
+
   <div
     id="smartformly-form-{{ block.settings.form_id }}"
     class="smartformly-wrapper"
     data-form-id="{{ block.settings.form_id }}"
     data-app-url="{{ app_url }}"
-    style="
-      max-width: {{ block.settings.max_width }}px;
-      margin: 0 auto;
-      padding: {{ block.settings.section_padding }}px 0;
-    "
+    data-customer-logged-in="{% if customer %}true{% else %}false{% endif %}"
+    style="max-width:{{ block.settings.max_width }}px;margin:0 auto;padding:{{ block.settings.section_padding }}px 0;"
   >
-    <div class="smartformly-loading" style="text-align: center; padding: 40px 0; color: #999;">
+    <div class="smartformly-loading" style="text-align:center;padding:40px 0;color:#999;">
       Loading form...
     </div>
   </div>
 
   <style>
+    /* ─── Base ─── */
     .smartformly-wrapper { font-family: inherit; }
+
     .smartformly-form {
       padding: var(--sf-padding, 30px);
       border: var(--sf-border-size, 2px) solid var(--sf-border-color, #000);
@@ -45,225 +45,794 @@
       background: var(--sf-bg, transparent);
       box-shadow: var(--sf-shadow, none);
     }
-    .smartformly-form h2 { font-size: 20px; font-weight: 600; margin: 0 0 4px 0; }
-    .smartformly-form .sf-description { font-size: 13px; color: #6B7280; margin: 0 0 16px 0; }
-    .smartformly-form .sf-banner { margin-bottom: 16px; }
-    .smartformly-form .sf-banner img { max-width: 100%; height: auto; object-fit: cover; border-radius: 4px; }
-    .smartformly-fields { display: flex; flex-wrap: wrap; gap: 16px; }
-    .smartformly-field { width: 100%; }
-    .smartformly-field.half-width { width: calc(50% - 8px); }
-    .smartformly-field label { display: block; margin-bottom: 6px; font-weight: 500; }
+    .smartformly-form h2 { font-size:20px; font-weight:600; margin:0 0 4px 0; }
+    .smartformly-form .sf-description { font-size:13px; color:#6B7280; margin:0 0 16px 0; }
+    .smartformly-form .sf-banner { margin-bottom:16px; }
+    .smartformly-form .sf-banner img { max-width:100%; object-fit:cover; border-radius:4px; }
+
+    /* ─── Fields ─── */
+    .smartformly-fields { display:flex; flex-wrap:wrap; gap:16px; }
+    .smartformly-field  { width:100%; }
+    .smartformly-field.half-width { width:calc(50% - 8px); }
+
+    .smartformly-field label { display:block; margin-bottom:6px; font-weight:500; }
+
     .smartformly-field input[type="text"],
     .smartformly-field input[type="email"],
     .smartformly-field input[type="tel"],
     .smartformly-field input[type="phone"],
     .smartformly-field textarea,
     .smartformly-field select {
-      width: 100%;
-      padding: 8px 10px;
-      border: 1px solid var(--sf-input-border, #000);
-      border-radius: var(--sf-input-radius, 1px);
-      background: var(--sf-input-bg, #fff);
-      font-size: var(--sf-input-font-size, 14px);
-      color: var(--sf-input-color, #000);
-      font-family: inherit;
-      box-sizing: border-box;
+      width:100%; padding:8px 10px;
+      border:1px solid var(--sf-input-border,#000);
+      border-radius:var(--sf-input-radius,1px);
+      background:var(--sf-input-bg,#fff);
+      font-size:var(--sf-input-font-size,14px);
+      color:var(--sf-input-color,#000);
+      font-family:inherit; box-sizing:border-box;
     }
     .smartformly-field input:focus,
     .smartformly-field textarea:focus,
-    .smartformly-field select:focus {
-      outline: none;
-      border-color: var(--sf-input-focus, #5C6AC4);
+    .smartformly-field select:focus { outline:none; border-color:var(--sf-input-focus,#5C6AC4); }
+    .smartformly-field textarea { resize:vertical; min-height:80px; }
+
+    .smartformly-field .sf-checkbox-group { display:flex; flex-direction:column; gap:6px; }
+    .smartformly-field .sf-checkbox-group label { display:flex; align-items:center; gap:8px; font-weight:normal; margin-bottom:0; }
+
+    /* ─── Field-level validation highlight ─── */
+    .smartformly-field.sf-field-error input,
+    .smartformly-field.sf-field-error textarea,
+    .smartformly-field.sf-field-error select { border-color:#DC2626 !important; }
+    .smartformly-field .sf-field-error-msg { font-size:12px; color:#DC2626; margin-top:4px; display:none; }
+    .smartformly-field.sf-field-error .sf-field-error-msg { display:block; }
+
+    .smartformly-submit { width:100%; margin-top:4px; }
+    .smartformly-submit button { padding:10px 24px; font-weight:600; cursor:pointer; font-family:inherit; transition:opacity .2s; }
+    .smartformly-submit button:hover    { opacity:.9; }
+    .smartformly-submit button:disabled { opacity:.5; cursor:not-allowed; }
+
+    /* ─── Messages ─── */
+    .smartformly-success { padding:20px; text-align:center; background:#d4edda; color:#155724; border:1px solid #c3e6cb; border-radius:6px; font-size:15px; font-weight:500; margin-top:12px; }
+    .smartformly-error   { padding:10px 14px; background:#FEE2E2; color:#DC2626; border-radius:6px; font-size:13px; margin-bottom:12px; }
+    .sf-thankyou         { margin-top:16px; padding:20px; background:#EEF0FB; border:1px solid #c3c8f5; border-radius:8px; text-align:center; }
+    .sf-thankyou-msg     { font-size:15px; color:#111827; margin-bottom:10px; }
+    .sf-thankyou-timer   { font-size:12px; color:#6B7280; }
+    .sf-schedule-msg     { padding:20px; text-align:center; font-family:inherit; font-size:14px; color:#6B7280; border:1px solid #E5E7EB; border-radius:8px; background:#F9FAFB; }
+
+    /* ─── Ticket badge ─── */
+    .sf-ticket-badge {
+      display:inline-block; margin-top:10px;
+      padding:6px 14px; background:#5C6AC4; color:#fff;
+      border-radius:20px; font-size:13px; font-weight:600;
+      letter-spacing:.03em;
     }
-    .smartformly-field textarea { resize: vertical; min-height: 80px; }
-    .smartformly-field .sf-checkbox-group { display: flex; flex-direction: column; gap: 6px; }
-    .smartformly-field .sf-checkbox-group label { display: flex; align-items: center; gap: 8px; font-weight: normal; margin-bottom: 0; }
-    .smartformly-submit { width: 100%; margin-top: 4px; }
-    .smartformly-submit button { padding: 10px 24px; font-weight: 600; cursor: pointer; font-family: inherit; transition: opacity 0.2s; }
-    .smartformly-submit button:hover { opacity: 0.9; }
-    .smartformly-submit button:disabled { opacity: 0.5; cursor: not-allowed; }
-    .smartformly-success { padding: 20px; text-align: center; color: #059669; font-size: 15px; font-weight: 500; }
-    .smartformly-error { padding: 10px 14px; background: #FEE2E2; color: #DC2626; border-radius: 6px; font-size: 13px; margin-bottom: 12px; }
-    .sf-field-error { color: #DC2626; font-size: 12px; margin-top: 4px; }
-    @media (max-width: 600px) {
-      .smartformly-field.half-width { width: 100%; }
+
+    /* ─── Login gate message ─── */
+    .sf-login-msg {
+      padding:24px 20px; text-align:center;
+      font-family:inherit; font-size:14px; color:#374151;
+      border:1px solid #E5E7EB; border-radius:8px;
+      background:#F9FAFB; white-space:pre-line; line-height:1.7;
+    }
+
+    /* ─── Centered popup overlay ─── */
+    .sf-popup-overlay {
+      display:none;
+      position:fixed; inset:0;
+      z-index:99999;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+      box-sizing:border-box;
+    }
+    .sf-popup-overlay.sf-popup-open { display:flex; }
+
+    .sf-popup-modal {
+      position:relative; z-index:1;
+      background:#fff; border-radius:10px;
+      width:100%; max-height:90vh; overflow-y:auto;
+      box-shadow:0 20px 60px rgba(0,0,0,.3);
+      animation:sfPopupIn .25s ease;
+    }
+    @keyframes sfPopupIn {
+      from { opacity:0; transform:translateY(-20px) scale(.97); }
+      to   { opacity:1; transform:translateY(0)     scale(1);   }
+    }
+
+    .sf-popup-close {
+      position:absolute; top:12px; right:14px;
+      background:rgba(0,0,0,.08); border:none; border-radius:50%;
+      width:30px; height:30px; font-size:16px; line-height:1;
+      cursor:pointer; display:flex; align-items:center; justify-content:center;
+      color:#444; z-index:2; transition:background .15s;
+    }
+    .sf-popup-close:hover { background:rgba(0,0,0,.15); }
+    .sf-popup-inner { padding:24px; }
+
+    /* ─── Bottom-sheet (floating_button trigger) ─── */
+    .sf-popup-overlay.sf-popup-bottomsheet { align-items:flex-end; padding:0; }
+    .sf-popup-overlay.sf-popup-bottomsheet .sf-popup-modal {
+      position:relative; bottom:0; left:0; right:0;
+      max-width:100% !important; width:100% !important;
+      max-height:85vh;
+      border-radius:20px 20px 0 0;
+      box-shadow:0 -8px 40px rgba(0,0,0,.25);
+      animation:sfSheetUp .32s cubic-bezier(.32,.72,0,1);
+    }
+    @keyframes sfSheetUp {
+      from { transform:translateY(100%); opacity:.6; }
+      to   { transform:translateY(0);    opacity:1; }
+    }
+    .sf-sheet-handle {
+      width:40px; height:4px; background:rgba(0,0,0,.15);
+      border-radius:2px; margin:14px auto 0;
+    }
+
+    /* ─── Floating bottom bar ─── */
+    .sf-floating-bar {
+      display:none; position:fixed;
+      bottom:0; left:0; right:0; z-index:99998;
+      box-shadow:0 -4px 24px rgba(0,0,0,.18);
+      transition:transform .3s ease, opacity .3s ease;
+    }
+    .sf-floating-bar.sf-floating-visible { display:block; }
+    .sf-floating-bar.sf-floating-hidden  { transform:translateY(100%); opacity:0; }
+    .sf-floating-bar button {
+      width:100%; padding:18px 24px;
+      font-size:16px; font-weight:600;
+      border:none; cursor:pointer; font-family:inherit;
+      letter-spacing:.015em; transition:opacity .2s, filter .2s;
+      display:flex; align-items:center; justify-content:center; gap:8px;
+    }
+    .sf-floating-bar button:hover  { filter:brightness(1.08); }
+    .sf-floating-bar button:active { filter:brightness(.95); }
+    body.sf-has-floating-bar { padding-bottom:64px !important; }
+
+    /* ─── Responsive ─── */
+    @media (max-width:600px) {
+      .smartformly-field.half-width { width:100%; }
+      .sf-popup-modal { border-radius:6px; }
+      .sf-popup-overlay.sf-popup-bottomsheet .sf-popup-modal { border-radius:16px 16px 0 0; }
     }
   </style>
 
   <script>
-    (function() {
-      const wrapper = document.getElementById('smartformly-form-{{ block.settings.form_id }}');
-      const formId = wrapper.dataset.formId;
-      const appUrl = (wrapper.dataset.appUrl || '').replace(/\/$/, '');
+  (function() {
+    var wrapper        = document.getElementById('smartformly-form-{{ block.settings.form_id }}');
+    var formId         = wrapper.dataset.formId;
+    var appUrl = (wrapper.dataset.appUrl || '')
+  .replace(/^http:\/\//, 'https://')   // force https
+  .replace(/\/$/, '');                  // remove trailing slash
+    var customerLoggedIn = wrapper.dataset.customerLoggedIn === 'true';
 
-      async function loadForm() {
-        try {
-          const res = await fetch(appUrl + '/api/forms/' + formId);
-          if (!res.ok) throw new Error('Form not found');
-          const data = await res.json();
-          renderForm(data);
-        } catch (err) {
-          wrapper.innerHTML = '<div style="padding:20px;text-align:center;color:#999;">Unable to load form. Please check the Form ID.</div>';
+    var globalFields   = [];
+    var globalSettings = {};
+    var globalDesign   = {};
+    var globalExtra    = {};
+
+    /* ════════════════════════════════════════════
+       HELPERS
+    ════════════════════════════════════════════ */
+    function hexToRgba(hex, opacity) {
+      if (!hex || hex.indexOf('rgba') === 0) return hex || 'rgba(0,0,0,0.5)';
+      hex = hex.replace('#', '');
+      if (hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+      var r = parseInt(hex.substring(0,2),16);
+      var g = parseInt(hex.substring(2,4),16);
+      var b = parseInt(hex.substring(4,6),16);
+      return 'rgba('+r+','+g+','+b+','+opacity+')';
+    }
+
+    function escHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;');
+    }
+
+    /* ════════════════════════════════════════════
+       SCHEDULE CHECK
+    ════════════════════════════════════════════ */
+    function getScheduleMessage() {
+      var extra = globalExtra;
+      var now   = new Date();
+      if (extra.scheduleStartDate) {
+        var start = new Date(extra.scheduleStartDate + 'T' + (extra.scheduleStartTime || '00:00'));
+        if (now < start) return extra.beforeStartMessage || 'This form is not open yet.';
+      }
+      if (extra.scheduleEndDate) {
+        var end = new Date(extra.scheduleEndDate + 'T' + (extra.scheduleEndTime || '23:59'));
+        if (now > end) return extra.afterEndMessage || 'This form has closed.';
+      }
+      return null;
+    }
+
+    /* ════════════════════════════════════════════
+       SCROLL BEHAVIOR
+       Detects the real scrollable parent so it works on all Shopify
+       themes — many themes (Dawn, Refresh, etc.) scroll a div with
+       overflow:auto, not window. window.scrollTo() is a no-op there.
+    ════════════════════════════════════════════ */
+    function getScrollableParent(el) {
+      var parent = el.parentElement;
+      while (parent && parent !== document.body) {
+        var style    = window.getComputedStyle(parent);
+        var overflow = style.overflow + style.overflowY + style.overflowX;
+        if (/(auto|scroll)/.test(overflow) && parent.scrollHeight > parent.clientHeight) {
+          return parent;
         }
+        parent = parent.parentElement;
+      }
+      return document.scrollingElement || document.documentElement;
+    }
+
+    function smoothScrollTo(el, offset) {
+      if (!el) return;
+      var scroller     = getScrollableParent(el);
+      var isRootScroll = (scroller === document.documentElement || scroller === document.body);
+      var elRect       = el.getBoundingClientRect();
+      var scrollerTop  = isRootScroll ? 0 : scroller.getBoundingClientRect().top;
+      var currentScroll = isRootScroll
+        ? (window.scrollY || window.pageYOffset)
+        : scroller.scrollTop;
+      var targetPos = elRect.top - scrollerTop + currentScroll - offset;
+
+      try {
+        scroller.scrollTo({ top: targetPos, behavior: 'smooth' });
+        /* Also call window.scrollTo — harmless if theme uses a custom
+           scroller, required if theme uses window scroll */
+        if (isRootScroll) {
+          window.scrollTo({ top: targetPos, behavior: 'smooth' });
+        }
+      } catch (e) {
+        /* Fallback for old browsers */
+        scroller.scrollTop = targetPos;
+        if (isRootScroll) window.scrollTo(0, targetPos);
+      }
+    }
+
+    function handleScrollBehavior(container) {
+      if (globalExtra.popupEnabled) return;
+      var behavior = globalExtra.scrollBehavior || 'scroll_to_top';
+      if (behavior === 'none') return;
+      var offset = Number(globalExtra.scrollOffset) || 0;
+      var target;
+      if (behavior === 'scroll_to_message') {
+        target = container.querySelector('.smartformly-success, .sf-thankyou');
+      }
+      if (!target) target = wrapper;
+      smoothScrollTo(target, offset);
+    }
+
+    /* ════════════════════════════════════════════
+       LOAD FORM CONFIG
+    ════════════════════════════════════════════ */
+    async function loadForm() {
+      try {
+        var res = await fetch(appUrl + '/api/forms/' + formId);
+        if (!res.ok) throw new Error('not found');
+        var data = await res.json();
+        initForm(data);
+      } catch (err) {
+        wrapper.innerHTML = '<div style="padding:20px;text-align:center;color:#999;">Unable to load form. Please check the Form ID.</div>';
+      }
+    }
+
+    function initForm(config) {
+      globalFields   = typeof config.fields   === 'string' ? JSON.parse(config.fields)   : (config.fields   || []);
+      globalSettings = typeof config.settings === 'string' ? JSON.parse(config.settings) : (config.settings || {});
+      globalDesign   = globalSettings.design || {};
+      globalExtra    = globalSettings.extra  || {};
+
+      /* ── Allow logged-in only gate ────────────────────────────────
+         Checked here (after config loads) using the customer status
+         stamped into data-customer-logged-in by Liquid at render time.
+         The API also enforces this server-side as a second layer.
+      ─────────────────────────────────────────────────────────────── */
+      if (globalExtra.allowLoggedInOnly === true && !customerLoggedIn) {
+        var loginMsg = (globalExtra.loginMessage || 'Please login to access this form.').trim();
+        wrapper.innerHTML = '<div class="sf-login-msg">' + escHtml(loginMsg) + '</div>';
+        return;
       }
 
-      function renderForm(config) {
-        const fields = typeof config.fields === 'string' ? JSON.parse(config.fields) : config.fields;
-        const settings = typeof config.settings === 'string' ? JSON.parse(config.settings) : config.settings;
-        const design = settings.design || {};
+      if (globalExtra.popupEnabled === true) {
+        renderPopupMode(config);
+      } else {
+        renderInlineMode(config);
+      }
+    }
 
-        const cssVars = {
-          '--sf-padding': (design.formPadding || '30') + 'px',
-          '--sf-border-size': (design.borderSize || '2') + 'px',
-          '--sf-border-color': design.borderColor || '#000',
-          '--sf-border-radius': (design.borderRadius || '1') + 'px',
-          '--sf-bg': design.bgType === 'color' ? (design.bgColor || '#fff') :
-                     design.bgType === 'gradient' ? 'linear-gradient(135deg,' + (design.bgColor||'#fff') + ',' + (design.bgColor2||'#f0f0f0') + ')' : 'transparent',
-          '--sf-shadow': design.bgShadow && design.bgShadow !== 'none' ? design.bgShadow : 'none',
-          '--sf-input-border': design.inputBorderColor || '#000',
-          '--sf-input-radius': (design.inputBorderRadius || '1') + 'px',
-          '--sf-input-bg': design.inputBg || '#fff',
-          '--sf-input-font-size': (design.inputFontSize || '14') + 'px',
-          '--sf-input-color': design.inputFontColor || '#000',
-          '--sf-input-focus': design.inputBorderFocusColor || '#5C6AC4',
-        };
+    /* ════════════════════════════════════════════
+       OVERLAY / MODAL FACTORY
+    ════════════════════════════════════════════ */
+    function buildOverlayModal(trigger) {
+      var isSheet    = (trigger === 'floating_button');
+      var overlayHex = globalExtra.popupOverlayBg      || '#000000';
+      var overlayOp  = globalExtra.popupOverlayOpacity || '0.5';
+      var popupWidth = globalExtra.popupWidth          || '600';
+      var closeOnBg  = globalExtra.popupCloseOnOverlay !== false;
 
-        let html = '<form class="smartformly-form" style="';
-        for (const [k, v] of Object.entries(cssVars)) html += k + ':' + v + ';';
-        html += '">';
+      var overlay = document.createElement('div');
+      overlay.id        = 'sf-overlay-' + formId;
+      overlay.className = 'sf-popup-overlay' + (isSheet ? ' sf-popup-bottomsheet' : '');
+      overlay.style.background = hexToRgba(overlayHex, overlayOp);
+      if (closeOnBg) {
+        overlay.addEventListener('click', function(e) {
+          if (e.target === overlay) closePopup();
+        });
+      }
 
-        if (design.formBannerUrl) {
-          html += '<div class="sf-banner" style="text-align:' + (design.formBannerAlignment || 'center') + '">';
-          html += '<img src="' + design.formBannerUrl + '" style="height:' + (design.formBannerHeight || '200') + 'px;max-width:' + (design.formBannerWidth || '100%') + '">';
-          html += '</div>';
-        }
+      var modal = document.createElement('div');
+      modal.className = 'sf-popup-modal';
+      if (!isSheet) modal.style.maxWidth = popupWidth + 'px';
 
-        html += '<h2>' + escHtml(config.formName || 'Form') + '</h2>';
+      if (isSheet) {
+        var handle = document.createElement('div');
+        handle.className = 'sf-sheet-handle';
+        modal.appendChild(handle);
+      }
 
-        if (design.formDescription) {
-          html += '<p class="sf-description">' + escHtml(design.formDescription) + '</p>';
-        }
+      var closeBtn = document.createElement('button');
+      closeBtn.className = 'sf-popup-close';
+      closeBtn.innerHTML = '&times;';
+      closeBtn.setAttribute('aria-label', 'Close');
+      closeBtn.addEventListener('click', closePopup);
+      modal.appendChild(closeBtn);
 
-        html += '<div class="smartformly-error" style="display:none" id="sf-error-' + formId + '"></div>';
+      var inner = document.createElement('div');
+      inner.className = 'sf-popup-inner';
+      inner.id        = 'sf-popup-inner-' + formId;
+      modal.appendChild(inner);
 
-        html += '<div class="smartformly-fields">';
-        fields.forEach(function(f) {
-          const halfClass = f.halfWidth ? ' half-width' : '';
-          const centerStyle = f.fieldInCenter ? 'text-align:center;' : '';
-          const labelStyle = 'font-size:' + (design.labelFontSize || '14') + 'px;color:' + (design.labelColor || '#000') + ';';
-          const req = f.required ? '<span style="color:red;margin-left:2px">*</span>' : '';
+      overlay.appendChild(modal);
+      document.body.appendChild(overlay);
 
-          html += '<div class="smartformly-field' + halfClass + '" style="' + centerStyle + '">';
+      var scheduleMsg = getScheduleMessage();
+      if (scheduleMsg) {
+        inner.innerHTML = '<div class="sf-schedule-msg">' + escHtml(scheduleMsg) + '</div>';
+      } else {
+        renderFormHtml(inner, currentConfig);
+      }
+    }
 
-          if (design.labelStyle !== 'floating') {
-            html += '<label style="' + labelStyle + '">' + escHtml(f.label) + req + '</label>';
-          }
+    /* ════════════════════════════════════════════
+       POPUP MODE
+    ════════════════════════════════════════════ */
+    var currentConfig = null;
 
-          switch (f.type) {
-            case 'textarea':
-              html += '<textarea name="' + escHtml(f.label) + '" placeholder="' + escHtml(f.placeholder || '') + '"' + (f.required ? ' required' : '') + '></textarea>';
-              break;
-            case 'select':
-              html += '<select name="' + escHtml(f.label) + '"' + (f.required ? ' required' : '') + '>';
-              html += '<option value="">Please select</option>';
-              (f.options || []).forEach(function(o) { html += '<option value="' + escHtml(o) + '">' + escHtml(o) + '</option>'; });
-              html += '</select>';
-              break;
-            case 'checkbox':
-              html += '<div class="sf-checkbox-group">';
-              (f.options || []).forEach(function(o) {
-                html += '<label><input type="checkbox" name="' + escHtml(f.label) + '" value="' + escHtml(o) + '"> ' + escHtml(o) + '</label>';
-              });
-              html += '</div>';
-              break;
-            case 'file':
-              html += '<input type="file" name="' + escHtml(f.label) + '"' + (f.required ? ' required' : '') + '>';
-              break;
-            default:
-              html += '<input type="' + (f.type || 'text') + '" name="' + escHtml(f.label) + '" placeholder="' + escHtml(f.placeholder || '') + '"' + (f.required ? ' required' : '') + '>';
-          }
+    function renderPopupMode(config) {
+      currentConfig = config;
+      var trigger   = globalExtra.popupTrigger || 'button';
 
-          html += '</div>';
+      buildOverlayModal(trigger);
+
+      if (trigger === 'button') {
+        wrapper.innerHTML = '';
+        var btn = document.createElement('button');
+        btn.textContent   = globalExtra.popupButtonText  || 'Open Form';
+        btn.style.cssText = [
+          'padding:10px 24px',
+          'background:' + (globalExtra.popupButtonBg    || '#000000'),
+          'color:'      + (globalExtra.popupButtonColor || '#ffffff'),
+          'border:none', 'border-radius:6px',
+          'font-size:15px', 'font-weight:600',
+          'cursor:pointer', 'font-family:inherit',
+          'transition:opacity .2s',
+        ].join(';');
+        btn.onmouseover = function() { btn.style.opacity = '0.85'; };
+        btn.onmouseout  = function() { btn.style.opacity = '1'; };
+        btn.addEventListener('click', openPopup);
+        wrapper.appendChild(btn);
+
+      } else if (trigger === 'delay') {
+        wrapper.innerHTML = '';
+        setTimeout(openPopup, (Number(globalExtra.popupDelay) || 3) * 1000);
+
+      } else if (trigger === 'exit_intent') {
+        wrapper.innerHTML = '';
+        var exitFired = false;
+        document.addEventListener('mouseleave', function(e) {
+          if (!exitFired && e.clientY <= 0) { exitFired = true; openPopup(); }
         });
 
-        const btnAlign = design.buttonAlignment || 'full';
-        const btnJustify = btnAlign === 'full' ? 'stretch' : btnAlign === 'center' ? 'center' : btnAlign === 'right' ? 'flex-end' : 'flex-start';
-        html += '<div class="smartformly-submit" style="display:flex;justify-content:' + btnJustify + '">';
-        html += '<button type="submit" style="';
-        html += 'width:' + (btnAlign === 'full' ? '100%' : 'auto') + ';';
-        html += 'background:' + (design.buttonBg || '#000') + ';';
-        html += 'color:' + (design.buttonTextColor || '#fff') + ';';
-        html += 'border:' + (design.buttonBorderWidth || '1') + 'px solid ' + (design.buttonBorderColor || '#000') + ';';
-        html += 'border-radius:' + (design.buttonBorderRadius || '2') + 'px;';
-        html += 'font-size:' + (design.buttonFontSize || '16') + 'px;';
-        html += '">' + escHtml(design.buttonText || settings.submitLabel || 'Submit') + '</button>';
+      } else if (trigger === 'floating_button') {
+        wrapper.innerHTML = '';
+        var bar = document.createElement('div');
+        bar.id        = 'sf-bar-' + formId;
+        bar.className = 'sf-floating-bar';
+        var barBtn = document.createElement('button');
+        barBtn.textContent      = globalExtra.popupFloatingBtnText  || 'Fill out our form';
+        barBtn.style.background = globalExtra.popupFloatingBtnBg    || '#000000';
+        barBtn.style.color      = globalExtra.popupFloatingBtnColor || '#ffffff';
+        barBtn.addEventListener('click', openPopup);
+        bar.appendChild(barBtn);
+        document.body.appendChild(bar);
+        document.body.classList.add('sf-has-floating-bar');
+        setTimeout(function() { bar.classList.add('sf-floating-visible'); }, 350);
+      }
+    }
+
+    function openPopup() {
+      var overlay = document.getElementById('sf-overlay-' + formId);
+      if (!overlay) return;
+      overlay.classList.add('sf-popup-open');
+      document.body.style.overflow = 'hidden';
+      var bar = document.getElementById('sf-bar-' + formId);
+      if (bar) {
+        bar.classList.add('sf-floating-hidden');
+        setTimeout(function() { bar.style.display = 'none'; }, 300);
+      }
+    }
+
+    function closePopup() {
+      var overlay = document.getElementById('sf-overlay-' + formId);
+      if (!overlay) return;
+      overlay.classList.remove('sf-popup-open');
+      document.body.style.overflow = '';
+      var bar = document.getElementById('sf-bar-' + formId);
+      if (bar) {
+        bar.style.display = 'block';
+        setTimeout(function() { bar.classList.remove('sf-floating-hidden'); }, 10);
+      }
+    }
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closePopup();
+    });
+
+    /* ════════════════════════════════════════════
+       INLINE MODE
+    ════════════════════════════════════════════ */
+    function renderInlineMode(config) {
+      var scheduleMsg = getScheduleMessage();
+      if (scheduleMsg) {
+        wrapper.innerHTML = '<div class="sf-schedule-msg">' + escHtml(scheduleMsg) + '</div>';
+        return;
+      }
+      renderFormHtml(wrapper, config);
+    }
+
+    /* ════════════════════════════════════════════
+       FORM RENDERER
+    ════════════════════════════════════════════ */
+    function renderFormHtml(container, config) {
+      var d = globalDesign;
+
+      var cssVars = {
+        '--sf-padding':        (d.formPadding  || '30') + 'px',
+        '--sf-border-size':    (d.borderSize   || '2')  + 'px',
+        '--sf-border-color':    d.borderColor   || '#000',
+        '--sf-border-radius':  (d.borderRadius || '1')  + 'px',
+        '--sf-bg':
+          d.bgType === 'color'    ? (d.bgColor || '#fff') :
+          d.bgType === 'gradient' ? 'linear-gradient(135deg,' + (d.bgColor||'#fff') + ',' + (d.bgColor2||'#f0f0f0') + ')' :
+          'transparent',
+        '--sf-shadow':          d.bgShadow && d.bgShadow !== 'none' ? d.bgShadow : 'none',
+        '--sf-input-border':    d.inputBorderColor      || '#000',
+        '--sf-input-radius':   (d.inputBorderRadius     || '1') + 'px',
+        '--sf-input-bg':        d.inputBg               || '#fff',
+        '--sf-input-font-size':(d.inputFontSize         || '14') + 'px',
+        '--sf-input-color':     d.inputFontColor        || '#000',
+        '--sf-input-focus':     d.inputBorderFocusColor || '#5C6AC4',
+      };
+
+      var style = '';
+      for (var k in cssVars) style += k + ':' + cssVars[k] + ';';
+
+      /* novalidate — we handle validation ourselves so the browser
+         never shows its own required-field popup */
+      var html = '<form class="smartformly-form" style="' + style + '" novalidate>';
+
+      if (d.formBannerUrl) {
+        html += '<div class="sf-banner" style="text-align:' + (d.formBannerAlignment || 'center') + '">';
+        html += '<img src="' + d.formBannerUrl + '" style="height:' + (d.formBannerHeight||'200') + 'px;max-width:' + (d.formBannerWidth||'100%') + '">';
         html += '</div>';
-
-        html += '</div></form>';
-
-        wrapper.innerHTML = html;
-
-        const form = wrapper.querySelector('form');
-        form.addEventListener('submit', function(e) {
-          e.preventDefault();
-          submitForm(form, fields, settings);
-        });
       }
 
-      async function submitForm(form, fields, settings) {
-        const btn = form.querySelector('button[type="submit"]');
-        const errEl = document.getElementById('sf-error-' + formId);
-        btn.disabled = true;
-        btn.textContent = 'Submitting...';
-        errEl.style.display = 'none';
+      html += '<h2>' + escHtml(config.formName || 'Form') + '</h2>';
+      if (d.formDescription) {
+        html += '<p class="sf-description">' + escHtml(d.formDescription) + '</p>';
+      }
 
-        const data = {};
-        fields.forEach(function(f) {
-          if (f.type === 'checkbox') {
-            const checked = form.querySelectorAll('input[name="' + f.label + '"]:checked');
-            data[f.label] = Array.from(checked).map(function(c) { return c.value; });
-          } else if (f.type === 'file') {
-            data[f.label] = '[file]';
-          } else {
-            const el = form.querySelector('[name="' + f.label + '"]');
-            data[f.label] = el ? el.value : '';
-          }
-        });
+      html += '<div class="smartformly-error" id="sf-error-' + formId + '" style="display:none"></div>';
+      html += '<div class="smartformly-fields">';
 
-        try {
-          const res = await fetch(appUrl + '/api/submit/' + formId, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data),
-          });
-          const result = await res.json();
+      globalFields.forEach(function(f) {
+        var halfCls   = f.halfWidth     ? ' half-width' : '';
+        var centerSty = f.fieldInCenter ? 'text-align:center;' : '';
+        var labelSty  = 'font-size:' + (d.labelFontSize||'14') + 'px;color:' + (d.labelColor||'#000') + ';';
+        var req       = f.required ? '<span style="color:red;margin-left:2px">*</span>' : '';
+        var nameAttr  = 'name="' + escHtml(f.label) + '"';
+        var dataReq   = f.required ? ' data-required="1"' : '';
 
-          if (res.ok && result.success) {
-            wrapper.innerHTML = '<div class="smartformly-success">' +
-              escHtml(result.message || settings.successMessage || 'Thank you! Your form has been submitted.') +
-              '</div>';
-          } else {
-            errEl.textContent = result.error || 'Something went wrong. Please try again.';
-            errEl.style.display = 'block';
-            btn.disabled = false;
-            btn.textContent = (settings.design && settings.design.buttonText) || settings.submitLabel || 'Submit';
-          }
-        } catch (err) {
-          errEl.textContent = 'Network error. Please try again.';
-          errEl.style.display = 'block';
-          btn.disabled = false;
-          btn.textContent = (settings.design && settings.design.buttonText) || settings.submitLabel || 'Submit';
+        html += '<div class="smartformly-field' + halfCls + '" style="' + centerSty + '" data-field-label="' + escHtml(f.label) + '">';
+
+        if (d.labelStyle !== 'floating') {
+          html += '<label style="' + labelSty + '">' + escHtml(f.label) + req + '</label>';
         }
+
+        switch (f.type) {
+          case 'textarea':
+            html += '<textarea ' + nameAttr + dataReq + ' placeholder="' + escHtml(f.placeholder||'') + '"></textarea>';
+            break;
+          case 'select':
+            html += '<select ' + nameAttr + dataReq + '><option value="">Please select</option>';
+            (f.options || []).forEach(function(o) {
+              html += '<option value="' + escHtml(o) + '">' + escHtml(o) + '</option>';
+            });
+            html += '</select>';
+            break;
+          case 'checkbox':
+            html += '<div class="sf-checkbox-group" ' + dataReq + ' data-name="' + escHtml(f.label) + '">';
+            (f.options || []).forEach(function(o) {
+              html += '<label><input type="checkbox" ' + nameAttr + ' value="' + escHtml(o) + '"> ' + escHtml(o) + '</label>';
+            });
+            html += '</div>';
+            break;
+          case 'file':
+            html += '<input type="file" ' + nameAttr + dataReq + '>';
+            break;
+          default:
+            html += '<input type="' + (f.type||'text') + '" ' + nameAttr + dataReq + ' placeholder="' + escHtml(f.placeholder||'') + '">';
+        }
+
+        if (d.labelStyle === 'floating') {
+          html += '<label style="position:absolute;top:4px;left:10px;font-size:10px;color:' + (d.labelColor||'#000') + ';opacity:.6;pointer-events:none;">' + escHtml(f.label) + req + '</label>';
+        }
+
+        html += '<div class="sf-field-error-msg">' + escHtml(globalExtra.requiredFieldMessage || 'This field is required.') + '</div>';
+        html += '</div>';
+      });
+
+      /* ── Submit button — uses submitButtonText from customize messages ── */
+      var btnAlign   = d.buttonAlignment || 'full';
+      var btnJustify = btnAlign==='full' ? 'stretch' : btnAlign==='center' ? 'center' : btnAlign==='right' ? 'flex-end' : 'flex-start';
+      var btnLabel   = globalExtra.submitButtonText || globalSettings.submitLabel || d.buttonText || 'Submit';
+      var btnStyle   = [
+        'width:'         + (btnAlign==='full' ? '100%' : 'auto'),
+        'background:'    + (d.buttonBg           || '#000'),
+        'color:'         + (d.buttonTextColor    || '#fff'),
+        'border:'        + (d.buttonBorderWidth  || '1') + 'px solid ' + (d.buttonBorderColor||'#000'),
+        'border-radius:' + (d.buttonBorderRadius || '2') + 'px',
+        'font-size:'     + (d.buttonFontSize     || '16') + 'px',
+      ].join(';');
+
+      html += '</div>';
+      html += '<div class="smartformly-submit" style="display:flex;justify-content:' + btnJustify + ';margin-top:16px;">';
+      html += '<button type="submit" style="' + btnStyle + '">' + escHtml(btnLabel) + '</button>';
+      html += '</div></form>';
+
+      container.innerHTML = html;
+
+      container.querySelector('form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        submitForm(e.target, container);
+      });
+    }
+
+    /* ════════════════════════════════════════════
+       CLIENT-SIDE VALIDATION
+       Highlights each invalid field. Uses requiredFieldMessage.
+    ════════════════════════════════════════════ */
+    function validateForm(form) {
+      form.querySelectorAll('.sf-field-error').forEach(function(el) {
+        el.classList.remove('sf-field-error');
+      });
+
+      var invalid = [];
+
+      globalFields.forEach(function(f) {
+        if (!f.required) return;
+
+        var fieldWrapper = form.querySelector('[data-field-label="' + f.label + '"]');
+        var isInvalid    = false;
+
+        if (f.type === 'checkbox') {
+          var checked = form.querySelectorAll('input[name="' + f.label + '"]:checked');
+          if (checked.length === 0) isInvalid = true;
+        } else if (f.type === 'select') {
+          var sel = form.querySelector('select[name="' + f.label + '"]');
+          if (!sel || !sel.value) isInvalid = true;
+        } else if (f.type === 'file') {
+          var fi = form.querySelector('input[type="file"][name="' + f.label + '"]');
+          if (!fi || !fi.files || fi.files.length === 0) isInvalid = true;
+        } else {
+          var el = form.querySelector('[name="' + f.label + '"]');
+          if (!el || !el.value.trim()) isInvalid = true;
+        }
+
+        if (isInvalid) {
+          invalid.push(f.label);
+          if (fieldWrapper) fieldWrapper.classList.add('sf-field-error');
+        }
+      });
+
+      return invalid;
+    }
+
+    /* ════════════════════════════════════════════
+       SUBMIT
+    ════════════════════════════════════════════ */
+    async function submitForm(form, container) {
+      var btn   = form.querySelector('button[type="submit"]');
+      var errEl = document.getElementById('sf-error-' + formId);
+
+      /* ── 1. Client-side required field validation ── */
+      var invalidFields = validateForm(form);
+      if (invalidFields.length > 0) {
+        var firstInvalid = form.querySelector('.sf-field-error');
+        if (firstInvalid) {
+          smoothScrollTo(firstInvalid, 20);
+        }
+        return;
       }
 
-      function escHtml(str) {
-        if (!str) return '';
-        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      /* ── 2. Collect data ── */
+      btn.disabled    = true;
+      btn._origText   = btn.textContent;
+      btn.textContent = 'Submitting...';
+      if (errEl) errEl.style.display = 'none';
+
+      var data = {};
+      globalFields.forEach(function(f) {
+        if (f.type === 'checkbox') {
+          var checked = form.querySelectorAll('input[name="' + f.label + '"]:checked');
+          data[f.label] = Array.from(checked).map(function(c) { return c.value; });
+        } else if (f.type === 'file') {
+          data[f.label] = '[file]';
+        } else {
+          var el = form.querySelector('[name="' + f.label + '"]');
+          data[f.label] = el ? el.value : '';
+        }
+      });
+
+      /* ── 3. Submit to API ── */
+      try {
+        var res    = await fetch(appUrl + '/api/submit/' + formId, {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify(data),
+        });
+        var result = await res.json();
+
+        if (!res.ok || !result.success) {
+          var msgs = (result.errors && result.errors.length)
+            ? result.errors.join(', ')
+            : (result.error || globalExtra.errorMessage || 'Something went wrong. Please try again.');
+          if (errEl) { errEl.textContent = msgs; errEl.style.display = 'block'; }
+          btn.disabled    = false;
+          btn.textContent = btn._origText;
+          return;
+        }
+
+        /* ── 4. Run after-submit script (if configured) ── */
+        if (globalExtra.afterSubmitScript) {
+          try {
+            var formData = { id: formId, fields: data, result: result };
+            new Function('formData', globalExtra.afterSubmitScript)(formData);
+          } catch (scriptErr) {
+            console.warn('[SmartFormly] afterSubmitScript error:', scriptErr);
+          }
+        }
+
+        /* ── 5. After-submission action ── */
+        var action     = result.afterSubmissionAction || 'clear_and_allow';
+        var successMsg = result.message || globalSettings.successMessage || 'Thank you! Your form has been submitted.';
+        var tyMsg      = result.thankYouMessage || successMsg;
+        var timerSec   = Number(result.thankYouTimerSec) || 5;
+
+        switch (action) {
+
+          case 'redirect':
+            showSuccess(container, successMsg, result.ticketNumber);
+            handleScrollBehavior(container);
+            setTimeout(function() { window.location.href = result.redirectUrl || window.location.href; }, 1500);
+            break;
+
+          case 'hide_and_show_message':
+          case 'one_entry':
+            form.style.display = 'none';
+            showThankYou(container, tyMsg, timerSec, result.ticketNumber, function() {
+              if (globalExtra.popupEnabled) closePopup();
+            });
+            /* Use setTimeout so the thankyou element is in the DOM before
+               scroll_to_message tries to find it */
+            setTimeout(function() { handleScrollBehavior(container); }, 50);
+            break;
+
+          case 'show_and_download':
+            showSuccess(container, successMsg, result.ticketNumber);
+            handleScrollBehavior(container);
+            form.reset();
+            btn.disabled    = false;
+            btn.textContent = btn._origText;
+            break;
+
+          case 'clear_and_allow':
+          default:
+            showSuccess(container, successMsg, result.ticketNumber);
+            handleScrollBehavior(container);
+            form.reset();
+            btn.disabled    = false;
+            btn.textContent = btn._origText;
+            if (globalExtra.popupEnabled) {
+              setTimeout(function() { clearMessages(container); }, 3500);
+            }
+            break;
+        }
+
+      } catch (err) {
+        if (errEl) { errEl.textContent = 'Network error. Please try again.'; errEl.style.display = 'block'; }
+        btn.disabled    = false;
+        btn.textContent = btn._origText;
+      }
+    }
+
+    /* ════════════════════════════════════════════
+       UI HELPERS
+    ════════════════════════════════════════════ */
+
+    /* ticketNumber is optional — shown as a badge when present */
+    function showSuccess(container, message, ticketNumber) {
+      clearMessages(container);
+      var el = document.createElement('div');
+      el.className = 'smartformly-success';
+      el.textContent = message;
+      if (ticketNumber) {
+        var badge = document.createElement('div');
+        badge.className   = 'sf-ticket-badge';
+        badge.textContent = 'Ticket #' + ticketNumber;
+        el.appendChild(badge);
+      }
+      container.appendChild(el);
+    }
+
+    function showThankYou(container, message, timerSec, ticketNumber, onDone) {
+      clearMessages(container);
+      var el      = document.createElement('div');
+      el.className = 'sf-thankyou';
+
+      var msgEl = document.createElement('div');
+      msgEl.className = 'sf-thankyou-msg';
+      msgEl.innerHTML = escHtml(message).replace(/\n/g, '<br>');
+      el.appendChild(msgEl);
+
+      if (ticketNumber) {
+        var badge = document.createElement('div');
+        badge.className   = 'sf-ticket-badge';
+        badge.textContent = 'Ticket #' + ticketNumber;
+        el.appendChild(badge);
       }
 
-      loadForm();
-    })();
+      var timerEl = document.createElement('div');
+      timerEl.className = 'sf-thankyou-timer';
+      if (timerSec > 0) el.appendChild(timerEl);
+      container.appendChild(el);
+
+      if (timerSec <= 0) { if (onDone) onDone(); return; }
+      var remaining = timerSec;
+      timerEl.textContent = 'This message will close in ' + remaining + 's';
+      var interval = setInterval(function() {
+        remaining--;
+        timerEl.textContent = 'This message will close in ' + remaining + 's';
+        if (remaining <= 0) {
+          clearInterval(interval);
+          el.remove();
+          if (onDone) onDone();
+        }
+      }, 1000);
+    }
+
+    function clearMessages(container) {
+      container.querySelectorAll('.smartformly-success, .sf-thankyou').forEach(function(el) { el.remove(); });
+    }
+
+    loadForm();
+  })();
   </script>
+
 {% endif %}
 
 {% schema %}

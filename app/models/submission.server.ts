@@ -120,13 +120,15 @@ import db from "../db.server";
 export async function createSubmission(
   formId: string,
   shopDomain: string,
-  data: Record<string, any>
+  data: Record<string, any>,
+  ticketNumber?: number | null
 ) {
   return db.formSubmission.create({
     data: {
       formId,
       shopDomain,
       data: JSON.stringify(data),
+      ticketNumber: ticketNumber ?? null,
     },
   });
 }
