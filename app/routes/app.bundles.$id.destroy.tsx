@@ -1,3 +1,4 @@
+import { syncBundleDiscount } from "../utils/syncDiscount.server";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import { useLoaderData, useSubmit, useNavigation } from "@remix-run/react";
@@ -82,6 +83,8 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
 
   // ── Delete from DB (cascade deletes items + orders) ──
   await db.bundle.delete({ where: { id, shop } });
+
+  await syncBundleDiscount(admin, shop, bundle.id);
 
   return redirect("/app/bundles?deleted=true");
 };

@@ -1,228 +1,226 @@
-import prisma from "../db.server";
+import db from "../db.server";
 
-/**
- * Builds a JSON config object from all active bundles for a shop.
- */
-async function buildBundleConfig(shop: string) {
-  const bundles = await prisma.bundle.findMany({
-    where: { shop, status: "ACTIVE" },
-    include: {
-      quantityBreaks: { orderBy: { sortOrder: "asc" } },
-      discountCombination: true,
-    },
-  });
-
-  const config: Record<string, any> = { bundles: {} };
-
-  for (const bundle of bundles) {
-    const breaks: Record<string, any> = {};
-    for (const qb of bundle.quantityBreaks) {
-      breaks[qb.id] = {
-        discountType: qb.discountType,
-        discountValue: qb.discountValue,
-        quantity: qb.quantity,
-        freeShipping: qb.freeShipping,
-      };
+async function getFunctionId(admin: any): Promise<string | null> {
+  const res = await admin.graphql(`
+    query {
+      shopifyFunctions(first: 25) {
+        nodes { id title apiType }
+      }
     }
-    config.bundles[bundle.id] = {
-      name: bundle.name,
-      title: bundle.title,
-      productSelectionType: bundle.productSelectionType,
-      selectedProductIds: bundle.selectedProductIds,
-      discountCombination: bundle.discountCombination
-        ? {
-            productDiscounts: bundle.discountCombination.productDiscounts,
-            orderDiscounts: bundle.discountCombination.orderDiscounts,
-            shippingDiscounts: bundle.discountCombination.shippingDiscounts,
-          }
-        : null,
-      breaks,
-    };
+  `);
+  const data = await res.json();
+  const functions = data.data?.shopifyFunctions?.nodes ?? [];
+
+  const match = functions.find(
+    (f: any) =>
+      f.apiType === "discount" &&
+      (f.title?.toLowerCase().includes("bundle") ||
+        f.title?.toLowerCase().includes("quantity"))
+  );
+
+  if (!match) {
+    console.error("[BundleKit] ❌ No discount function found");
+    return null;
   }
 
-  return config;
+  console.log("[BundleKit] ✅ Function found:", match.title, "→", match.id);
+  return match.id;
 }
 
-/**
- * Sync bundle config to the Shopify Function's automatic discount.
- *
- * - If no discount exists yet → finds the function → creates the discount with metafield
- * - If discount exists → updates the metafield with new config
- */
-export async function syncBundleConfigToDiscount(admin: any, shop: string) {
-  const config = await buildBundleConfig(shop);
-  const configJson = JSON.stringify(config);
-
-  // ── Step 1: Check if our discount already exists ──
-  const existingResponse = await admin.graphql(
-    `#graphql
-    query {
-      discountNodes(first: 5, query: "title:'Bundler Quantity Breaks'") {
-        nodes {
-          id
-          discount {
-            ... on DiscountAutomaticApp {
-              title
-              status
-              appDiscountType {
-                functionId
-              }
-            }
-          }
-          metafield(namespace: "bundler", key: "config") {
-            id
-          }
-        }
+async function deleteShopifyDiscount(admin: any, discountId: string) {
+  const res = await admin.graphql(
+    `mutation Delete($id: ID!) {
+      discountAutomaticDelete(id: $id) {
+        deletedAutomaticDiscountId
+        userErrors { field message }
       }
-    }`
+    }`,
+    { variables: { id: discountId } }
   );
-  const existingJson = await existingResponse.json();
-  const existingDiscount = existingJson?.data?.discountNodes?.nodes?.[0];
+  const data = await res.json();
+  return data.data?.discountAutomaticDelete?.userErrors ?? [];
+}
 
-  // ── Step 2a: Discount exists → update metafield ──
-  if (existingDiscount) {
-    console.log("[Bundler] Updating existing discount metafield:", existingDiscount.id);
+export async function syncBundleDiscount(admin: any, shop: string, bundleId: string) {
+  console.log("[BundleKit] ── syncBundleDiscount START ──", bundleId);
 
-    const updateResponse = await admin.graphql(
-      `#graphql
-      mutation metafieldsSet($metafields: [MetafieldsSetInput!]!) {
-        metafieldsSet(metafields: $metafields) {
-          metafields {
-            id
-            namespace
-            key
-          }
-          userErrors {
-            field
-            message
-          }
+  const FUNCTION_ID =
+    process.env.SHOPIFY_DISCOUNT_FUNCTION_ID || (await getFunctionId(admin));
+
+  if (!FUNCTION_ID) {
+    console.error("[BundleKit] ❌ Could not resolve function ID");
+    return;
+  }
+
+  const bundle = await db.bundle.findFirst({
+    where: { id: bundleId, shop },
+    include: { quantityBreaks: { orderBy: { sortOrder: "asc" } } },
+  });
+
+  if (!bundle) {
+    console.log("[BundleKit] Bundle not found:", bundleId);
+    return;
+  }
+
+  console.log("[BundleKit] Bundle:", bundle.name, "| Status:", bundle.status);
+
+  // ── Not active → delete its Shopify discount ──
+  if (bundle.status !== "ACTIVE") {
+    if (bundle.shopifyDiscountId) {
+      await deleteShopifyDiscount(admin, bundle.shopifyDiscountId);
+      await db.bundle.update({
+        where: { id: bundleId },
+        data: { shopifyDiscountId: null },
+      });
+      console.log("[BundleKit] ✅ Discount deleted for inactive bundle:", bundle.name);
+    }
+    return;
+  }
+
+  const rules = [
+    {
+      bundleId: bundle.id,
+      bundleType: bundle.bundleType,
+      priority: bundle.prioritySequence,
+      productSelectionType: bundle.productSelectionType,
+      productIds: bundle.selectedProductIds
+        ? JSON.parse(bundle.selectedProductIds)
+        : [],
+      quantityBreaks: bundle.quantityBreaks.map((qb: any) => ({
+        quantity: qb.quantity,
+        quantityType: qb.quantityType,
+        minQuantity: qb.minQuantity,
+        maxQuantity: qb.maxQuantity,
+        discountType: qb.discountType,
+        discountValue: qb.discountValue,
+        savingsText: qb.savingsText,
+        description: qb.description,
+      })),
+    },
+  ];
+
+  const metafields = [
+    {
+      namespace: "bundlekit",
+      key: "rules",
+      type: "json",
+      value: JSON.stringify(rules),
+    },
+  ];
+
+  const discountTitle = bundle.name;
+  let storedDiscountId = bundle.shopifyDiscountId;
+
+  // ── Update existing discount ──
+  if (storedDiscountId) {
+    console.log("[BundleKit] Updating discount:", bundle.name, "→", storedDiscountId);
+    const updateRes = await admin.graphql(
+      `mutation Update($id: ID!, $discount: DiscountAutomaticAppInput!) {
+        discountAutomaticAppUpdate(id: $id, automaticAppDiscount: $discount) {
+          automaticAppDiscount { discountId }
+          userErrors { field message }
         }
       }`,
       {
         variables: {
-          metafields: [
-            {
-              ownerId: existingDiscount.id,
-              namespace: "bundler",
-              key: "config",
-              type: "json",
-              value: configJson,
-            },
-          ],
+          id: storedDiscountId,
+          discount: { title: discountTitle, metafields },
         },
       }
     );
-    const updateJson = await updateResponse.json();
-    const errors = updateJson?.data?.metafieldsSet?.userErrors;
-    if (errors?.length) {
-      console.error("[Bundler] Metafield update errors:", errors);
-    } else {
-      console.log("[Bundler] Config synced successfully");
-    }
-    return;
-  }
+    const updateData = await updateRes.json();
+    const errors = updateData.data?.discountAutomaticAppUpdate?.userErrors ?? [];
 
-  // ── Step 2b: No discount exists → find function → create discount ──
-  console.log("[Bundler] No existing discount found. Looking for function...");
-
-  const functionsResponse = await admin.graphql(
-    `#graphql
-    query {
-      shopifyFunctions(first: 25) {
-        nodes {
-          id
-          title
-          apiType
-          app {
-            handle
-          }
-        }
+    if (errors.length) {
+      const notFound = errors.some((e: any) =>
+        e.message.toLowerCase().includes("does not exist")
+      );
+      if (notFound) {
+        console.log("[BundleKit] Stale ID — clearing and will recreate");
+        await db.bundle.update({
+          where: { id: bundleId },
+          data: { shopifyDiscountId: null },
+        });
+        storedDiscountId = null;
+      } else {
+        console.error("[BundleKit] ❌ Update errors:", JSON.stringify(errors));
+        return;
       }
-    }`
-  );
-  const functionsJson = await functionsResponse.json();
-  const allFunctions = functionsJson?.data?.shopifyFunctions?.nodes || [];
-
-  // Log for debugging
-  console.log(
-    "[Bundler] Available functions:",
-    allFunctions.map((f: any) => `${f.title} (${f.apiType})`)
-  );
-
-  // Find our discount function — match flexibly by title
-  const bundleFunction = allFunctions.find(
-    (fn: any) =>
-      fn.title?.toLowerCase().includes("bundle-kit-discount") ||
-      fn.title?.toLowerCase().includes("bundle kit discount")
-  );
-
-  if (!bundleFunction) {
-    console.error(
-      "[Bundler] Discount function not found. Deploy extension first with 'shopify app deploy'."
-    );
-    return;
+    } else {
+      console.log("[BundleKit] ✅ Discount updated:", bundle.name);
+      return;
+    }
   }
 
-  console.log("[Bundler] Found function:", bundleFunction.title, "→", bundleFunction.id);
-
-  // Create automatic discount — follows Shopify docs pattern exactly
-  const createResponse = await admin.graphql(
-    `#graphql
-    mutation discountAutomaticAppCreate($automaticAppDiscount: DiscountAutomaticAppInput!) {
-      discountAutomaticAppCreate(automaticAppDiscount: $automaticAppDiscount) {
-        userErrors {
-          field
-          message
-        }
-        automaticAppDiscount {
-          discountId
-          title
-          status
-          appDiscountType {
-            appKey
-            functionId
-          }
-          combinesWith {
-            orderDiscounts
-            productDiscounts
-            shippingDiscounts
-          }
-        }
+  // ── Create new discount ──
+  console.log("[BundleKit] Creating discount for:", bundle.name);
+  const createRes = await admin.graphql(
+    `mutation Create($discount: DiscountAutomaticAppInput!) {
+      discountAutomaticAppCreate(automaticAppDiscount: $discount) {
+        automaticAppDiscount { discountId title }
+        userErrors { field message }
       }
     }`,
     {
       variables: {
-        automaticAppDiscount: {
-          title: "Quantity Breaks",
-          functionId: bundleFunction.id,
+        discount: {
+          title: discountTitle,
+          functionId: FUNCTION_ID,
           startsAt: new Date().toISOString(),
           discountClasses: ["PRODUCT"],
           combinesWith: {
-            orderDiscounts: true,
             productDiscounts: true,
+            orderDiscounts: true,
             shippingDiscounts: true,
           },
-          metafields: [
-            {
-              namespace: "bundler",
-              key: "config",
-              type: "json",
-              value: configJson,
-            },
-          ],
+          metafields,
         },
       },
     }
   );
-  const createJson = await createResponse.json();
-  const createErrors = createJson?.data?.discountAutomaticAppCreate?.userErrors;
 
-  if (createErrors?.length) {
-    console.error("[Bundler] Discount create errors:", createErrors);
+  const createData = await createRes.json();
+  const createErrors = createData.data?.discountAutomaticAppCreate?.userErrors ?? [];
+
+  if (createErrors.length) {
+    console.error("[BundleKit] ❌ Create errors:", JSON.stringify(createErrors));
   } else {
-    console.log(
-      "[Bundler] Discount created:",
-      createJson?.data?.discountAutomaticAppCreate?.automaticAppDiscount?.title
-    );
+    const discountId =
+      createData.data?.discountAutomaticAppCreate?.automaticAppDiscount?.discountId;
+    if (discountId) {
+      await db.bundle.update({
+        where: { id: bundleId },
+        data: { shopifyDiscountId: discountId },
+      });
+      console.log("[BundleKit] ✅ Discount created:", bundle.name, "→", discountId);
+    }
   }
+
+  console.log("[BundleKit] ── syncBundleDiscount END ──");
+}
+
+export async function deleteBundleDiscount(admin: any, shop: string, bundleId: string) {
+  console.log("[BundleKit] ── deleteBundleDiscount ──", bundleId);
+  const bundle = await db.bundle.findFirst({
+    where: { id: bundleId, shop },
+  });
+  if (bundle?.shopifyDiscountId) {
+    await deleteShopifyDiscount(admin, bundle.shopifyDiscountId);
+    console.log("[BundleKit] ✅ Discount deleted for bundle:", bundle.name);
+  }
+}
+
+export async function syncDiscountRules(admin: any, shop: string) {
+  console.log("[BundleKit] ── syncDiscountRules (all bundles) START ──");
+  const bundles = await db.bundle.findMany({
+    where: {
+      shop,
+      bundleType: { in: ["QUANTITY_BREAKS", "VOLUME_DISCOUNT"] },
+    },
+  });
+  console.log("[BundleKit] Total bundles to sync:", bundles.length);
+  for (const bundle of bundles) {
+    await syncBundleDiscount(admin, shop, bundle.id);
+  }
+  console.log("[BundleKit] ── syncDiscountRules (all bundles) END ──");
 }

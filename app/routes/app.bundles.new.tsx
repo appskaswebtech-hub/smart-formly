@@ -16,7 +16,7 @@ import {
 } from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
-import { syncBundleConfigToDiscount } from "../utils/syncDiscount.server";
+import { syncBundleDiscount } from "../utils/syncDiscount.server";
 import { Prisma } from "@prisma/client";
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -102,7 +102,7 @@ if (bundleName === "Quantity breaks") {
   });
 
   // ✅ Sync config to discount function after create
-  await syncBundleConfigToDiscount(admin, shop);
+  await syncBundleDiscount(admin, shop, bundle.id);
 
 if (bundleType === "VOLUME_DISCOUNT") {
   return redirect(`/app/volume/bundles/${bundle.id}`);

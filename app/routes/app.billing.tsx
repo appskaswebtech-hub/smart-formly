@@ -1,6 +1,403 @@
+// // app/routes/app.billing.tsx
+
+// import { json, redirect }                from "@remix-run/node";
+// import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
+// import {
+//   useLoaderData,
+//   Form,
+//   useActionData,
+//   useNavigate,
+//   useNavigation,
+// } from "@remix-run/react";
+// import { useState, useEffect }           from "react";
+// import {
+//   Page,
+//   Button,
+//   BlockStack,
+//   Text,
+//   Box,
+//   InlineStack,
+//   InlineGrid,
+//   Banner,
+//   Badge,
+//   List,
+// } from "@shopify/polaris";
+// import { authenticate }      from "../shopify.server";
+// import { PLANS, PLAN_KEYS, getPlanByShopifyName }  from "../config/plans";
+// import {
+//   getShopPlanFromDB,
+//   updateShopPlan,
+// } from "../utils/planUtils";
+
+// // ─── Types ────────────────────────────────────────────────────
+// interface PlanUI {
+//   key:      string;
+//   color:    string;
+//   popular:  boolean;
+//   features: string[];
+//   label:    string;
+//   price:    number;
+// }
+
+// interface LoaderData {
+//   currentPlan: string;
+// }
+
+// interface ActionData {
+//   confirmationUrl?: string;
+//   error?: string;
+// }
+
+// interface UserError {
+//   field:   string;
+//   message: string;
+// }
+
+// interface AppSubscriptionCreateResponse {
+//   data?: {
+//     appSubscriptionCreate?: {
+//       confirmationUrl?: string;
+//       userErrors?:      UserError[];
+//       appSubscription?: {
+//         id: string;
+//       };
+//     };
+//   };
+// }
+
+// // ─── UI Plan definitions ───────────────────────────────────────
+// const PLANS_UI: PlanUI[] = [
+//   {
+//     key:      "free",
+//     color:    "#f6f6f7",
+//     popular:  false,
+//     features: [
+//       "Development Store only",
+//       "Unlimited Bundles",
+//       "Smart discounts",
+//       "Standard support",
+//     ],
+//   },
+//   {
+//     key:      "pro",
+//     color:    "#f6f6f7",
+//     popular:  false,
+//     features: [
+//        "Real Store",
+//       "Upto five Bundles",
+//       "Smart discounts",
+//       "Priority support",
+//     ],
+//   },
+//   {
+//     key:      "advanced",
+//     color:    "#f3f0ff",
+//     popular:  true,
+//     features: [
+//       "Real Store",
+//       "Unlimited Bundles",
+//       "Smart discounts",
+//       "Priority support",
+//     ],
+//   },
+// ].map((ui) => ({ ...ui, ...PLANS[ui.key] }));
+
+// // ─── LOADER ───────────────────────────────────────────────────
+// export const loader = async ({ request }: LoaderFunctionArgs) => {
+//   const { session } = await authenticate.admin(request);
+//   const plan        = await getShopPlanFromDB(session.shop);
+//   const planKey = getPlanByShopifyName(plan.name) ?? "free";
+//   return json<LoaderData>({ currentPlan: planKey });
+// };
+
+// // ─── ACTION ───────────────────────────────────────────────────
+// export const action = async ({ request }: ActionFunctionArgs) => {
+//   const { admin, session } = await authenticate.admin(request);
+//   const shop     = session.shop;
+//   const formData = await request.formData();
+//   const planKey  = formData.get("plan") as string;
+
+//   // Downgrade to free — no charge needed
+//   if (planKey === "free") {
+//     await updateShopPlan(shop, "free", null);
+//     return redirect("/app");
+//   }
+
+//   if (!PLAN_KEYS.includes(planKey)) {
+//     return json<ActionData>(
+//       { error: `Invalid plan: "${planKey}"` },
+//       { status: 400 }
+//     );
+//   }
+
+//   const selectedPlan = PLANS[planKey];
+
+//   try {
+//     const response = await admin.graphql(
+//       `#graphql
+//       mutation AppSubscriptionCreate(
+//         $name:      String!,
+//         $lineItems: [AppSubscriptionLineItemInput!]!,
+//         $returnUrl: URL!,
+//         $trialDays: Int,
+//         $test:      Boolean
+//       ) {
+//         appSubscriptionCreate(
+//           name:      $name,
+//           returnUrl: $returnUrl,
+//           lineItems: $lineItems,
+//           trialDays: $trialDays,
+//           test:      $test
+//         ) {
+//           userErrors {
+//             field
+//             message
+//           }
+//           appSubscription {
+//             id
+//           }
+//           confirmationUrl
+//         }
+//       }`,
+//       {
+//         variables: {
+//           name:      planKey,
+//           returnUrl: `https://${shop}/admin/apps/${process.env.SHOPIFY_API_KEY}/app/billing-return`,
+//           trialDays: selectedPlan.trialDays,
+//           test:      true, // ← set false in production
+//           lineItems: [
+//             {
+//               plan: {
+//                 appRecurringPricingDetails: {
+//                   price: {
+//                     amount:       selectedPlan.price,
+//                     currencyCode: "USD",
+//                   },
+//                   interval: "EVERY_30_DAYS",
+//                 },
+//               },
+//             },
+//           ],
+//         },
+//       }
+//     );
+
+//     const responseData: AppSubscriptionCreateResponse = await response.json();
+//     const { confirmationUrl, userErrors } =
+//       responseData.data?.appSubscriptionCreate ?? {};
+
+//     if (userErrors && userErrors.length > 0) {
+//       console.error("[app.billing] userErrors:", userErrors);
+//       return json<ActionData>(
+//         { error: userErrors.map((e) => e.message).join(", ") },
+//         { status: 400 }
+//       );
+//     }
+
+//     if (!confirmationUrl) {
+//       return json<ActionData>(
+//         { error: "No confirmation URL returned from Shopify." },
+//         { status: 500 }
+//       );
+//     }
+
+//     // ✅ DO NOT update DB here — wait for billing-return confirmation
+//     return json<ActionData>({ confirmationUrl });
+
+//   } catch (err) {
+//     console.error("[app.billing] action error:", err);
+//     return json<ActionData>(
+//       { error: "Something went wrong. Please try again." },
+//       { status: 500 }
+//     );
+//   }
+// };
+
+// // ─── COMPONENT ────────────────────────────────────────────────
+// export default function BillingPage() {
+//   const { currentPlan } = useLoaderData<typeof loader>();
+//   const actionData      = useActionData<typeof action>();
+//   const navigate        = useNavigate();
+//   const navigation      = useNavigation();
+//   const [submittingPlan, setSubmittingPlan] = useState<string | null>(null);
+
+//   const isSubmitting = navigation.state === "submitting";
+
+//   // Escape Shopify iframe → open billing confirmation page
+//   useEffect(() => {
+//     if (actionData?.confirmationUrl) {
+//       open(actionData.confirmationUrl, "_top");
+//     }
+//   }, [actionData]);
+
+//   return (
+//     <Page
+//       title="Choose Your Plan"
+//       subtitle="Upgrade anytime to use your bundle app on a real store"
+//       backAction={{
+//         content: "Back",
+//         onAction: () => navigate("/app"),
+//       }}
+//     >
+//       <BlockStack gap="500">
+
+//         {/* Error Banner */}
+//         {actionData?.error && (
+//           <Banner title="Billing Error" tone="critical">
+//             <Text as="p">{actionData.error}</Text>
+//           </Banner>
+//         )}
+
+//         {/* Redirecting Banner */}
+//         {actionData?.confirmationUrl && (
+//           <Banner title="Redirecting to Shopify billing..." tone="info">
+//             <Text as="p">
+//               Please wait while we redirect you to confirm your subscription.
+//             </Text>
+//           </Banner>
+//         )}
+
+//         {/* Current Plan Banner */}
+//         <Banner
+//           title={`You are currently on the ${currentPlan.toUpperCase()} plan`}
+//           tone="info"
+//         >
+
+//           {/* <Text as="p">
+//             Upgrade below to unlock all features on your real store.
+//           </Text> */}
+//            <Text as="p">
+//    {/* {currentPlan.toUpperCase() === "ADVANCED PLAN" */}
+//     {currentPlan === "advanced"
+//       ? "Great news! All features are now unlocked on your live store."
+//       : "Upgrade below to unlock all features on your real store."}
+//   </Text>
+//         </Banner>
+
+//         {/* Pricing Cards */}
+//         <InlineGrid columns={{ xs: 1, sm: 1, md: 2 }} gap="400">
+//           {PLANS_UI.map((plan) => {
+//             const isCurrent = currentPlan === plan.key;
+//             return (
+//               <div
+//                 key={plan.key}
+//                 style={{
+//                   borderRadius:  "12px",
+//                   border:        isCurrent
+//                     ? "2px solid #008060"
+//                     : plan.popular
+//                     ? "2px solid #005bd3"
+//                     : "1px solid #e1e3e5",
+//                   background:    "#ffffff",
+//                   boxShadow:     plan.popular
+//                     ? "0 4px 20px rgba(0,91,211,0.12)"
+//                     : "0 1px 4px rgba(0,0,0,0.06)",
+//                   display:       "flex",
+//                   flexDirection: "column",
+//                   overflow:      "hidden",
+//                 }}
+//               >
+//                 {/* Card Header */}
+//                 <div
+//                   style={{
+//                     background:   plan.color,
+//                     padding:      "20px 24px 16px",
+//                     borderBottom: "1px solid #e1e3e5",
+//                   }}
+//                 >
+//                   <InlineStack align="space-between" blockAlign="center">
+//                     <Text variant="headingLg" fontWeight="bold" as="h2">
+//                       {plan.label}
+//                     </Text>
+//                     <InlineStack gap="200">
+//                       {plan.popular && (
+//                         <Badge tone="info">Most Popular</Badge>
+//                       )}
+//                       {isCurrent && (
+//                         <Badge tone="success">Current</Badge>
+//                       )}
+//                     </InlineStack>
+//                   </InlineStack>
+
+//                   <Box paddingBlockStart="200">
+//                     <Text variant="heading2xl" fontWeight="bold" as="p">
+//                       {plan.price === 0 ? "Free" : `$${plan.price}`}
+//                     </Text>
+//                     {plan.price > 0 && (
+//                       <Text variant="bodySm" tone="subdued" as="p">
+//                         per month
+//                       </Text>
+//                     )}
+//                   </Box>
+//                 </div>
+
+//                 {/* Features */}
+//                 <div style={{ padding: "20px 24px", flexGrow: 1 }}>
+//                   <BlockStack gap="200">
+//                     <Text variant="bodyMd" fontWeight="semibold" as="p">
+//                       What's included:
+//                     </Text>
+//                     <List type="bullet">
+//                       {plan.features.map((f, i) => (
+//                         <List.Item key={i}>{f}</List.Item>
+//                       ))}
+//                     </List>
+//                   </BlockStack>
+//                 </div>
+
+//                 {/* CTA */}
+//                 <div
+//                   style={{
+//                     padding:   "16px 24px",
+//                     borderTop: "1px solid #e1e3e5",
+//                   }}
+//                 >
+//                   {isCurrent ? (
+//                     <Button fullWidth disabled>
+//                       ✓ Current Plan
+//                     </Button>
+//                   ) : (
+//                     <Form method="post">
+//                       <input type="hidden" name="plan" value={plan.key} />
+//                       <Button
+//                         fullWidth
+//                         variant={plan.price > 0 ? "primary" : "secondary"}
+//                         submit
+//                         loading={
+//                           (isSubmitting && submittingPlan === plan.key) ||
+//                           !!actionData?.confirmationUrl
+//                         }
+//                       onClick={() => setSubmittingPlan(plan.key)}
+                       
+//                       >
+//                         {plan.price === 0
+//                           ? "Use Free Plan"
+//                           : `Upgrade to ${plan.label}`}
+//                       </Button>
+//                     </Form>
+//                   )}
+//                 </div>
+
+//               </div>
+//             );
+//           })}
+//         </InlineGrid>
+
+//         {/* Footer */}
+//         <Box paddingBlockEnd="400">
+//           <Text alignment="center" tone="subdued" variant="bodySm" as="p">
+//             Cancel anytime from your Shopify admin. Billed in USD.
+//           </Text>
+//         </Box>
+
+//       </BlockStack>
+//     </Page>
+//   );
+// }
+
 // app/routes/app.billing.tsx
 
-import { json, redirect }                from "@remix-run/node";
+import { json, redirect } from "@remix-run/node";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import {
   useLoaderData,
@@ -9,7 +406,7 @@ import {
   useNavigate,
   useNavigation,
 } from "@remix-run/react";
-import { useState, useEffect }           from "react";
+import { useState, useEffect } from "react";
 import {
   Page,
   Button,
@@ -22,21 +419,18 @@ import {
   Badge,
   List,
 } from "@shopify/polaris";
-import { authenticate }      from "../shopify.server";
-import { PLANS, PLAN_KEYS, getPlanByShopifyName }  from "../config/plans";
-import {
-  getShopPlanFromDB,
-  updateShopPlan,
-} from "../utils/planUtils";
+import { authenticate } from "../shopify.server";
+import { PLANS, PLAN_KEYS, getPlanByShopifyName } from "../config/plans";
+import { getShopPlanFromDB, updateShopPlan } from "../utils/planUtils";
 
 // ─── Types ────────────────────────────────────────────────────
 interface PlanUI {
-  key:      string;
-  color:    string;
-  popular:  boolean;
+  key: string;
+  color: string;
+  popular: boolean;
   features: string[];
-  label:    string;
-  price:    number;
+  label: string;
+  price: number;
 }
 
 interface LoaderData {
@@ -49,7 +443,7 @@ interface ActionData {
 }
 
 interface UserError {
-  field:   string;
+  field: string;
   message: string;
 }
 
@@ -57,42 +451,29 @@ interface AppSubscriptionCreateResponse {
   data?: {
     appSubscriptionCreate?: {
       confirmationUrl?: string;
-      userErrors?:      UserError[];
-      appSubscription?: {
-        id: string;
-      };
+      userErrors?: UserError[];
+      appSubscription?: { id: string };
     };
   };
 }
 
-// ─── UI Plan definitions ───────────────────────────────────────
+// ─── UI Plan definitions (free removed) ───────────────────────
 const PLANS_UI: PlanUI[] = [
   {
-    key:      "free",
-    color:    "#f6f6f7",
-    popular:  false,
+    key: "pro",
+    color: "#f6f6f7",
+    popular: false,
     features: [
-      "Development Store only",
-      "Unlimited Bundles",
-      "Smart discounts",
-      "Standard support",
-    ],
-  },
-  {
-    key:      "pro",
-    color:    "#f6f6f7",
-    popular:  false,
-    features: [
-       "Real Store",
-      "Upto five Bundles",
+      "Real Store",
+      "Up to 5 Bundles",
       "Smart discounts",
       "Priority support",
     ],
   },
   {
-    key:      "advanced",
-    color:    "#f3f0ff",
-    popular:  true,
+    key: "advanced",
+    color: "#f3f0ff",
+    popular: true,
     features: [
       "Real Store",
       "Unlimited Bundles",
@@ -105,25 +486,20 @@ const PLANS_UI: PlanUI[] = [
 // ─── LOADER ───────────────────────────────────────────────────
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
-  const plan        = await getShopPlanFromDB(session.shop);
-  const planKey = getPlanByShopifyName(plan.name) ?? "free";
+  const plan = await getShopPlanFromDB(session.shop);
+  // If shop is on free plan, treat pro as the default/current shown
+  const planKey = getPlanByShopifyName(plan.name) ?? "pro";
   return json<LoaderData>({ currentPlan: planKey });
 };
 
 // ─── ACTION ───────────────────────────────────────────────────
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
-  const shop     = session.shop;
+  const shop = session.shop;
   const formData = await request.formData();
-  const planKey  = formData.get("plan") as string;
+  const planKey = formData.get("plan") as string;
 
-  // Downgrade to free — no charge needed
-  if (planKey === "free") {
-    await updateShopPlan(shop, "free", null);
-    return redirect("/app");
-  }
-
-  if (!PLAN_KEYS.includes(planKey)) {
+  if (!PLAN_KEYS.includes(planKey) || planKey === "free") {
     return json<ActionData>(
       { error: `Invalid plan: "${planKey}"` },
       { status: 400 }
@@ -136,41 +512,36 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const response = await admin.graphql(
       `#graphql
       mutation AppSubscriptionCreate(
-        $name:      String!,
+        $name: String!,
         $lineItems: [AppSubscriptionLineItemInput!]!,
         $returnUrl: URL!,
         $trialDays: Int,
-        $test:      Boolean
+        $test: Boolean
       ) {
         appSubscriptionCreate(
-          name:      $name,
+          name: $name,
           returnUrl: $returnUrl,
           lineItems: $lineItems,
           trialDays: $trialDays,
-          test:      $test
+          test: $test
         ) {
-          userErrors {
-            field
-            message
-          }
-          appSubscription {
-            id
-          }
+          userErrors { field message }
+          appSubscription { id }
           confirmationUrl
         }
       }`,
       {
         variables: {
-          name:      planKey,
+          name: planKey,
           returnUrl: `https://${shop}/admin/apps/${process.env.SHOPIFY_API_KEY}/app/billing-return`,
           trialDays: selectedPlan.trialDays,
-          test:      true, // ← set false in production
+          test: true, // ← set false in production
           lineItems: [
             {
               plan: {
                 appRecurringPricingDetails: {
                   price: {
-                    amount:       selectedPlan.price,
+                    amount: selectedPlan.price,
                     currencyCode: "USD",
                   },
                   interval: "EVERY_30_DAYS",
@@ -201,9 +572,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       );
     }
 
-    // ✅ DO NOT update DB here — wait for billing-return confirmation
     return json<ActionData>({ confirmationUrl });
-
   } catch (err) {
     console.error("[app.billing] action error:", err);
     return json<ActionData>(
@@ -216,28 +585,27 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 // ─── COMPONENT ────────────────────────────────────────────────
 export default function BillingPage() {
   const { currentPlan } = useLoaderData<typeof loader>();
-  const actionData      = useActionData<typeof action>();
-  const navigate        = useNavigate();
-  const navigation      = useNavigation();
+  const actionData = useActionData<typeof action>();
+  const navigate = useNavigate();
+  const navigation = useNavigation();
   const [submittingPlan, setSubmittingPlan] = useState<string | null>(null);
 
   const isSubmitting = navigation.state === "submitting";
 
-  // Escape Shopify iframe → open billing confirmation page
   useEffect(() => {
     if (actionData?.confirmationUrl) {
       open(actionData.confirmationUrl, "_top");
     }
   }, [actionData]);
 
+  // Determine display plan — free users see pro as "not yet subscribed"
+  const displayPlan = currentPlan === "free" ? null : currentPlan;
+
   return (
     <Page
       title="Choose Your Plan"
-      subtitle="Upgrade anytime to use your bundle app on a real store"
-      backAction={{
-        content: "Back",
-        onAction: () => navigate("/app"),
-      }}
+      subtitle="Upgrade anytime to unlock more features on your real store"
+      backAction={{ content: "Back", onAction: () => navigate("/app") }}
     >
       <BlockStack gap="500">
 
@@ -259,19 +627,20 @@ export default function BillingPage() {
 
         {/* Current Plan Banner */}
         <Banner
-          title={`You are currently on the ${currentPlan.toUpperCase()} plan`}
+          title={
+            displayPlan
+              ? `You are currently on the ${displayPlan.toUpperCase()} plan`
+              : "You don't have an active plan yet"
+          }
           tone="info"
         >
-
-          {/* <Text as="p">
-            Upgrade below to unlock all features on your real store.
-          </Text> */}
-           <Text as="p">
-   {/* {currentPlan.toUpperCase() === "ADVANCED PLAN" */}
-    {currentPlan === "advanced"
-      ? "Great news! All features are now unlocked on your live store."
-      : "Upgrade below to unlock all features on your real store."}
-  </Text>
+          <Text as="p">
+            {currentPlan === "advanced"
+              ? "You have full access. All features are unlocked on your live store."
+              : currentPlan === "pro"
+              ? "You have access to up to 5 bundles on your live store."
+              : "Subscribe to a plan below to start using your bundles on a real store."}
+          </Text>
         </Banner>
 
         {/* Pricing Cards */}
@@ -282,26 +651,26 @@ export default function BillingPage() {
               <div
                 key={plan.key}
                 style={{
-                  borderRadius:  "12px",
-                  border:        isCurrent
+                  borderRadius: "12px",
+                  border: isCurrent
                     ? "2px solid #008060"
                     : plan.popular
                     ? "2px solid #005bd3"
                     : "1px solid #e1e3e5",
-                  background:    "#ffffff",
-                  boxShadow:     plan.popular
+                  background: "#ffffff",
+                  boxShadow: plan.popular
                     ? "0 4px 20px rgba(0,91,211,0.12)"
                     : "0 1px 4px rgba(0,0,0,0.06)",
-                  display:       "flex",
+                  display: "flex",
                   flexDirection: "column",
-                  overflow:      "hidden",
+                  overflow: "hidden",
                 }}
               >
                 {/* Card Header */}
                 <div
                   style={{
-                    background:   plan.color,
-                    padding:      "20px 24px 16px",
+                    background: plan.color,
+                    padding: "20px 24px 16px",
                     borderBottom: "1px solid #e1e3e5",
                   }}
                 >
@@ -310,24 +679,18 @@ export default function BillingPage() {
                       {plan.label}
                     </Text>
                     <InlineStack gap="200">
-                      {plan.popular && (
-                        <Badge tone="info">Most Popular</Badge>
-                      )}
-                      {isCurrent && (
-                        <Badge tone="success">Current</Badge>
-                      )}
+                      {plan.popular && <Badge tone="info">Most Popular</Badge>}
+                      {isCurrent && <Badge tone="success">Current</Badge>}
                     </InlineStack>
                   </InlineStack>
 
                   <Box paddingBlockStart="200">
                     <Text variant="heading2xl" fontWeight="bold" as="p">
-                      {plan.price === 0 ? "Free" : `$${plan.price}`}
+                      ${plan.price}
                     </Text>
-                    {plan.price > 0 && (
-                      <Text variant="bodySm" tone="subdued" as="p">
-                        per month
-                      </Text>
-                    )}
+                    <Text variant="bodySm" tone="subdued" as="p">
+                      per month
+                    </Text>
                   </Box>
                 </div>
 
@@ -346,38 +709,29 @@ export default function BillingPage() {
                 </div>
 
                 {/* CTA */}
-                <div
-                  style={{
-                    padding:   "16px 24px",
-                    borderTop: "1px solid #e1e3e5",
-                  }}
-                >
+                <div style={{ padding: "16px 24px", borderTop: "1px solid #e1e3e5" }}>
                   {isCurrent ? (
-                    <Button fullWidth disabled>
-                      ✓ Current Plan
-                    </Button>
+                    <Button fullWidth disabled>✓ Current Plan</Button>
                   ) : (
                     <Form method="post">
                       <input type="hidden" name="plan" value={plan.key} />
                       <Button
                         fullWidth
-                        variant={plan.price > 0 ? "primary" : "secondary"}
+                        variant="primary"
                         submit
                         loading={
                           (isSubmitting && submittingPlan === plan.key) ||
                           !!actionData?.confirmationUrl
                         }
-                      onClick={() => setSubmittingPlan(plan.key)}
-                       
+                        onClick={() => setSubmittingPlan(plan.key)}
                       >
-                        {plan.price === 0
-                          ? "Use Free Plan"
+                        {currentPlan === "advanced" && plan.key === "pro"
+                          ? "Downgrade to Pro"
                           : `Upgrade to ${plan.label}`}
                       </Button>
                     </Form>
                   )}
                 </div>
-
               </div>
             );
           })}

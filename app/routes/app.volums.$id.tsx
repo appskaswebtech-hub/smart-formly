@@ -39,7 +39,7 @@ import { DeleteIcon, PlusIcon } from "@shopify/polaris-icons";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
 import { WidgetPreview } from "../components/WidgetPreview";
-import { syncBundleConfigToDiscount } from "../utils/syncDiscount.server";
+import { syncBundleDiscount } from "../utils/syncDiscount.server";
 
 
 // ---------------------
@@ -145,7 +145,7 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
     await db.bundle.delete({ where: { id: params.id } });
     // Sync config to discount function after delete
     try {
-      await syncBundleConfigToDiscount(admin, shop);
+      await syncBundleDiscount(admin, shop, bundle.id);
     } catch (err) {
       console.error("[Bundler] Sync failed (function may not be deployed yet):", err);
     }
@@ -210,7 +210,7 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
 
     // Sync config to discount function after save
     try {
-      await syncBundleConfigToDiscount(admin, shop);
+      await syncBundleDiscount(admin, shop, bundle.id);
     } catch (err) {
       console.error("[Bundler] Sync failed (function may not be deployed yet):", err);
     }
