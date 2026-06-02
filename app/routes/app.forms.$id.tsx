@@ -159,7 +159,7 @@ type ExtraSettings = {
   adminEmailIncludeResponse: boolean; adminEmailHideHidden: boolean; adminEmailHideEmpty: boolean;
   // Email export
   emailExportEnabled: boolean; emailExportTo: string; emailExportFrequency: string;
-  // ✅ Popup
+  // Popup
   popupEnabled: boolean;
   popupTrigger: "button" | "delay" | "exit_intent";
   popupButtonText: string;
@@ -187,14 +187,14 @@ const defaultExtra: ExtraSettings = {
   adminEmailUseShopTimezone: false, adminEmailMessage: "Hi [first-name of store owner],\nSomeone just submitted a response to your form.",
   adminEmailIncludeResponse: true, adminEmailHideHidden: false, adminEmailHideEmpty: false,
   emailExportEnabled: false, emailExportTo: "", emailExportFrequency: "weekly",
-  // ✅ Popup defaults
+  // ✅ FIX: use hex, not rgba — <input type="color"> does not accept rgba
   popupEnabled: false,
   popupTrigger: "button",
   popupButtonText: "Open Form",
   popupButtonBg: "#000000",
   popupButtonColor: "#ffffff",
   popupDelay: "3",
-  popupOverlayBg: "rgba(0,0,0,0.5)",
+  popupOverlayBg: "#000000",
   popupOverlayOpacity: "0.5",
   popupCloseOnOverlay: true,
   popupWidth: "600",
@@ -224,7 +224,7 @@ const FIELD_TYPES = [
   { type: "checkbox", label: "Checkbox",         icon: "☑" },
   { type: "file",     label: "File upload",      icon: "⬆" },
 ] as const;
-                        
+
 const PILLS = [
   { key: "form_details",             label: "Form details" },
   { key: "ticket_system",            label: "Ticket system",           plan: "pro_plus" as const },
@@ -294,7 +294,17 @@ export default function EditForm() {
   const [fields,          setFields]          = useState<FormField[]>(form.fields);
   const [settings,        setSettings]        = useState<FormSettings>(form.settings);
   const [design,          setDesign]          = useState<DesignSettings>(() => ({ ...defaultDesign, ...(savedDesign || {}) }));
-  const [extra,           setExtra]           = useState<ExtraSettings>(() => ({ ...defaultExtra, ...savedExtra }));
+
+  // ✅ FIX: sanitize popupOverlayBg loaded from DB — if it's rgba(...) convert to hex
+  // because <input type="color"> only accepts hex values and will cause React hydration error #418
+  const [extra, setExtra] = useState<ExtraSettings>(() => {
+    const merged = { ...defaultExtra, ...savedExtra };
+    if (merged.popupOverlayBg && !merged.popupOverlayBg.startsWith("#")) {
+      merged.popupOverlayBg = "#000000";
+    }
+    return merged;
+  });
+
   const [activeTab,       setActiveTab]       = useState(0);
   const [activePill,      setActivePill]      = useState("form_details");
   const [activeDesignTab, setActiveDesignTab] = useState(0);
@@ -569,12 +579,6 @@ export default function EditForm() {
 
       case "auto_responder_email": return (
         <BlockStack gap="400">
-          {/* <Banner tone="warning">
-            <BlockStack gap="100">
-              <Text as="p" variant="bodyMd" fontWeight="semibold">Contact our support team</Text>
-              <Text as="p" variant="bodySm">Please contact support to enable auto-responder emails.</Text>
-            </BlockStack>
-          </Banner> */}
           <Divider />
           <Text as="h3" variant="headingSm" fontWeight="semibold">Email details</Text>
           <TextField label="From name for auto response" value={extra.autoResponderFromName}
@@ -650,7 +654,7 @@ export default function EditForm() {
         </BlockStack>
       );
 
-      /* ── ✅ POPUP ── */
+      /* ── POPUP ── */
       case "form_load_as_popup": return (
         <BlockStack gap="400">
           <Checkbox
@@ -696,7 +700,6 @@ export default function EditForm() {
                       onChange={v => setE({ popupButtonColor: v })}
                     />
                   </div>
-                  {/* Live preview */}
                   <div>
                     <Text as="p" variant="bodySm" tone="subdued">Button preview</Text>
                     <div style={{ marginTop: 8 }}>
@@ -739,20 +742,11 @@ export default function EditForm() {
               <Divider />
               <Text as="h3" variant="headingSm" fontWeight="semibold">Overlay settings</Text>
 
-              {/* <TextField
-                label="Overlay background color"
-                value={extra.popupOverlayBg}
-                onChange={v => setE({ popupOverlayBg: v })}
-                placeholder="rgba(0,0,0,0.5)"
-                helpText="Any CSS color — e.g. rgba(0,0,0,0.5) or #000"
-                autoComplete="off"
-              /> */}
-
               <ColorInput
                 label="Overlay background color"
                 value={extra.popupOverlayBg || "#000000"}
                 onChange={v => setE({ popupOverlayBg: v })}
-            />
+              />
 
               <TextField
                 label="Overlay opacity"
@@ -1211,8 +1205,3 @@ export default function EditForm() {
     </Page>
   );
 }
-
-
-
-
-

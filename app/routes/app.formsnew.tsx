@@ -154,7 +154,7 @@ type ExtraSettings = {
   adminEmailIncludeResponse: boolean; adminEmailHideHidden: boolean; adminEmailHideEmpty: boolean;
   // Email export
   emailExportEnabled: boolean; emailExportTo: string; emailExportFrequency: string;
-  // ✅ Popup
+  // Popup
   popupEnabled: boolean;
   popupTrigger: "button" | "delay" | "exit_intent";
   popupButtonText: string;
@@ -182,15 +182,15 @@ const defaultExtra: ExtraSettings = {
   adminEmailUseShopTimezone: false, adminEmailMessage: "Hi [first-name of store owner],\nSomeone just submitted a response to your form.",
   adminEmailIncludeResponse: true, adminEmailHideHidden: false, adminEmailHideEmpty: false,
   emailExportEnabled: false, emailExportTo: "", emailExportFrequency: "weekly",
-  // ✅ Popup defaults
+  // ✅ FIX: use hex, not rgba — <input type="color"> does not accept rgba
   popupEnabled: false,
   popupTrigger: "button",
   popupButtonText: "Open Form",
   popupButtonBg: "#000000",
   popupButtonColor: "#ffffff",
   popupDelay: "3",
-  popupOverlayBg: "rgba(0,0,0,0.5)",
-  popupOverlayOpacity: "0.5", 
+  popupOverlayBg: "#000000",
+  popupOverlayOpacity: "0.5",
   popupCloseOnOverlay: true,
   popupWidth: "600",
 };
@@ -560,12 +560,6 @@ export default function NewForm() {
 
       case "auto_responder_email": return (
         <BlockStack gap="400">
-          {/* <Banner tone="warning">
-            <BlockStack gap="100">
-              <Text as="p" variant="bodyMd" fontWeight="semibold">Contact our support team</Text>
-              <Text as="p" variant="bodySm">Please contact support to enable auto-responder emails.</Text> 
-            </BlockStack>
-          </Banner> */}
           <Divider />
           <Text as="h3" variant="headingSm" fontWeight="semibold">Email details</Text>
           <TextField label="From name for auto response" value={extra.autoResponderFromName}
@@ -641,7 +635,7 @@ export default function NewForm() {
         </BlockStack>
       );
 
-      /* ── ✅ POPUP ── */
+      /* ── POPUP ── */
       case "form_load_as_popup": return (
         <BlockStack gap="400">
           <Checkbox
@@ -655,7 +649,6 @@ export default function NewForm() {
             <BlockStack gap="400">
               <Divider />
 
-              {/* Trigger */}
               <Select
                 label="Popup trigger"
                 options={[
@@ -667,7 +660,6 @@ export default function NewForm() {
                 onChange={v => setE({ popupTrigger: v as any })}
               />
 
-              {/* Button trigger settings */}
               {extra.popupTrigger === "button" && (
                 <BlockStack gap="300">
                   <TextField
@@ -689,7 +681,6 @@ export default function NewForm() {
                       onChange={v => setE({ popupButtonColor: v })}
                     />
                   </div>
-                  {/* Live button preview */}
                   <div>
                     <Text as="p" variant="bodySm" tone="subdued">Button preview</Text>
                     <div style={{ marginTop: 8 }}>
@@ -708,7 +699,6 @@ export default function NewForm() {
                 </BlockStack>
               )}
 
-              {/* Delay trigger settings */}
               {extra.popupTrigger === "delay" && (
                 <TextField
                   label="Delay before popup opens (seconds)"
@@ -732,15 +722,6 @@ export default function NewForm() {
 
               <Divider />
               <Text as="h3" variant="headingSm" fontWeight="semibold">Overlay settings</Text>
-
-              {/* <TextField
-                label="Overlay background color"
-                value={extra.popupOverlayBg}
-                onChange={v => setE({ popupOverlayBg: v })}
-                placeholder="rgba(0,0,0,0.5)"
-                helpText="Any CSS color — e.g. rgba(0,0,0,0.5) or #000"
-                autoComplete="off"
-              /> */}
 
               <ColorInput
                 label="Overlay background color"
@@ -1186,4 +1167,3 @@ export default function NewForm() {
     </Page>
   );
 }
-
