@@ -1,29 +1,165 @@
 /**
  * SmartFormly Theme Extension
- * Handles form submission + all afterSubmissionAction behaviors:
- *   - clear_and_allow       : clear form, show success, allow resubmit
- *   - one_entry             : show thank you message + timer, then hide
- *   - redirect              : redirect to URL after success
- *   - hide_and_show_message : hide form, show thank you message + timer
- *   - show_and_download     : show success + trigger CSV download link
+ * Handles:
+ *  - Popup mode (button / delay / exit_intent triggers)
+ *  - Form submission
+ *  - All afterSubmissionAction behaviors
+ *  - After submit script
+ *  - Ticket number display
  */
 
 (function () {
   "use strict";
 
-  /* ── Config ──────────────────────────────────────────────────────── */
-  // Replace with your actual app URL or inject via Liquid
   const APP_URL = window.smartFormlyAppUrl || "";
 
-  /* ── Init all forms on the page ──────────────────────────────────── */
+  /* ══════════════════════════════════════════════════════════════════
+     INIT
+  ══════════════════════════════════════════════════════════════════ */
   function init() {
-    const forms = document.querySelectorAll("[data-smartformly-form]");
-    forms.forEach(initForm);
+    const wrappers = document.querySelectorAll("[data-smartformly-form]");
+    wrappers.forEach(function (wrapper) {
+      const popupEnabled = wrapper.dataset.popupEnabled === "true";
+      if (popupEnabled) {
+        initPopup(wrapper);
+      } else {
+        initForm(wrapper);
+      }
+    });
   }
 
+  /* ══════════════════════════════════════════════════════════════════
+     POPUP
+  ══════════════════════════════════════════════════════════════════ */
+  function initPopup(wrapper) {
+    const trigger         = wrapper.dataset.popupTrigger       || "button";
+    const buttonText      = wrapper.dataset.popupButtonText    || "Open Form";
+    const buttonBg        = wrapper.dataset.popupButtonBg      || "#000000";
+    const buttonColor     = wrapper.dataset.popupButtonColor   || "#ffffff";
+    const overlayBg       = wrapper.dataset.popupOverlayBg     || "#000000";
+    const overlayOpacity  = parseFloat(wrapper.dataset.popupOverlayOpacity ?? "0.5");
+    const closeOnOverlay  = wrapper.dataset.popupCloseOnOverlay !== "false";
+    const popupWidth      = wrapper.dataset.popupWidth         || "600";
+    const delaySeconds    = parseInt(wrapper.dataset.popupDelay || "3", 10);
+
+    // ── Build overlay ─────────────────────────────────────────────
+    const overlay = document.createElement("div");
+    overlay.id = "sf-popup-overlay-" + wrapper.dataset.smartformlyForm;
+    overlay.style.cssText = [
+      "display:none",
+      "position:fixed",
+      "top:0", "left:0",
+      "width:100%", "height:100%",
+      "z-index:999998",
+      "background:" + overlayBg,
+      "opacity:" + overlayOpacity,
+    ].join(";");
+    document.body.appendChild(overlay);
+
+    // ── Build modal container ─────────────────────────────────────
+    const modal = document.createElement("div");
+    modal.id = "sf-popup-modal-" + wrapper.dataset.smartformlyForm;
+    modal.style.cssText = [
+      "display:none",
+      "position:fixed",
+      "top:50%", "left:50%",
+      "transform:translate(-50%,-50%)",
+      "z-index:999999",
+      "background:#fff",
+      "border-radius:10px",
+      "box-shadow:0 20px 60px rgba(0,0,0,0.3)",
+      "width:90%",
+      "max-width:" + popupWidth + "px",
+      "max-height:90vh",
+      "overflow-y:auto",
+      "padding:32px",
+      "box-sizing:border-box",
+    ].join(";");
+
+    // Close button inside modal
+    const closeBtn = document.createElement("button");
+    closeBtn.innerHTML = "&#x2715;";
+    closeBtn.style.cssText = [
+      "position:absolute",
+      "top:12px", "right:16px",
+      "background:none",
+      "border:none",
+      "font-size:20px",
+      "cursor:pointer",
+      "color:#6B7280",
+      "line-height:1",
+      "padding:4px 8px",
+    ].join(";");
+    closeBtn.addEventListener("click", function () { closePopup(overlay, modal); });
+
+    // Move the form wrapper's contents into modal
+    modal.style.position = "fixed"; // ensure position for close button
+    modal.appendChild(closeBtn);
+    modal.appendChild(wrapper);
+    document.body.appendChild(modal);
+
+    // Init the form now that it's inside modal
+    initForm(wrapper);
+
+    // ── Close on overlay click ────────────────────────────────────
+    if (closeOnOverlay) {
+      overlay.addEventListener("click", function () { closePopup(overlay, modal); });
+    }
+
+    // ── Trigger logic ─────────────────────────────────────────────
+    if (trigger === "button") {
+      // Insert a trigger button where the wrapper originally was
+      const triggerBtn = document.createElement("button");
+      triggerBtn.textContent = buttonText;
+      triggerBtn.style.cssText = [
+        "padding:10px 24px",
+        "background:" + buttonBg,
+        "color:" + buttonColor,
+        "border:none",
+        "border-radius:6px",
+        "font-size:14px",
+        "font-weight:600",
+        "cursor:pointer",
+        "font-family:inherit",
+      ].join(";");
+      triggerBtn.addEventListener("click", function () { openPopup(overlay, modal); });
+
+      // Insert button at the original wrapper location
+      // wrapper was moved into modal, so insert before modal
+      document.body.insertBefore(triggerBtn, modal);
+
+    } else if (trigger === "delay") {
+      setTimeout(function () { openPopup(overlay, modal); }, delaySeconds * 1000);
+
+    } else if (trigger === "exit_intent") {
+      var exitFired = false;
+      document.addEventListener("mouseleave", function (e) {
+        if (e.clientY <= 0 && !exitFired) {
+          exitFired = true;
+          openPopup(overlay, modal);
+        }
+      });
+    }
+  }
+
+  function openPopup(overlay, modal) {
+    overlay.style.display = "block";
+    modal.style.display   = "block";
+    document.body.style.overflow = "hidden";
+  }
+
+  function closePopup(overlay, modal) {
+    overlay.style.display = "none";
+    modal.style.display   = "none";
+    document.body.style.overflow = "";
+  }
+
+  /* ══════════════════════════════════════════════════════════════════
+     FORM INIT
+  ══════════════════════════════════════════════════════════════════ */
   function initForm(wrapper) {
-    const formId  = wrapper.dataset.smartformlyForm;
-    const formEl  = wrapper.querySelector("form");
+    const formId = wrapper.dataset.smartformlyForm;
+    const formEl = wrapper.querySelector("form");
     if (!formEl || !formId) return;
 
     formEl.addEventListener("submit", function (e) {
@@ -32,7 +168,9 @@
     });
   }
 
-  /* ── Collect form data ───────────────────────────────────────────── */
+  /* ══════════════════════════════════════════════════════════════════
+     COLLECT DATA
+  ══════════════════════════════════════════════════════════════════ */
   function collectData(formEl) {
     const data = {};
     const inputs = formEl.querySelectorAll("[data-field-id]");
@@ -51,20 +189,20 @@
     return data;
   }
 
-  /* ── Submit handler ──────────────────────────────────────────────── */
+  /* ══════════════════════════════════════════════════════════════════
+     SUBMIT HANDLER
+  ══════════════════════════════════════════════════════════════════ */
   async function handleSubmit(wrapper, formEl, formId) {
     const submitBtn = formEl.querySelector("[data-submit-btn]") ||
                       formEl.querySelector("button[type=submit]") ||
                       formEl.querySelector("input[type=submit]");
 
-    // Show loading state
     if (submitBtn) {
       submitBtn.disabled = true;
       submitBtn._originalText = submitBtn.textContent;
       submitBtn.textContent = "Submitting…";
     }
 
-    // Clear previous messages
     clearMessages(wrapper);
 
     const submissionData = collectData(formEl);
@@ -79,24 +217,37 @@
       const data = await res.json();
 
       if (!res.ok || !data.success) {
-        // Show validation errors or generic error
         const msgs = data.errors?.length ? data.errors : [data.error || "Something went wrong."];
         showError(wrapper, msgs.join("<br>"));
         resetButton(submitBtn);
         return;
       }
 
-      // ── Handle afterSubmissionAction ─────────────────────────────
-      const action       = data.afterSubmissionAction || "clear_and_allow";
-      const redirectUrl  = data.redirectUrl           || "";
-      const tyMessage    = data.thankYouMessage       || data.message || "Thank you for your submission!";
-      const timerSec     = Number(data.thankYouTimerSec) || 5;
-      const successMsg   = data.message               || "Thank you for your submission!";
+      // ── Read response values ──────────────────────────────────
+      const action      = data.afterSubmissionAction || "clear_and_allow";
+      const redirectUrl = data.redirectUrl           || "";
+      const tyMessage   = data.thankYouMessage       || data.message || "Thank you for your submission!";
+      const timerSec    = Number(data.thankYouTimerSec) || 5;
+      const successMsg  = data.message               || "Thank you for your submission!";
+      const ticketNumber = data.ticketNumber         || null;
 
+      // ── Run after submit script ───────────────────────────────
+      const afterSubmitScript = wrapper.dataset.afterSubmitScript || "";
+      if (afterSubmitScript) {
+        try {
+          const formData = { id: formId, submissionId: data.submissionId, fields: submissionData };
+          // eslint-disable-next-line no-new-func
+          new Function("formData", afterSubmitScript)(formData);
+        } catch (scriptErr) {
+          console.warn("[SmartFormly] afterSubmitScript error:", scriptErr);
+        }
+      }
+
+      // ── Handle afterSubmissionAction ──────────────────────────
       switch (action) {
 
         case "redirect":
-          showSuccess(wrapper, successMsg);
+          showSuccess(wrapper, successMsg, ticketNumber);
           setTimeout(function () {
             window.location.href = redirectUrl || window.location.href;
           }, 1200);
@@ -104,37 +255,37 @@
 
         case "hide_and_show_message":
           formEl.style.display = "none";
-          showThankYou(wrapper, tyMessage, timerSec, function () {
-            // After timer: optionally hide the whole block
-            // wrapper.style.display = "none";
+          showThankYou(wrapper, tyMessage, timerSec, ticketNumber, function () {
+            // timer expired — keep hidden
           });
           resetButton(submitBtn);
           break;
 
         case "one_entry":
           formEl.style.display = "none";
-          showThankYou(wrapper, tyMessage, timerSec, function () {
-            // Keep hidden — only one entry allowed
+          showThankYou(wrapper, tyMessage, timerSec, ticketNumber, function () {
+            // keep hidden — one entry only
           });
           resetButton(submitBtn);
           break;
 
         case "show_and_download":
-          showSuccess(wrapper, successMsg);
+          showSuccess(wrapper, successMsg, ticketNumber);
           formEl.reset();
           resetButton(submitBtn);
-          // Trigger download of submissions (link to submissions page or CSV)
           if (data.submissionId) {
             const link = document.createElement("a");
             link.href     = `${APP_URL}/api/submissions/${formId}/export`;
             link.download = "responses.csv";
+            document.body.appendChild(link);
             link.click();
+            document.body.removeChild(link);
           }
           break;
 
         case "clear_and_allow":
         default:
-          showSuccess(wrapper, successMsg);
+          showSuccess(wrapper, successMsg, ticketNumber);
           formEl.reset();
           resetButton(submitBtn);
           break;
@@ -147,19 +298,27 @@
     }
   }
 
-  /* ── UI helpers ──────────────────────────────────────────────────── */
-
+  /* ══════════════════════════════════════════════════════════════════
+     UI HELPERS
+  ══════════════════════════════════════════════════════════════════ */
   function clearMessages(wrapper) {
-    wrapper.querySelectorAll(
-      ".sf-success, .sf-error, .sf-thankyou"
-    ).forEach(function (el) { el.remove(); });
+    wrapper.querySelectorAll(".sf-success, .sf-error, .sf-thankyou").forEach(function (el) {
+      el.remove();
+    });
   }
 
-  function showSuccess(wrapper, message) {
+  function ticketBadge(ticketNumber) {
+    if (!ticketNumber) return "";
+    return `<div style="margin-top:10px;padding:8px 14px;background:#EEF0FB;border:1px solid #c3c8f5;border-radius:6px;font-size:13px;color:#3c3f8f;display:inline-block;">
+      🎫 <strong>Your ticket number: #${ticketNumber}</strong>
+    </div>`;
+  }
+
+  function showSuccess(wrapper, message, ticketNumber) {
     clearMessages(wrapper);
     const el = document.createElement("div");
     el.className = "sf-success";
-    el.innerHTML = message;
+    el.innerHTML = message + ticketBadge(ticketNumber);
     el.style.cssText = [
       "margin-top:16px",
       "padding:12px 16px",
@@ -191,7 +350,7 @@
     wrapper.appendChild(el);
   }
 
-  function showThankYou(wrapper, message, timerSec, onDone) {
+  function showThankYou(wrapper, message, timerSec, ticketNumber, onDone) {
     clearMessages(wrapper);
     const el = document.createElement("div");
     el.className = "sf-thankyou";
@@ -205,7 +364,7 @@
     ].join(";");
 
     const msgEl = document.createElement("div");
-    msgEl.innerHTML = message;
+    msgEl.innerHTML = message + ticketBadge(ticketNumber);
     msgEl.style.cssText = "font-size:15px;color:#111827;margin-bottom:12px;";
 
     const timerEl = document.createElement("div");
@@ -218,11 +377,11 @@
     if (timerSec <= 0) { onDone && onDone(); return; }
 
     let remaining = timerSec;
-    timerEl.textContent = `This message will close in ${remaining}s`;
+    timerEl.textContent = "This message will close in " + remaining + "s";
 
     const interval = setInterval(function () {
       remaining--;
-      timerEl.textContent = `This message will close in ${remaining}s`;
+      timerEl.textContent = "This message will close in " + remaining + "s";
       if (remaining <= 0) {
         clearInterval(interval);
         el.remove();
@@ -237,7 +396,9 @@
     btn.textContent = btn._originalText || "Submit";
   }
 
-  /* ── Boot ────────────────────────────────────────────────────────── */
+  /* ══════════════════════════════════════════════════════════════════
+     BOOT
+  ══════════════════════════════════════════════════════════════════ */
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", init);
   } else {
