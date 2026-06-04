@@ -4,10 +4,18 @@ import { createSubmission } from "../models/submission.server";
 import { sendFormSubmissionEmail } from "../utils/email.server";
 import nodemailer from "nodemailer";
 
+// const CORS_HEADERS = {
+//   "Access-Control-Allow-Origin":  "*",
+//   "Access-Control-Allow-Methods": "POST, OPTIONS",
+//   "Access-Control-Allow-Headers": "Content-Type",
+// };
+
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin":  "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type",
+  "Access-Control-Allow-Credentials": "false",
+  "Vary": "Origin",
 };
 
 function createTransporter() {
