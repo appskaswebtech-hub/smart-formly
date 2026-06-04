@@ -1,9 +1,8 @@
 {% comment %}
   SmartFormly — Form Block
   Supports: inline · centered popup (button / delay / exit_intent) · floating bottom bar (bottom sheet)
-  Features: schedule gate · allow logged-in only · ticket system · custom messages · scroll behavior · after-submit script
+  Features: schedule gate · allow logged-in only · ticket system · custom messages · scroll behavior · after-submit script · show once per user
 {% endcomment %}
-// v- 04-06-26
 
 {%- assign app_url = app.metafields.smartformly.app_url | default: "" -%}
 
@@ -34,6 +33,8 @@
       Loading form...
     </div>
   </div>
+
+  {% comment %}smart-formly.js is intentionally not loaded — all logic is inline below{% endcomment %}
 
   <style>
     /* ─── Base ─── */
@@ -202,8 +203,8 @@
     var wrapper        = document.getElementById('smartformly-form-{{ block.settings.form_id }}');
     var formId         = wrapper.dataset.formId;
     var appUrl = (wrapper.dataset.appUrl || '')
-  .replace(/^http:\/\//, 'https://')   // force https
-  .replace(/\/$/, '');                  // remove trailing slash
+      .replace(/^http:\/\//, 'https://')
+      .replace(/\/$/, '');
     var customerLoggedIn = wrapper.dataset.customerLoggedIn === 'true';
 
     var globalFields   = [];
@@ -252,9 +253,6 @@
 
     /* ════════════════════════════════════════════
        SCROLL BEHAVIOR
-       Detects the real scrollable parent so it works on all Shopify
-       themes — many themes (Dawn, Refresh, etc.) scroll a div with
-       overflow:auto, not window. window.scrollTo() is a no-op there.
     ════════════════════════════════════════════ */
     function getScrollableParent(el) {
       var parent = el.parentElement;
@@ -279,16 +277,10 @@
         ? (window.scrollY || window.pageYOffset)
         : scroller.scrollTop;
       var targetPos = elRect.top - scrollerTop + currentScroll - offset;
-
       try {
         scroller.scrollTo({ top: targetPos, behavior: 'smooth' });
-        /* Also call window.scrollTo — harmless if theme uses a custom
-           scroller, required if theme uses window scroll */
-        if (isRootScroll) {
-          window.scrollTo({ top: targetPos, behavior: 'smooth' });
-        }
+        if (isRootScroll) window.scrollTo({ top: targetPos, behavior: 'smooth' });
       } catch (e) {
-        /* Fallback for old browsers */
         scroller.scrollTop = targetPos;
         if (isRootScroll) window.scrollTo(0, targetPos);
       }
@@ -327,11 +319,6 @@
       globalDesign   = globalSettings.design || {};
       globalExtra    = globalSettings.extra  || {};
 
-      /* ── Allow logged-in only gate ────────────────────────────────
-         Checked here (after config loads) using the customer status
-         stamped into data-customer-logged-in by Liquid at render time.
-         The API also enforces this server-side as a second layer.
-      ─────────────────────────────────────────────────────────────── */
       if (globalExtra.allowLoggedInOnly === true && !customerLoggedIn) {
         var loginMsg = (globalExtra.loginMessage || 'Please login to access this form.').trim();
         wrapper.innerHTML = '<div class="sf-login-msg">' + escHtml(loginMsg) + '</div>';
@@ -407,6 +394,18 @@
       currentConfig = config;
       var trigger   = globalExtra.popupTrigger || 'button';
 
+      /* ── ✅ Show once per user (localStorage) ── */
+      var showOnce    = globalExtra.popupShowOnce === true;
+      var storageKey  = 'sf_popup_seen_' + formId;
+      var alreadySeen = false;
+      try { alreadySeen = localStorage.getItem(storageKey) === '1'; } catch(e) {}
+
+      /* Button trigger always shows — user clicked intentionally */
+      if (showOnce && alreadySeen && trigger !== 'button') {
+        wrapper.innerHTML = '';
+        return;
+      }
+
       buildOverlayModal(trigger);
 
       if (trigger === 'button') {
@@ -458,6 +457,8 @@
     function openPopup() {
       var overlay = document.getElementById('sf-overlay-' + formId);
       if (!overlay) return;
+      /* ── ✅ Mark as seen in localStorage ── */
+      try { localStorage.setItem('sf_popup_seen_' + formId, '1'); } catch(e) {}
       overlay.classList.add('sf-popup-open');
       document.body.style.overflow = 'hidden';
       var bar = document.getElementById('sf-bar-' + formId);
@@ -522,8 +523,6 @@
       var style = '';
       for (var k in cssVars) style += k + ':' + cssVars[k] + ';';
 
-      /* novalidate — we handle validation ourselves so the browser
-         never shows its own required-field popup */
       var html = '<form class="smartformly-form" style="' + style + '" novalidate>';
 
       if (d.formBannerUrl) {
@@ -587,7 +586,6 @@
         html += '</div>';
       });
 
-      /* ── Submit button — uses submitButtonText from customize messages ── */
       var btnAlign   = d.buttonAlignment || 'full';
       var btnJustify = btnAlign==='full' ? 'stretch' : btnAlign==='center' ? 'center' : btnAlign==='right' ? 'flex-end' : 'flex-start';
       var btnLabel   = globalExtra.submitButtonText || globalSettings.submitLabel || d.buttonText || 'Submit';
@@ -615,7 +613,6 @@
 
     /* ════════════════════════════════════════════
        CLIENT-SIDE VALIDATION
-       Highlights each invalid field. Uses requiredFieldMessage.
     ════════════════════════════════════════════ */
     function validateForm(form) {
       form.querySelectorAll('.sf-field-error').forEach(function(el) {
@@ -660,17 +657,13 @@
       var btn   = form.querySelector('button[type="submit"]');
       var errEl = document.getElementById('sf-error-' + formId);
 
-      /* ── 1. Client-side required field validation ── */
       var invalidFields = validateForm(form);
       if (invalidFields.length > 0) {
         var firstInvalid = form.querySelector('.sf-field-error');
-        if (firstInvalid) {
-          smoothScrollTo(firstInvalid, 20);
-        }
+        if (firstInvalid) smoothScrollTo(firstInvalid, 20);
         return;
       }
 
-      /* ── 2. Collect data ── */
       btn.disabled    = true;
       btn._origText   = btn.textContent;
       btn.textContent = 'Submitting...';
@@ -689,7 +682,6 @@
         }
       });
 
-      /* ── 3. Submit to API ── */
       try {
         var res    = await fetch(appUrl + '/api/submit/' + formId, {
           method:  'POST',
@@ -708,7 +700,6 @@
           return;
         }
 
-        /* ── 4. Run after-submit script (if configured) ── */
         if (globalExtra.afterSubmitScript) {
           try {
             var formData = { id: formId, fields: data, result: result };
@@ -718,7 +709,6 @@
           }
         }
 
-        /* ── 5. After-submission action ── */
         var action     = result.afterSubmissionAction || 'clear_and_allow';
         var successMsg = result.message || globalSettings.successMessage || 'Thank you! Your form has been submitted.';
         var tyMsg      = result.thankYouMessage || successMsg;
@@ -738,8 +728,6 @@
             showThankYou(container, tyMsg, timerSec, result.ticketNumber, function() {
               if (globalExtra.popupEnabled) closePopup();
             });
-            /* Use setTimeout so the thankyou element is in the DOM before
-               scroll_to_message tries to find it */
             setTimeout(function() { handleScrollBehavior(container); }, 50);
             break;
 
@@ -774,8 +762,6 @@
     /* ════════════════════════════════════════════
        UI HELPERS
     ════════════════════════════════════════════ */
-
-    /* ticketNumber is optional — shown as a badge when present */
     function showSuccess(container, message, ticketNumber) {
       clearMessages(container);
       var el = document.createElement('div');
