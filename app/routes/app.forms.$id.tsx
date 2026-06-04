@@ -170,6 +170,7 @@ type ExtraSettings = {
   popupOverlayOpacity: string;
   popupCloseOnOverlay: boolean;
   popupWidth: string;
+  popupShowOnce: boolean;
 };
 
 const defaultExtra: ExtraSettings = {
@@ -198,6 +199,7 @@ const defaultExtra: ExtraSettings = {
   popupOverlayOpacity: "0.5",
   popupCloseOnOverlay: true,
   popupWidth: "600",
+  popupShowOnce: false,
 };
 
 const defaultDesign: DesignSettings = {
@@ -768,6 +770,12 @@ export default function EditForm() {
                 label="Close popup when clicking overlay"
                 checked={extra.popupCloseOnOverlay}
                 onChange={v => setE({ popupCloseOnOverlay: v })}
+              />
+              <Checkbox
+                label="Show popup only once per visitor"
+                checked={extra.popupShowOnce ?? false}
+                onChange={v => setE({ popupShowOnce: v })}
+                helpText="Uses browser storage — popup won't show again after the visitor has seen it once"
               />
             </BlockStack>
           )}
