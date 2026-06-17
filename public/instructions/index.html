@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smartformly — Instructions</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.44.0/iconfont/tabler-icons.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --primary: #1AC8C3;
+    --primary-light: #E0F8F7;
+    --primary-dark: #0DA09B;
+    --teal: #0F9E83;
+    --teal-light: #E0F7F2;
+    --amber: #C97B0E;
+    --amber-light: #FEF3DA;
+    --text: #1A1A2E;
+    --text-muted: #5A5A72;
+    --text-hint: #9595AB;
+    --border: rgba(26, 200, 195, 0.13);
+    --border-mid: rgba(0,0,0,0.1);
+    --surface: #FFFFFF;
+    --bg: #F4FBFB;
+    --radius: 10px;
+    --radius-lg: 16px;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    color: var(--text);
+    background: var(--bg);
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4 { font-family: 'Outfit', sans-serif; font-weight: 600; line-height: 1.25; }
+
+  /* ── HERO ─────────────────────────────────────── */
+  .hero {
+    background: #051C1C;
+    padding: 60px 0 56px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 70% 60% at 50% 120%, rgba(26, 200, 195, 0.45) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: rgba(26, 200, 195, 0.22);
+    border: 1px solid rgba(26, 200, 195, 0.45);
+    border-radius: 999px;
+    padding: 5px 14px;
+    font-size: 12px;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 500;
+    color: #A0ECEB;
+    letter-spacing: 0.04em;
+    margin-bottom: 22px;
+    text-transform: uppercase;
+  }
+  .hero-badge i { font-size: 13px; }
+  .hero h1 {
+    font-size: clamp(30px, 5vw, 46px);
+    font-weight: 700;
+    color: #FFFFFF;
+    margin-bottom: 14px;
+    position: relative;
+  }
+  .hero h1 span { color: #6DE8E5; }
+  .hero p {
+    font-size: 16px;
+    color: rgba(255,255,255,0.65);
+    max-width: 500px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+  .hero-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 32px;
+    position: relative;
+  }
+  .hero-icon {
+    width: 46px;
+    height: 46px;
+    background: linear-gradient(135deg, #2ADCD6 0%, #1AAECC 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    color: #fff;
+  }
+  .hero-wordmark {
+    font-family: 'Outfit', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: #FFFFFF;
+    letter-spacing: -0.02em;
+  }
+  .hero-wordmark span { color: #6DE8E5; }
+
+  /* ── LAYOUT ─────────────────────────────────────── */
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  section { padding: 56px 0; }
+  section + section { border-top: 1px solid var(--border-mid); }
+
+  .section-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--primary);
+    background: var(--primary-light);
+    padding: 4px 12px;
+    border-radius: 999px;
+    margin-bottom: 16px;
+  }
+  .section-eyebrow i { font-size: 13px; }
+  .section-title {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  .section-sub {
+    font-size: 15px;
+    color: var(--text-muted);
+    margin-bottom: 36px;
+    max-width: 560px;
+  }
+
+  /* ── STEPS ─────────────────────────────────────── */
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 16px;
+    position: relative;
+  }
+  .steps::before {
+    content: '';
+    position: absolute;
+    top: 28px;
+    left: 48px;
+    right: 48px;
+    height: 1px;
+    background: repeating-linear-gradient(90deg, var(--border) 0, var(--border) 6px, transparent 6px, transparent 12px);
+    z-index: 0;
+    pointer-events: none;
+  }
+  .step-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px 18px 22px;
+    position: relative;
+    z-index: 1;
+    transition: box-shadow 0.18s, border-color 0.18s, transform 0.18s;
+  }
+  .step-card:hover {
+    box-shadow: 0 6px 24px rgba(26, 200, 195, 0.13);
+    border-color: rgba(26, 200, 195, 0.22);
+    transform: translateY(-2px);
+  }
+  .step-num {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--primary-light);
+    color: var(--primary);
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 14px;
+  }
+  .step-card.active .step-num {
+    background: var(--primary);
+    color: #fff;
+  }
+  .step-card h4 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  .step-card ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .step-card ul li {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+  .step-card ul li i {
+    font-size: 13px;
+    color: var(--teal);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  /* ── FIELD TYPES ─────────────────────────────────────── */
+  .fields-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+  }
+  .field-pill {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .field-pill:hover {
+    border-color: rgba(108,63,213,0.4);
+    background: var(--primary-light);
+  }
+  .field-pill i {
+    font-size: 16px;
+    color: var(--primary);
+    flex-shrink: 0;
+  }
+
+  /* ── FEATURES ─────────────────────────────────────── */
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+  }
+  .feat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 22px 20px;
+    transition: box-shadow 0.18s, transform 0.18s;
+  }
+  .feat-card:hover {
+    box-shadow: 0 4px 20px rgba(108,63,213,0.1);
+    transform: translateY(-2px);
+  }
+  .feat-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    margin-bottom: 14px;
+  }
+  .feat-icon.purple { background: var(--primary-light); color: var(--primary); }
+  .feat-icon.teal   { background: var(--teal-light);   color: var(--teal);   }
+  .feat-icon.amber  { background: var(--amber-light);  color: var(--amber);  }
+  .feat-card h4 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 7px;
+  }
+  .feat-card p {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  /* ── TIPS ─────────────────────────────────────── */
+  .tips-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 12px;
+  }
+  .tip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .tip-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    background: var(--amber-light);
+    color: var(--amber);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+  .tip strong {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+  .tip span {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  /* ── SHORTCUTS ─────────────────────────────────────── */
+  .shortcuts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+  }
+  .shortcut {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .shortcut span {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  .keys {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  kbd {
+    background: var(--bg);
+    border: 1px solid var(--border-mid);
+    border-radius: 5px;
+    padding: 2px 7px;
+    font-size: 11px;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+    box-shadow: 0 1px 0 var(--border-mid);
+  }
+
+  /* ── FAQ ─────────────────────────────────────── */
+  .faq { display: flex; flex-direction: column; gap: 10px; }
+  .faq-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .faq-q {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 18px;
+    cursor: pointer;
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    list-style: none;
+    user-select: none;
+    transition: background 0.15s;
+  }
+  .faq-q:hover { background: var(--bg); }
+  .faq-q::-webkit-details-marker { display: none; }
+  .faq-q i.arrow {
+    font-size: 16px;
+    color: var(--text-hint);
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+  details[open] .faq-q i.arrow { transform: rotate(90deg); }
+  details[open] .faq-q { border-bottom: 1px solid var(--border); }
+  .faq-a {
+    padding: 14px 18px 16px;
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+  .faq-a code {
+    background: var(--bg);
+    border: 1px solid var(--border-mid);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: monospace;
+    font-size: 12px;
+    color: var(--primary);
+  }
+
+  /* ── EMBED BLOCK ─────────────────────────────────────── */
+  .embed-block {
+    background: #051C1C;
+    border-radius: var(--radius-lg);
+    padding: 22px 24px;
+    margin-top: 24px;
+  }
+  .embed-block p {
+    font-size: 13px;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 12px;
+  }
+  .embed-block pre {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-family: monospace;
+    font-size: 12.5px;
+    color: #A0ECEB;
+    overflow-x: auto;
+    line-height: 1.6;
+    white-space: pre-wrap;
+  }
+
+  /* ── FOOTER ─────────────────────────────────────── */
+  .footer {
+    background: #051C1C;
+    padding: 32px 0;
+    text-align: center;
+  }
+  .footer p {
+    font-size: 13px;
+    color: rgba(255,255,255,0.4);
+  }
+  .footer strong {
+    color: rgba(255,255,255,0.75);
+    font-weight: 500;
+  }
+  .footer a {
+    color: #6DE8E5;
+    text-decoration: none;
+  }
+  .footer a:hover { text-decoration: underline; }
+
+  /* ── INLINE BADGE ─────────────────────────────────────── */
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: 'Outfit', sans-serif;
+    padding: 2px 8px;
+    border-radius: 999px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+  .badge-new { background: var(--teal-light); color: var(--teal); }
+  .badge-pro { background: var(--amber-light); color: var(--amber); }
+
+  @media (max-width: 600px) {
+    .steps::before { display: none; }
+    .tips-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── HERO ── -->
+<div class="hero">
+  <div class="container">
+    <div class="hero-logo">
+      <div class="hero-icon"><i class="ti ti-forms"></i></div>
+      <div class="hero-wordmark">smart<span>formly</span></div>
+    </div>
+    <div class="hero-badge"><i class="ti ti-book-2"></i>User Guide</div>
+    <h1>Build smarter forms<br><span>in minutes</span></h1>
+    <p>Everything you need to create, publish, and analyze beautiful forms — from quick contact pages to multi-step surveys.</p>
+  </div>
+</div>
+
+<!-- ── GETTING STARTED ── -->
+<section style="background: var(--bg);">
+  <div class="container">
+    <div class="section-eyebrow"><i class="ti ti-player-play"></i> Getting started</div>
+    <h2 class="section-title">Four steps to your first form</h2>
+    <p class="section-sub">Follow this flow to go from zero to a live, collecting form.</p>
+
+    <div class="steps">
+      <div class="step-card active">
+        <div class="step-num">1</div>
+        <h4>Create a form</h4>
+        <ul>
+          <li><i class="ti ti-check"></i>Click <strong>+ New Form</strong> on the dashboard</li>
+          <li><i class="ti ti-check"></i>Start blank or pick a template</li>
+          <li><i class="ti ti-check"></i>Give it a name and optional description</li>
+        </ul>
+      </div>
+
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <h4>Add fields</h4>
+        <ul>
+          <li><i class="ti ti-check"></i>Drag fields from the left panel</li>
+          <li><i class="ti ti-check"></i>Set labels, placeholders, and validation</li>
+          <li><i class="ti ti-check"></i>Toggle fields as required or optional</li>
+        </ul>
+      </div>
+
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <h4>Customize design</h4>
+        <ul>
+          <li><i class="ti ti-check"></i>Set brand colors and fonts</li>
+          <li><i class="ti ti-check"></i>Add a logo or cover image</li>
+          <li><i class="ti ti-check"></i>Write a custom thank-you message</li>
+        </ul>
+      </div>
+
+      <div class="step-card">
+        <div class="step-num">4</div>
+        <h4>Publish &amp; share</h4>
+        <ul>
+          <li><i class="ti ti-check"></i>Toggle form status to <strong>Live</strong></li>
+          <li><i class="ti ti-check"></i>Copy the shareable link</li>
+          <li><i class="ti ti-check"></i>Embed on your website</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FIELD TYPES ── -->
+<section style="background: var(--surface);">
+  <div class="container">
+    <div class="section-eyebrow"><i class="ti ti-layout-grid"></i> Field types</div>
+    <h2 class="section-title">All the fields you need</h2>
+    <p class="section-sub">Drag any of these from the field panel into your form canvas.</p>
+
+    <div class="fields-grid">
+      <div class="field-pill"><i class="ti ti-cursor-text"></i> Short text</div>
+      <div class="field-pill"><i class="ti ti-align-left"></i> Long text</div>
+      <div class="field-pill"><i class="ti ti-mail"></i> Email</div>
+      <div class="field-pill"><i class="ti ti-phone"></i> Phone</div>
+      <div class="field-pill"><i class="ti ti-hash"></i> Number</div>
+      <div class="field-pill"><i class="ti ti-calendar"></i> Date</div>
+      <div class="field-pill"><i class="ti ti-clock"></i> Time</div>
+      <div class="field-pill"><i class="ti ti-selector"></i> Dropdown</div>
+      <div class="field-pill"><i class="ti ti-list-check"></i> Checkboxes</div>
+      <div class="field-pill"><i class="ti ti-circle-dot"></i> Radio buttons</div>
+      <div class="field-pill"><i class="ti ti-star"></i> Rating</div>
+      <div class="field-pill"><i class="ti ti-upload"></i> File upload</div>
+      <div class="field-pill"><i class="ti ti-map-pin"></i> Address</div>
+      <div class="field-pill"><i class="ti ti-pencil"></i> Signature</div>
+      <div class="field-pill"><i class="ti ti-link"></i> URL</div>
+      <div class="field-pill"><i class="ti ti-separator"></i> Section break</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── KEY FEATURES ── -->
+<section style="background: var(--bg);">
+  <div class="container">
+    <div class="section-eyebrow"><i class="ti ti-sparkles"></i> Features</div>
+    <h2 class="section-title">What Smartformly can do</h2>
+    <p class="section-sub">Powerful capabilities that go beyond a basic form builder.</p>
+
+    <div class="features-grid">
+      <div class="feat-card">
+        <div class="feat-icon purple"><i class="ti ti-git-branch"></i></div>
+        <h4>Conditional logic</h4>
+        <p>Show or hide fields based on previous answers. Guide respondents through only the questions that are relevant to them.</p>
+      </div>
+
+      <div class="feat-card">
+        <div class="feat-icon teal"><i class="ti ti-layout-list"></i></div>
+        <h4>Multi-step forms</h4>
+        <p>Split long forms into bite-sized pages with a progress bar. Reduces drop-off on complex surveys.</p>
+      </div>
+
+      <div class="feat-card">
+        <div class="feat-icon amber"><i class="ti ti-bell"></i></div>
+        <h4>Email notifications</h4>
+        <p>Get instant alerts when a new response arrives. Send automated confirmation emails to respondents too.</p>
+      </div>
+
+      <div class="feat-card">
+        <div class="feat-icon purple"><i class="ti ti-chart-bar"></i></div>
+        <h4>Response analytics</h4>
+        <p>View submission counts, completion rates, and per-question breakdowns — all in a live dashboard.</p>
+      </div>
+
+      <div class="feat-card">
+        <div class="feat-icon teal"><i class="ti ti-plug"></i></div>
+        <h4>Integrations <span class="badge badge-new">New</span></h4>
+        <p>Connect to Zapier, Google Sheets, Slack, Airtable, and more. Data flows automatically wherever you need it.</p>
+      </div>
+
+      <div class="feat-card">
+        <div class="feat-icon amber"><i class="ti ti-clock-play"></i></div>
+        <h4>Scheduling <span class="badge badge-pro">Pro</span></h4>
+        <p>Set a date range for when your form is open. Close it automatically after reaching a response limit.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── EMBED ── -->
+<section style="background: var(--surface);">
+  <div class="container">
+    <div class="section-eyebrow"><i class="ti ti-code"></i> Embedding</div>
+    <h2 class="section-title">Add your form to any website</h2>
+    <p class="section-sub">Choose how the form appears on your page.</p>
+
+    <div class="features-grid">
+      <div class="feat-card">
+        <div class="feat-icon purple"><i class="ti ti-browser"></i></div>
+        <h4>Inline embed</h4>
+        <p>Place the form directly into your page content using a standard <code>&lt;iframe&gt;</code>. Resizes to fit its container.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon teal"><i class="ti ti-layout-sidebar-right-collapse"></i></div>
+        <h4>Slide-in popup</h4>
+        <p>The form slides in from the corner on a trigger — scroll depth, time on page, or a button click.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon amber"><i class="ti ti-external-link"></i></div>
+        <h4>Direct link</h4>
+        <p>Share a hosted Smartformly URL directly via email, social media, or QR code — no website needed.</p>
+      </div>
+    </div>
+
+    <div class="embed-block">
+      <p>Copy this snippet and paste it anywhere in your page's HTML:</p>
+      <pre>&lt;iframe
+  src="https://app.smartformly.com/f/your-form-id"
+  width="100%"
+  height="500"
+  frameborder="0"
+  style="border-radius: 12px;"
+&gt;&lt;/iframe&gt;</pre>
+    </div>
+  </div>
+</section>
+
+<!-- ── TIPS ── -->
+<section style="background: var(--bg);">
+  <div class="container">
+    <div class="section-eyebrow"><i class="ti ti-bulb"></i> Tips</div>
+    <h2 class="section-title">Get better responses</h2>
+    <p class="section-sub">Small tweaks that make a big difference to completion rates.</p>
+
+    <div class="tips-grid">
+      <div class="tip">
+        <div class="tip-icon"><i class="ti ti-target-arrow"></i></div>
+        <div>
+          <strong>Keep it short</strong>
+          <span>Forms with fewer than 5 fields get 3× more completions. Only ask what you actually need.</span>
+        </div>
+      </div>
+      <div class="tip">
+        <div class="tip-icon"><i class="ti ti-asterisk"></i></div>
+        <div>
+          <strong>Use "Required" sparingly</strong>
+          <span>Only mark a field as required if a blank answer would make the response useless.</span>
+        </div>
+      </div>
+      <div class="tip">
+        <div class="tip-icon"><i class="ti ti-progress"></i></div>
+        <div>
+          <strong>Add a progress bar</strong>
+          <span>Showing respondents how far along they are reduces abandonment on multi-step forms.</span>
+        </div>
+      </div>
+      <div class="tip">
+        <div class="tip-icon"><i class="ti ti-users"></i></div>
+        <div>
+          <strong>Avoid jargon</strong>
+          <span>Write field labels and placeholder text as if explaining to someone unfamiliar with your business.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FAQ ── -->
+<section style="background: var(--bg);">
+  <div class="container">
+    <div class="section-eyebrow"><i class="ti ti-help-circle"></i> FAQ</div>
+    <h2 class="section-title">Common questions</h2>
+    <p class="section-sub">Quick answers to things people ask most often.</p>
+
+    <div class="faq">
+      <details class="faq-item">
+        <summary class="faq-q">How do I export my responses? <i class="ti ti-chevron-right arrow"></i></summary>
+        <div class="faq-a">Go to your form's <strong>Responses</strong> tab and click <strong>Export</strong> in the top-right corner. You can download a <code>.csv</code> file or push data directly to Google Sheets if you have the integration connected.</div>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-q">Can respondents save a form and come back later? <i class="ti ti-chevron-right arrow"></i></summary>
+        <div class="faq-a">Yes — enable <strong>Save & Resume</strong> under Form Settings → Behavior. Respondents will receive a unique link by email to return to their in-progress submission.</div>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-q">How does conditional logic work? <i class="ti ti-chevron-right arrow"></i></summary>
+        <div class="faq-a">Select any field and click <strong>Logic</strong> in the field panel. Set a rule like "Show this field if [Field X] equals [Value Y]." Multiple conditions can be combined with AND/OR. Conditional logic is available on all paid plans.</div>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-q">Is there a limit on how many responses I can receive? <i class="ti ti-chevron-right arrow"></i></summary>
+        <div class="faq-a">The Free plan allows up to 100 responses per month per form. Pro and Team plans have no response limits. You can also set a manual cap under Form Settings → Scheduling to close a form after a specific count.</div>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-q">How do I prevent the same person from submitting twice? <i class="ti ti-chevron-right arrow"></i></summary>
+        <div class="faq-a">Go to Form Settings → Behavior and enable <strong>Limit one response per email</strong>. For logged-in users, you can also enable <strong>Limit one response per account</strong>.</div>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-q">Can I accept payments through a form? <i class="ti ti-chevron-right arrow"></i></summary>
+        <div class="faq-a">Yes. Add a <strong>Payment</strong> field and connect your Stripe account under Settings → Integrations. Payments are processed securely through Stripe — Smartformly never stores card data. Payment fields are available on the Pro plan and above.</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<div class="footer">
+  <div class="container">
+    <p>Need more help? Email us at <a href="mailto:smartformlyapp@gmail.com">smartformlyapp@gmail.com</a></p>
+    <p style="margin-top: 8px;"><strong>Smartformly</strong> &nbsp;·&nbsp; <a href="#">Privacy</a> &nbsp;·&nbsp; <a href="#">Terms</a></p>
+  </div>
+</div>
+
+</body>
+</html>
