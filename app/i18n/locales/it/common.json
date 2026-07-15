@@ -1,0 +1,44 @@
+{
+  "actions": {
+    "save": "Salva",
+    "cancel": "Annulla",
+    "delete": "Elimina",
+    "edit": "Modifica",
+    "close": "Chiudi",
+    "back": "Indietro",
+    "copy": "Copia",
+    "duplicate": "Duplica",
+    "preview": "Anteprima",
+    "export": "Esporta",
+    "search": "Cerca"
+  },
+  "status": {
+    "saving": "Salvataggio…",
+    "saved": "Salvato",
+    "loading": "Caricamento…",
+    "active": "Attivo",
+    "inactive": "Inattivo",
+    "draft": "Bozza"
+  },
+  "language": {
+    "label": "Lingua",
+    "changed": "Lingua aggiornata",
+    "changeFailed": "Impossibile cambiare la lingua. Riprova."
+  },
+  "errors": {
+    "generic": "Qualcosa è andato storto. Riprova.",
+    "required": "Questo campo è obbligatorio."
+  },
+  "forms": {
+    "confirmDelete": "Vuoi davvero eliminare questo modulo?",
+    "copied": "ID modulo copiato negli appunti!",
+    "copyFailed": "Impossibile copiare l'ID",
+    "copyHint": "💡 Fai clic su un ID modulo per copiarlo",
+    "copyTitle": "Fai clic per copiare: {{id}}",
+    "empty": {
+      "heading": "Nessun modulo",
+      "action": "Crea il tuo primo modulo",
+      "body": "Crea un modulo per iniziare a raccogliere invii dal tuo negozio."
+    }
+  }
+}

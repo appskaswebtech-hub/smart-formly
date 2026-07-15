@@ -1,0 +1,27 @@
+{
+  "title": "My Forms",
+  "newForm": "+ New Form",
+  "tabs": {
+    "all": "All {{count}}",
+    "active": "Active {{count}}",
+    "inactive": "Inactive {{count}}"
+  },
+  "search": "Search forms by name or ID…",
+  "noMatch": "No forms match your current filter",
+  "noMatchFor": "No forms match your current filter for \"<bold>{{query}}</bold>\"",
+  "columns": {
+    "title": "Title",
+    "id": "Form ID",
+    "status": "Status",
+    "submissions": "Submissions",
+    "created": "Date Created",
+    "actions": "Actions"
+  },
+  "viewSubmissions": "Submissions",
+  "showing_one": "Showing {{count}} record",
+  "showing_other": "Showing {{count}} records",
+  "toast": {
+    "created": "Form created successfully!",
+    "updated": "Form updated successfully!"
+  }
+}

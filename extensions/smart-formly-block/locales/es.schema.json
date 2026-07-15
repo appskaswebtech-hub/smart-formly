@@ -1,0 +1,27 @@
+{
+  "smartformly": {
+    "form": {
+      "name": "Smart Formly",
+      "settings": {
+        "form_id": {
+          "label": "ID del formulario",
+          "info": "Introduce el ID del formulario desde el panel de tu app SmartFormly"
+        },
+        "max_width": {
+          "label": "Ancho máximo"
+        },
+        "section_padding": {
+          "label": "Relleno de la sección"
+        }
+      }
+    },
+    "app_embed": {
+      "name": "SmartFormly",
+      "settings": {
+        "paragraph": {
+          "content": "SmartFormly está activo en tu tienda. Añade la sección de SmartFormly a cualquier página para mostrar tus formularios."
+        }
+      }
+    }
+  }
+}

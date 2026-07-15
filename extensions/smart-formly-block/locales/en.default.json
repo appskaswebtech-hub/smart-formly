@@ -1,21 +1,20 @@
 {
   "smartformly": {
     "form": {
-      "name": "SmartFormly Form",
-      "settings": {
-        "form_id": {
-          "label": "Form ID"
-        },
-        "app_url": {
-          "label": "App URL"
-        },
-        "max_width": {
-          "label": "Max width"
-        },
-        "section_padding": {
-          "label": "Section padding"
-        }
-      }
+      "loading": "Loading form...",
+      "submit": "Submit",
+      "submitting": "Submitting...",
+      "required_field": "This field is required.",
+      "login_required": "Please login to access this form.",
+      "generic_error": "Something went wrong. Please try again.",
+      "success": "Thank you! Your form has been submitted.",
+      "ticket": "Ticket #{number}",
+      "closing_in": "This message will close in {seconds}s"
+    },
+    "editor": {
+      "no_form_id_title": "SmartFormly Form",
+      "no_form_id_body": "Enter a Form ID in the block settings to display your form.",
+      "not_configured": "SmartFormly isn't fully configured yet. Please open the SmartFormly app from your Shopify admin once to initialize it."
     }
   }
 }

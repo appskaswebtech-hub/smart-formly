@@ -5,8 +5,15 @@ name = "SmartFormly"
 application_url = "https://smartformly.kaswebtechsolutions.com"
 embedded = true
 
+[build]
+automatically_update_urls_on_dev = true
+
 [webhooks]
 api_version = "2026-07"
+
+  [[webhooks.subscriptions]]
+  uri = "/webhooks"
+  compliance_topics = [ "customers/data_request", "customers/redact", "shop/redact" ]
 
   [[webhooks.subscriptions]]
   uri = "/webhooks/app/scopes_update"
@@ -16,13 +23,6 @@ api_version = "2026-07"
   uri = "/webhooks/app/uninstalled"
   topics = [ "app/uninstalled" ]
 
-  [[webhooks.subscriptions]]
-  uri = "/webhooks"
-  compliance_topics = [ "customers/data_request", "customers/redact", "shop/redact" ]
-
-[pos]
-embedded = false
-
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
 scopes = "read_script_tags,write_script_tags"
@@ -30,5 +30,5 @@ scopes = "read_script_tags,write_script_tags"
 [auth]
 redirect_urls = [ "https://smartformly.kaswebtechsolutions.com/api/auth" ]
 
-[build]
-automatically_update_urls_on_dev = true
+[pos]
+embedded = false

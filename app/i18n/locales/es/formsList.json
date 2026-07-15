@@ -1,0 +1,27 @@
+{
+  "title": "Mis formularios",
+  "newForm": "+ Nuevo formulario",
+  "tabs": {
+    "all": "Todos {{count}}",
+    "active": "Activos {{count}}",
+    "inactive": "Inactivos {{count}}"
+  },
+  "search": "Buscar formularios por nombre o ID…",
+  "noMatch": "Ningún formulario coincide con el filtro actual",
+  "noMatchFor": "Ningún formulario coincide con el filtro actual para \"<bold>{{query}}</bold>\"",
+  "columns": {
+    "title": "Título",
+    "id": "ID del formulario",
+    "status": "Estado",
+    "submissions": "Envíos",
+    "created": "Fecha de creación",
+    "actions": "Acciones"
+  },
+  "viewSubmissions": "Envíos",
+  "showing_one": "Mostrando {{count}} registro",
+  "showing_other": "Mostrando {{count}} registros",
+  "toast": {
+    "created": "¡Formulario creado correctamente!",
+    "updated": "¡Formulario actualizado correctamente!"
+  }
+}

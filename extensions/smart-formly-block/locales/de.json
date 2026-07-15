@@ -1,0 +1,20 @@
+{
+  "smartformly": {
+    "form": {
+      "loading": "Formular wird geladen …",
+      "submit": "Absenden",
+      "submitting": "Wird gesendet …",
+      "required_field": "Dieses Feld ist erforderlich.",
+      "login_required": "Bitte melde dich an, um auf dieses Formular zuzugreifen.",
+      "generic_error": "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
+      "success": "Danke! Dein Formular wurde übermittelt.",
+      "ticket": "Ticket-Nr. {number}",
+      "closing_in": "Diese Nachricht wird in {seconds} s geschlossen"
+    },
+    "editor": {
+      "no_form_id_title": "SmartFormly-Formular",
+      "no_form_id_body": "Gib in den Block-Einstellungen eine Formular-ID ein, um dein Formular anzuzeigen.",
+      "not_configured": "SmartFormly ist noch nicht vollständig eingerichtet. Bitte öffne die SmartFormly-App einmal in deinem Shopify-Admin, um sie zu initialisieren."
+    }
+  }
+}

@@ -1,0 +1,217 @@
+{
+  "title": "Hilfe & Support",
+  "backHome": "Startseite",
+  "banners": {
+    "chat": "Das E-Mail-Fenster wurde geöffnet! Schicke uns deine Frage und wir melden uns in Kürze.",
+    "email": "Das E-Mail-Fenster wurde geöffnet! Wir melden uns innerhalb weniger Stunden."
+  },
+  "setupBanner": {
+    "title": "SmartFormly in deinem Shop aktivieren",
+    "action": "App-Embeds-Panel öffnen →",
+    "body": "Öffne den Theme-Editor und schalte SmartFormly im App-Embeds-Panel ein, um Formulare in deinem Shop anzuzeigen."
+  },
+  "search": {
+    "heading": "Wie können wir dir helfen?",
+    "placeholder": "Nach Antworten suchen … z. B. „Formular erstellen“ oder „App-Embed“",
+    "results_one": "{{count}} Ergebnis gefunden",
+    "results_other": "{{count}} Ergebnisse gefunden"
+  },
+  "articles_one": "{{count}} Artikel",
+  "articles_other": "{{count}} Artikel",
+  "noResults": {
+    "heading": "Keine Artikel gefunden für „{{query}}“",
+    "body": "Versuche andere Suchbegriffe oder kontaktiere unten unser Support-Team"
+  },
+  "openEmbedPanel": "App-Embeds-Panel öffnen →",
+  "links": {
+    "docs": "Dokumentation",
+    "docsSub": "Vollständige Anleitungen und Referenz",
+    "feature": "Funktionswunsch",
+    "featureSub": "Neue Funktionen vorschlagen"
+  },
+  "contact": {
+    "heading": "Brauchst du noch Hilfe?",
+    "body": "Findest du nicht, wonach du suchst? Unser Support-Team hilft dir gerne weiter.",
+    "chat": "Chatte mit uns",
+    "chatSub": "Sprich jetzt mit unserem Team.",
+    "chatBadge": "Antwortet meist innerhalb von Minuten",
+    "email": "Schreib uns eine E-Mail",
+    "emailSub": "Sende uns eine ausführliche Nachricht.",
+    "emailBadge": "Antwort innerhalb weniger Stunden"
+  },
+  "faq": {
+    "setup": {
+      "title": "SmartFormly in deinem Shop einrichten",
+      "badge": "Hier starten",
+      "items": {
+        "setup-1": {
+          "question": "Wie aktiviere ich SmartFormly in meinem Shop? (App-Embed)",
+          "answer": [
+            "Gehe in deinem Shopify-Admin zu Onlineshop → Themes → Anpassen.",
+            "Klicke in der linken Seitenleiste auf das Puzzleteil-Symbol (App-Embeds).",
+            "Suche SmartFormly in der Liste und schalte es EIN.",
+            "Klicke oben rechts auf Speichern.",
+            "SmartFormly ist jetzt in deinem Shop aktiv!"
+          ]
+        },
+        "setup-2": {
+          "question": "Wie füge ich ein Formular zu einer bestimmten Seite hinzu?",
+          "answer": [
+            "Sobald das App-Embed aktiviert ist, kannst du Formulare zu jeder Seite hinzufügen:",
+            "1. Gehe zu Onlineshop → Themes → Anpassen.",
+            "2. Navigiere zu der Seite, auf der das Formular erscheinen soll.",
+            "3. Klicke in der linken Seitenleiste auf „Abschnitt hinzufügen“ oder „Block hinzufügen“.",
+            "4. Suche nach „SmartFormly“ und wähle den Formularblock aus.",
+            "5. Wähle im Einstellungsbereich des Blocks dein Formular aus der Liste aus.",
+            "6. Klicke auf Speichern."
+          ]
+        },
+        "setup-3": {
+          "question": "Warum wird mein Formular nicht im Shop angezeigt?",
+          "answer": [
+            "Prüfe der Reihe nach diese häufigen Ursachen:",
+            "1. App-Embed — Stelle sicher, dass der SmartFormly-App-Embed im Theme-Editor eingeschaltet ist.",
+            "2. Formularstatus — Prüfe, ob das Formular im SmartFormly-Dashboard auf „Aktiv“ gesetzt ist.",
+            "3. Formularblock — Prüfe, ob der SmartFormly-Block auf der richtigen Seite mit dem richtigen Formular eingefügt ist.",
+            "4. Browser-Cache — Sieh dir deinen Shop in einem Inkognito-/privaten Fenster an."
+          ]
+        },
+        "setup-4": {
+          "question": "Muss ich meinen Theme-Code bearbeiten?",
+          "answer": [
+            "Keine Code-Änderungen nötig. SmartFormly nutzt Shopifys App-Blocks-System, das mit allen Online-Store-2.0-Themes funktioniert.",
+            "Aktiviere einfach das App-Embed im Theme-Editor und füge den Formularblock zu einer beliebigen Seite hinzu.",
+            "Wenn du ein älteres Theme (vor OS 2.0) verwendest, wende dich bitte an unser Support-Team."
+          ]
+        }
+      }
+    },
+    "getting-started": {
+      "title": "Erste Schritte",
+      "items": {
+        "gs-1": {
+          "question": "Wie erstelle ich mein erstes Formular?",
+          "answer": [
+            "Dein erstes Formular zu erstellen ist ganz einfach:",
+            "1. Klicke im Dashboard auf „Formular erstellen“ oder gehe zu Formulare → Neues Formular.",
+            "2. Gib deinem Formular einen Namen.",
+            "3. Füge Felder über die Feldpalette hinzu (Text, E-Mail, Telefon, Dropdown usw.).",
+            "4. Passe das Design an — Farben, Rahmen, Schaltflächenstil.",
+            "5. Setze das Formular auf „Aktiv“.",
+            "6. Klicke auf Speichern — dein Formular kann jetzt in deinem Shop eingebunden werden."
+          ]
+        },
+        "gs-2": {
+          "question": "Wie finde ich meine Formular-ID?",
+          "answer": [
+            "Deine Formular-ID wird in der Formularliste im Dashboard angezeigt.",
+            "Klicke auf die Spalte „Formular-ID“, um sie automatisch in die Zwischenablage zu kopieren.",
+            "Du findest sie auch auf der Einstellungsseite des Formulars — sie steht unter dem Formularnamen."
+          ]
+        },
+        "gs-3": {
+          "question": "Wo sehe ich die Formulareinsendungen?",
+          "answer": [
+            "Gehe zur Seite „Formulare“ und klicke bei einem Formular auf „Einsendungen“.",
+            "Du kannst jede Einsendung im Detail ansehen, eine Datenvorschau sehen und einzelne oder alle Einsendungen löschen.",
+            "Wenn du in den Einstellungen E-Mail-Benachrichtigungen eingerichtet hast, erhältst du außerdem für jede neue Einsendung eine E-Mail."
+          ]
+        },
+        "gs-4": {
+          "question": "Kann ich mehrere Formulare in meinem Shop haben?",
+          "answer": [
+            "Ja — du kannst so viele Formulare erstellen, wie du brauchst.",
+            "Jedes Formular hat eine eindeutige ID und kann unabhängig auf verschiedenen Seiten platziert werden.",
+            "Füge einfach mehrere SmartFormly-Blöcke im Theme-Editor hinzu und weise jedem ein anderes Formular zu."
+          ]
+        }
+      }
+    },
+    "forms": {
+      "title": "Formulare & Felder",
+      "items": {
+        "f-1": {
+          "question": "Welche Feldtypen sind verfügbar?",
+          "answer": [
+            "SmartFormly unterstützt die folgenden Feldtypen:",
+            "Text — einzeilige Texteingabe",
+            "E-Mail — E-Mail-Adresse mit Validierung",
+            "Telefon — Eingabe einer Telefonnummer",
+            "Textbereich — mehrzeiliger Text",
+            "Dropdown / Auswahl — aus einer Liste von Optionen wählen",
+            "Kontrollkästchen — einzelne oder mehrere Optionen",
+            "Zahl — numerische Eingabe",
+            "Datum — Datumsauswahl",
+            "Datei-Upload — Kunden können Dateien anhängen"
+          ]
+        },
+        "f-2": {
+          "question": "Wie mache ich ein Feld zum Pflichtfeld?",
+          "answer": [
+            "Klicke im Formular-Builder auf das Feld, um seine Einstellungen zu öffnen.",
+            "Schalte den Schalter „Pflichtfeld“ EIN.",
+            "Pflichtfelder zeigen ein rotes Sternchen (*) und verhindern das Absenden, wenn sie leer sind."
+          ]
+        },
+        "f-3": {
+          "question": "Kann ich die Reihenfolge der Formularfelder ändern?",
+          "answer": [
+            "Ja — ziehe die Felder im Formular-Builder per Drag-and-drop in die gewünschte Reihenfolge.",
+            "Nutze den Ziehgriff (⠿) auf der linken Seite jedes Felds.",
+            "Klicke nach dem Umsortieren auf Speichern."
+          ]
+        },
+        "f-4": {
+          "question": "Wie lege ich eine eigene Erfolgsmeldung fest?",
+          "answer": [
+            "Suche in den Formulareinstellungen das Feld „Erfolgsmeldung“.",
+            "Gib die Nachricht ein, die Kunden nach dem Absenden sehen sollen.",
+            "Standard: „Danke! Dein Formular wurde übermittelt.“"
+          ]
+        }
+      }
+    },
+    "troubleshooting": {
+      "title": "Fehlerbehebung",
+      "items": {
+        "ts-1": {
+          "question": "Das Formular zeigt „Formular konnte nicht geladen werden. Bitte prüfe die Formular-ID.“",
+          "answer": [
+            "Das bedeutet, dass der Formularblock die SmartFormly-API nicht erreichen kann. Prüfe:",
+            "1. Formular-ID — Stelle sicher, dass die richtige Formular-ID in den Einstellungen des Theme-Blocks steht.",
+            "2. Formular ist aktiv — Prüfe, ob der Formularstatus in deinem Dashboard auf „Aktiv“ steht.",
+            "3. App-Embed aktiviert — Der SmartFormly-App-Embed muss eingeschaltet sein."
+          ]
+        },
+        "ts-2": {
+          "question": "Das Formular wird geladen, aber das Absenden schlägt fehl.",
+          "answer": [
+            "Prüfe Folgendes:",
+            "1. Pflichtfelder — Stelle sicher, dass alle Pflichtfelder korrekt ausgefüllt sind.",
+            "2. E-Mail-Validierung — E-Mail-Felder akzeptieren nur gültige E-Mail-Adressen.",
+            "3. Öffne die Browser-DevTools (F12) → Tab „Netzwerk“ und suche nach einem fehlgeschlagenen POST an /api/submit/.",
+            "4. Kontaktiere den Support mit den Fehlerdetails."
+          ]
+        },
+        "ts-3": {
+          "question": "Ich erhalte keine E-Mail-Benachrichtigungen für Einsendungen.",
+          "answer": [
+            "1. Gehe zu Einstellungen → E-Mail-Benachrichtigungen und prüfe, ob deine Benachrichtigungs-E-Mail korrekt ist.",
+            "2. Sieh in deinem Spam-/Junk-Ordner nach.",
+            "3. Prüfe, ob die SMTP- oder Gmail-Zugangsdaten in den Einstellungen korrekt sind.",
+            "4. Sende ein Testformular ab und prüfe auf E-Mail-Fehler."
+          ]
+        },
+        "ts-4": {
+          "question": "Die App lädt langsam oder zeigt Fehler.",
+          "answer": [
+            "1. Lade die Seite neu (Strg+R oder Cmd+R).",
+            "2. Leere den Browser-Cache.",
+            "3. Probiere einen anderen Browser.",
+            "4. Wenn der Fehler bestehen bleibt, mache einen Screenshot und kontaktiere unser Support-Team."
+          ]
+        }
+      }
+    }
+  }
+}

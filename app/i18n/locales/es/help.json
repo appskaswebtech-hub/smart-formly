@@ -1,0 +1,217 @@
+{
+  "title": "Ayuda y soporte",
+  "backHome": "Inicio",
+  "banners": {
+    "chat": "¡Se abrió el redactor de correo! Envíanos tu pregunta y te responderemos en breve.",
+    "email": "¡Se abrió el redactor de correo! Te responderemos en unas pocas horas."
+  },
+  "setupBanner": {
+    "title": "Activa SmartFormly en tu tienda",
+    "action": "Abrir el panel de App Embeds →",
+    "body": "Abre el editor de temas y activa SmartFormly en el panel de App Embeds para empezar a mostrar formularios en tu tienda."
+  },
+  "search": {
+    "heading": "¿Cómo podemos ayudarte?",
+    "placeholder": "Busca respuestas… p. ej. «cómo crear un formulario» o «app embed»",
+    "results_one": "{{count}} resultado encontrado",
+    "results_other": "{{count}} resultados encontrados"
+  },
+  "articles_one": "{{count}} artículo",
+  "articles_other": "{{count}} artículos",
+  "noResults": {
+    "heading": "No se encontraron artículos para «{{query}}»",
+    "body": "Prueba con otras palabras clave o contacta con nuestro equipo de soporte abajo"
+  },
+  "openEmbedPanel": "Abrir el panel de App Embeds →",
+  "links": {
+    "docs": "Documentación",
+    "docsSub": "Guías completas y referencia",
+    "feature": "Solicitud de función",
+    "featureSub": "Sugiere nuevas funciones"
+  },
+  "contact": {
+    "heading": "¿Aún necesitas ayuda?",
+    "body": "¿No encuentras lo que buscas? Nuestro equipo de soporte está listo para ayudarte.",
+    "chat": "Chatea con nosotros",
+    "chatSub": "Habla ahora con nuestro equipo.",
+    "chatBadge": "Suele responder en minutos",
+    "email": "Escríbenos",
+    "emailSub": "Envíanos un mensaje detallado.",
+    "emailBadge": "Responde en unas pocas horas"
+  },
+  "faq": {
+    "setup": {
+      "title": "Configurar SmartFormly en tu tienda",
+      "badge": "Empieza aquí",
+      "items": {
+        "setup-1": {
+          "question": "¿Cómo activo SmartFormly en mi tienda? (App Embed)",
+          "answer": [
+            "Ve a Tienda online → Temas → Personalizar en tu panel de Shopify.",
+            "Haz clic en el icono de la pieza de puzle (App Embeds) en la barra lateral izquierda.",
+            "Busca SmartFormly en la lista y actívalo.",
+            "Haz clic en Guardar en la esquina superior derecha.",
+            "¡SmartFormly ya está activo en tu tienda!"
+          ]
+        },
+        "setup-2": {
+          "question": "¿Cómo añado un formulario a una página concreta?",
+          "answer": [
+            "Una vez activado el App Embed, puedes añadir formularios a cualquier página:",
+            "1. Ve a Tienda online → Temas → Personalizar.",
+            "2. Navega hasta la página donde quieres mostrar el formulario.",
+            "3. Haz clic en «Agregar sección» o «Agregar bloque» en la barra lateral izquierda.",
+            "4. Busca «SmartFormly» y selecciona el bloque de formulario.",
+            "5. En el panel de configuración del bloque, selecciona tu formulario en el desplegable.",
+            "6. Haz clic en Guardar."
+          ]
+        },
+        "setup-3": {
+          "question": "¿Por qué no se muestra mi formulario en la tienda?",
+          "answer": [
+            "Revisa estas causas habituales en orden:",
+            "1. App Embed — Asegúrate de que el App Embed de SmartFormly esté activado en el editor de temas.",
+            "2. Estado del formulario — Confirma que el formulario esté marcado como «Activo» en el panel de SmartFormly.",
+            "3. Bloque de formulario — Verifica que el bloque de SmartFormly esté en la página correcta con el formulario adecuado seleccionado.",
+            "4. Caché del navegador — Prueba a ver tu tienda en una ventana de incógnito o privada."
+          ]
+        },
+        "setup-4": {
+          "question": "¿Necesito editar el código de mi tema?",
+          "answer": [
+            "No hace falta editar código. SmartFormly usa el sistema de App Blocks de Shopify, compatible con todos los temas de Online Store 2.0.",
+            "Solo tienes que activar el App Embed en el editor de temas y añadir el bloque de formulario a cualquier página.",
+            "Si usas un tema antiguo (anterior a OS 2.0), contacta con nuestro equipo de soporte."
+          ]
+        }
+      }
+    },
+    "getting-started": {
+      "title": "Primeros pasos",
+      "items": {
+        "gs-1": {
+          "question": "¿Cómo creo mi primer formulario?",
+          "answer": [
+            "Crear tu primer formulario es sencillo:",
+            "1. Haz clic en «Crear formulario» en el panel o ve a Formularios → Nuevo formulario.",
+            "2. Ponle un nombre a tu formulario.",
+            "3. Añade campos con la paleta de campos (texto, correo, teléfono, desplegable, etc.).",
+            "4. Personaliza el diseño: colores, borde, estilo del botón.",
+            "5. Marca el formulario como activo.",
+            "6. Haz clic en Guardar: tu formulario ya está listo para insertarse en tu tienda."
+          ]
+        },
+        "gs-2": {
+          "question": "¿Cómo encuentro el ID de mi formulario?",
+          "answer": [
+            "El ID de tu formulario aparece en la lista de formularios del panel.",
+            "Haz clic en la columna del ID del formulario para copiarlo automáticamente al portapapeles.",
+            "También lo encontrarás en la página de configuración del formulario, debajo del nombre."
+          ]
+        },
+        "gs-3": {
+          "question": "¿Dónde veo los envíos de formularios?",
+          "answer": [
+            "Ve a la página Formularios y haz clic en «Envíos» en cualquier formulario.",
+            "Puedes ver cada envío en detalle, ver una vista previa de los datos y eliminar envíos individuales o todos.",
+            "Si has configurado notificaciones por correo en Configuración, también recibirás un correo por cada nuevo envío."
+          ]
+        },
+        "gs-4": {
+          "question": "¿Puedo tener varios formularios en mi tienda?",
+          "answer": [
+            "Sí: puedes crear tantos formularios como necesites.",
+            "Cada formulario tiene un ID único y puede colocarse de forma independiente en distintas páginas.",
+            "Solo tienes que añadir varios bloques de SmartFormly en el editor de temas y asignar un formulario distinto a cada uno."
+          ]
+        }
+      }
+    },
+    "forms": {
+      "title": "Formularios y campos",
+      "items": {
+        "f-1": {
+          "question": "¿Qué tipos de campo están disponibles?",
+          "answer": [
+            "SmartFormly admite los siguientes tipos de campo:",
+            "Texto: entrada de texto de una línea",
+            "Correo: dirección de correo con validación",
+            "Teléfono: entrada de número de teléfono",
+            "Área de texto: texto de varias líneas",
+            "Desplegable / Selección: elegir de una lista de opciones",
+            "Casilla: una o varias casillas de verificación",
+            "Número: entrada numérica",
+            "Fecha: selector de fecha",
+            "Carga de archivo: permite a los clientes adjuntar archivos"
+          ]
+        },
+        "f-2": {
+          "question": "¿Cómo hago que un campo sea obligatorio?",
+          "answer": [
+            "Haz clic en el campo en el creador de formularios para abrir su configuración.",
+            "Activa el interruptor «Obligatorio».",
+            "Los campos obligatorios muestran un asterisco rojo (*) y bloquean el envío si se dejan vacíos."
+          ]
+        },
+        "f-3": {
+          "question": "¿Puedo reordenar los campos del formulario?",
+          "answer": [
+            "Sí: arrastra y suelta los campos en el creador de formularios para reordenarlos.",
+            "Usa el asa de arrastre (⠿) situada a la izquierda de cada campo.",
+            "Haz clic en Guardar después de reordenar."
+          ]
+        },
+        "f-4": {
+          "question": "¿Cómo configuro un mensaje de éxito personalizado?",
+          "answer": [
+            "En la configuración del formulario, busca el campo «Mensaje de éxito».",
+            "Escribe el mensaje que quieres que vean los clientes después de enviar.",
+            "Predeterminado: «¡Gracias! Tu formulario se ha enviado.»"
+          ]
+        }
+      }
+    },
+    "troubleshooting": {
+      "title": "Solución de problemas",
+      "items": {
+        "ts-1": {
+          "question": "El formulario muestra «No se puede cargar el formulario. Comprueba el ID del formulario.»",
+          "answer": [
+            "Significa que el bloque del formulario no puede acceder a la API de SmartFormly. Comprueba:",
+            "1. ID del formulario — Asegúrate de que el ID correcto esté en la configuración del bloque del tema.",
+            "2. El formulario está activo — Confirma que el estado del formulario sea Activo en tu panel.",
+            "3. App Embed activado — El App Embed de SmartFormly debe estar activado."
+          ]
+        },
+        "ts-2": {
+          "question": "El formulario carga pero el envío falla.",
+          "answer": [
+            "Comprueba lo siguiente:",
+            "1. Campos obligatorios — Asegúrate de que todos los campos obligatorios estén bien rellenados.",
+            "2. Validación de correo — Los campos de correo solo aceptan direcciones válidas.",
+            "3. Abre las DevTools del navegador (F12) → pestaña Red y busca un POST fallido a /api/submit/.",
+            "4. Contacta con el soporte con los detalles del error."
+          ]
+        },
+        "ts-3": {
+          "question": "No recibo notificaciones por correo de los envíos.",
+          "answer": [
+            "1. Ve a Configuración → Notificaciones por correo y confirma que tu correo de notificación es correcto.",
+            "2. Revisa tu carpeta de spam o correo no deseado.",
+            "3. Verifica que las credenciales de SMTP o Gmail en Configuración sean correctas.",
+            "4. Envía un formulario de prueba y comprueba si hay errores de correo."
+          ]
+        },
+        "ts-4": {
+          "question": "La aplicación carga lento o muestra errores.",
+          "answer": [
+            "1. Actualiza la página (Ctrl+R o Cmd+R).",
+            "2. Borra la caché del navegador.",
+            "3. Prueba con otro navegador.",
+            "4. Si el error persiste, haz una captura de pantalla y contacta con nuestro equipo de soporte."
+          ]
+        }
+      }
+    }
+  }
+}

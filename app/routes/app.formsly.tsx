@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import { json, type LoaderFunctionArgs, type ActionFunctionArgs } from "@remix-run/node";
 import { useLoaderData, useNavigate, useSubmit, useSearchParams } from "@remix-run/react";
 import { useAppBridge } from "@shopify/app-bridge-react";
+import { Trans, useTranslation } from "react-i18next";
 import { authenticate } from "../shopify.server";
 import { deleteFormById, getForms, getFormStats } from "../models/form.server";
 import { getSubmissionTrend } from "../models/submission.server";
@@ -11,6 +12,8 @@ import {
   InlineStack, Tabs, TextField, Icon,
 } from "@shopify/polaris";
 import { SearchIcon } from "@shopify/polaris-icons";
+
+export const handle = { i18n: ["formsList", "common"] };
 
 // ── Loader ────────────────────────────────────────────────────────────────────
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -50,6 +53,7 @@ export default function FormsPage() {
   const submit = useSubmit();
   const shopify = useAppBridge();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { t, i18n } = useTranslation(["formsList", "common"]);
 
   const [selectedTab, setSelectedTab] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
@@ -63,15 +67,15 @@ export default function FormsPage() {
     if (toastShown.current) return;
 
     if (searchParams.get("created") === "1") {
-      shopify.toast.show("Form created successfully!");
+      shopify.toast.show(t("toast.created"));
       setSearchParams({});
       toastShown.current = true;
     } else if (searchParams.get("updated") === "1") {
-      shopify.toast.show("Form updated successfully!");
+      shopify.toast.show(t("toast.updated"));
       setSearchParams({});
-      toastShown.current = true;  
+      toastShown.current = true;
     }
-  }, [searchParams, setSearchParams]);
+  }, [searchParams, setSearchParams, shopify, t]);
 
   // ── Counts ───────────────────────────────────────────────────────────────
   const allCount      = forms.length;
@@ -80,9 +84,9 @@ export default function FormsPage() {
 
   // ── Filter tabs ──────────────────────────────────────────────────────────
   const tabs = [
-    { id: "all",      content: `All ${allCount}` },
-    { id: "active",   content: `Active ${activeCount}` },
-    { id: "inactive", content: `Inactive ${inactiveCount}` },
+    { id: "all",      content: t("tabs.all",      { count: allCount })      },
+    { id: "active",   content: t("tabs.active",   { count: activeCount })   },
+    { id: "inactive", content: t("tabs.inactive", { count: inactiveCount }) },
   ];
 
   // ── Filtered + searched forms ────────────────────────────────────────────
@@ -106,7 +110,7 @@ export default function FormsPage() {
 
   // ── Delete handler ───────────────────────────────────────────────────────
   const handleDelete = (formId: string) => {
-    if (!confirm("Are you sure you want to delete this form?")) return;
+    if (!confirm(t("common:forms.confirmDelete"))) return;
     const fd = new FormData();
     fd.append("intent", "delete");
     fd.append("formId", formId);
@@ -116,16 +120,17 @@ export default function FormsPage() {
   // ── Copy to clipboard ────────────────────────────────────────────────────
   const handleCopyId = (formId: string) => {
     navigator.clipboard.writeText(formId).then(() => {
-      shopify.toast.show("Form ID copied to clipboard!");
+      shopify.toast.show(t("common:forms.copied"));
     }).catch(() => {
-      shopify.toast.show("Failed to copy ID", { isError: true });
+      shopify.toast.show(t("common:forms.copyFailed"), { isError: true });
     });
   };
 
   // ── Format date ──────────────────────────────────────────────────────────
+  // Follows the active UI language so dates don't stay US-formatted in de/es/it.
   function formatDate(dateStr: string) {
     const d = new Date(dateStr);
-    return d.toLocaleDateString("en-US", {
+    return d.toLocaleDateString(i18n.language, {
       year: "numeric", month: "short", day: "numeric",
       hour: "2-digit", minute: "2-digit",
     });
@@ -150,7 +155,7 @@ export default function FormsPage() {
     <div
       key={`id-${f.id}`}
       onClick={() => handleCopyId(f.id)}
-      title={`Click to copy: ${f.id}`}
+      title={t("common:forms.copyTitle", { id: f.id })}
       style={{
         cursor: "pointer",
         display: "inline-flex",
@@ -171,7 +176,7 @@ export default function FormsPage() {
 
     // Status
     <Badge tone={f.isActive ? "success" : "info"} key={`status-${f.id}`}>
-      {f.isActive ? "Active" : "Inactive"}
+      {f.isActive ? t("common:status.active") : t("common:status.inactive")}
     </Badge>,
 
     // Submissions
@@ -183,13 +188,13 @@ export default function FormsPage() {
     // Actions
     <InlineStack gap="200" key={`actions-${f.id}`}>
       <Button size="slim" onClick={() => navigate(`/app/forms/${f.id}/submissions`)}>
-        Submissions
+        {t("viewSubmissions")}
       </Button>
       <Button size="slim" onClick={() => navigate(`/app/forms/${f.id}`)}>
-        Edit
+        {t("common:actions.edit")}
       </Button>
       <Button size="slim" tone="critical" onClick={() => handleDelete(f.id)}>
-        Delete
+        {t("common:actions.delete")}
       </Button>
     </InlineStack>,
   ]);
@@ -197,9 +202,9 @@ export default function FormsPage() {
   // ── Render ───────────────────────────────────────────────────────────────
   return (
     <Page
-      title="My Forms"
+      title={t("title")}
       primaryAction={{
-        content: "+ New Form",
+        content: t("newForm"),
         onAction: () => navigate("/app/formsnew"),
       }}
     >
@@ -217,7 +222,7 @@ export default function FormsPage() {
                 <TextField
                   label=""
                   labelHidden
-                  placeholder="Search forms by name or ID…"
+                  placeholder={t("search")}
                   value={searchQuery}
                   onChange={setSearchQuery}
                   autoComplete="off"
@@ -231,14 +236,14 @@ export default function FormsPage() {
               {forms.length === 0 ? (
                 <div style={{ padding: "20px 16px" }}>
                   <EmptyState
-                    heading="No forms yet"
+                    heading={t("common:forms.empty.heading")}
                     action={{
-                      content: "Create your first form",
+                      content: t("common:forms.empty.action"),
                       onAction: () => navigate("/app/formsnew"),
                     }}
                     image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png"
                   >
-                    <p>Create a form to start collecting submissions from your store.</p>
+                    <p>{t("common:forms.empty.body")}</p>
                   </EmptyState>
                 </div>
               ) : filteredForms.length === 0 ? (
@@ -248,16 +253,30 @@ export default function FormsPage() {
                   color: "#6B7280",
                   fontSize: 14,
                 }}>
-                  No forms match your current filter
-                  {searchQuery && (
-                    <span> for "<strong>{searchQuery}</strong>"</span>
+                  {searchQuery ? (
+                    // <Trans> keeps the <strong> markup inside a single
+                    // translatable sentence, so word order stays flexible.
+                    <Trans
+                      i18nKey="formsList:noMatchFor"
+                      values={{ query: searchQuery }}
+                      components={{ bold: <strong /> }}
+                    />
+                  ) : (
+                    t("noMatch")
                   )}
                 </div>
               ) : (
                 <>
                   <DataTable
                     columnContentTypes={["text", "text", "text", "numeric", "text", "text"]}
-                    headings={["Title", "Form ID", "Status", "Submissions", "Date Created", "Actions"]}
+                    headings={[
+                      t("columns.title"),
+                      t("columns.id"),
+                      t("columns.status"),
+                      t("columns.submissions"),
+                      t("columns.created"),
+                      t("columns.actions"),
+                    ]}
                     rows={rows}
                   />
                   <div style={{
@@ -268,10 +287,10 @@ export default function FormsPage() {
                     alignItems: "center",
                   }}>
                     <Text as="p" variant="bodySm" tone="subdued">
-                      Showing {filteredForms.length} {filteredForms.length === 1 ? "record" : "records"}
+                      {t("showing", { count: filteredForms.length })}
                     </Text>
                     <Text as="p" variant="bodySm" tone="subdued">
-                      💡 Click any Form ID to copy it
+                      {t("common:forms.copyHint")}
                     </Text>
                   </div>
                 </>

@@ -1,0 +1,59 @@
+{
+  "all": {
+    "title": "Tutti gli invii",
+    "backToForms": "Moduli",
+    "recent": "Invii recenti",
+    "emptyHeading": "Nessun invio",
+    "emptyBody": "Gli invii appariranno qui non appena i clienti compileranno i tuoi moduli.",
+    "columns": {
+      "form": "Modulo",
+      "preview": "Anteprima",
+      "submitted": "Inviato",
+      "actions": "Azioni"
+    },
+    "viewDetails": "Vedi dettagli",
+    "allInForm": "Tutti nel modulo",
+    "showing_one": "{{count}} invio più recente mostrato",
+    "showing_other": "{{count}} invii più recenti mostrati",
+    "unknownForm": "Modulo sconosciuto"
+  },
+  "modal": {
+    "title": "Invio — {{form}}",
+    "deleteThis": "Elimina questo invio",
+    "form": "Modulo",
+    "submitted": "Inviato",
+    "id": "ID",
+    "submittedData": "Dati inviati",
+    "confirmTitle": "Eliminare l'invio?",
+    "confirmBody": "Questa azione non può essere annullata. L'invio verrà eliminato definitivamente."
+  },
+  "byForm": {
+    "title": "Invii: {{name}}",
+    "subtitle_one": "{{count}} invio",
+    "subtitle_other": "{{count}} invii",
+    "backToForms": "Torna ai moduli",
+    "deleteAll": "Elimina tutti gli invii",
+    "totalSubmissions": "Invii totali",
+    "formStatus": "Stato del modulo",
+    "formFields": "Campi del modulo",
+    "heading": "Tutti gli invii",
+    "editForm": "Modifica modulo",
+    "emptyHeading": "Nessun invio",
+    "emptyBody": "Gli invii appariranno qui non appena i clienti compileranno il tuo modulo. Assicurati che il modulo sia integrato nel tuo negozio e impostato su «Attivo».",
+    "columns": {
+      "id": "ID",
+      "preview": "Anteprima dei dati",
+      "submitted": "Inviato",
+      "actions": "Azioni"
+    },
+    "view": "Vedi",
+    "confirmDeleteOne": "Vuoi davvero eliminare questo invio?",
+    "confirmDeleteAll": "Eliminare TUTTI gli invii di questo modulo? L'operazione non può essere annullata.",
+    "detailTitle": "Dettagli dell'invio",
+    "idLabel": "ID:",
+    "submittedLabel": "Inviato:",
+    "formData": "Dati del modulo",
+    "deletedOne": "Invio eliminato",
+    "deletedAll": "Tutti gli invii eliminati"
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "title": "Configuración",
+  "verify": "Verificar",
+  "submit": "Enviar",
+  "tabs": {
+    "basic": "General",
+    "language": "Idioma",
+    "blockedDomains": "Dominios bloqueados",
+    "integrations": "Integraciones"
+  },
+  "language": {
+    "title": "Idioma de la aplicación",
+    "desc": "Elige el idioma de la interfaz de administración de SmartFormly.",
+    "label": "Idioma",
+    "help": "Se aplica a todas las páginas de la aplicación y se guarda para tu tienda."
+  },
+  "basic": {
+    "monthlyTitle": "Análisis mensual",
+    "monthlyDesc": "Nuestros correos de análisis mensual te mantendrán al día sobre el rendimiento de tu tienda con nuestra app.",
+    "monthlyOptOut": "No quiero recibir correos de análisis mensual.",
+    "altEmailLabel": "Dirección de correo alternativa (opcional)",
+    "altEmailPlaceholder": "Correo para el análisis mensual",
+    "altEmailHelp": "De forma predeterminada, se enviará al correo del administrador de tu tienda.",
+    "themeTitle": "Notificación de cambios en el tema",
+    "themeDesc": "Este correo se envía al propietario de la tienda cada vez que hay un cambio en los archivos de tu tema.",
+    "themeOptIn": "Acepto recibir notificaciones por correo sobre cambios en el tema."
+  },
+  "blockedDomains": {
+    "title": "Dominios bloqueados",
+    "desc": "Si quieres bloquear determinados dominios de correo, usa esta página de configuración.",
+    "label": "Dominios de correo a bloquear",
+    "placeholder": "ejemplo.com, otro-ejemplo.com",
+    "help": "Introduce el dominio (p. ej., «gmail.com») para bloquear todos sus correos, o una dirección completa (p. ej., «user@gmail.com») para bloquear solo esa dirección. No incluyas «www» ni «@»."
+  },
+  "apiTokens": {
+    "title": "Tokens de API",
+    "newKey": "Nueva clave de API",
+    "columns": {
+      "name": "Nombre",
+      "supportEmail": "Correo de soporte",
+      "token": "Token",
+      "copy": "Copiar",
+      "lastUpdated": "Última actualización",
+      "actions": "Acciones"
+    },
+    "noRecords": "No hay registros disponibles"
+  },
+  "domainSetup": {
+    "title": "Dominio de envío",
+    "methodLabel": "Método de configuración del dominio de envío que quieres usar",
+    "docsHint": "Puedes seguir las instrucciones de configuración de dominio personalizado <link>aquí</link>.",
+    "detailsHeading": "Detalles del dominio",
+    "serverLabel": "Dirección del servidor",
+    "portLabel": "Puerto",
+    "emailLabel": "Correo",
+    "authHeading": "Autenticación del dominio",
+    "passwordLabel": "Contraseña",
+    "passwordPlaceholder": "Contraseña",
+    "authLabel": "Autenticación",
+    "sslLabel": "Activar SSL",
+    "sslTrue": "Verdadero",
+    "sslFalse": "Falso",
+    "verifyNote": "Nota: Verifica los datos SMTP antes de enviarlos."
+  },
+  "payment": {
+    "title": "Integración de pagos",
+    "typeLabel": "Selecciona el tipo de pago",
+    "connectHeading": "Conectar con {{provider}}",
+    "publishableKey": "Clave publicable",
+    "secretKey": "Clave secreta",
+    "docsHint": "Puedes obtener tu clave de {{provider}} <link>aquí</link>."
+  },
+  "emailService": {
+    "title": "Integración de correo",
+    "typeLabel": "Selecciona el tipo de integración",
+    "connectHeading": "Conectar {{service}}",
+    "keyLabel": "Clave de {{service}}",
+    "docsHint": "Puedes obtener tu clave de {{service}} <link>aquí</link>."
+  },
+  "zerobounce": {
+    "title": "Integración con Zerobounce",
+    "connectHeading": "Conectar con Zerobounce",
+    "keyLabel": "Clave de Zerobounce",
+    "docsHint": "Puedes obtener tu clave de Zerobounce <link>aquí</link>."
+  },
+  "integrations": {
+    "apiTokens": "Tokens de API",
+    "domainSetup": "Configuración del dominio",
+    "payment": "Integración de pagos",
+    "emailService": "Proveedor de correo",
+    "zerobounce": "Validación de correo con Zerobounce"
+  },
+  "footer": {
+    "tagline": "La app Form Builder.",
+    "privacy": "Política de privacidad",
+    "terms": "Términos y condiciones"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "title": "¡Hola! 👋 ¿Listo para crear?",
+  "banner": {
+    "title": "Activa SmartFormly en tu tienda",
+    "action": "Activar App Embed →",
+    "body": "Activa el app embed de SmartFormly en tu editor de temas para empezar a mostrar formularios en tu tienda. Haz clic en el botón para abrir el editor de temas y luego activa SmartFormly y guarda."
+  },
+  "stats": {
+    "formsCreated": "Formularios creados",
+    "formSubmissions": "Envíos de formularios",
+    "activeForms": "Formularios activos"
+  },
+  "quickActions": {
+    "createForm": {
+      "title": "Crear un formulario",
+      "body": "Crea y personaliza formularios para recopilar la información que necesitas.",
+      "cta": "+ Crear formulario"
+    },
+    "enableStorefront": {
+      "title": "Activar en la tienda",
+      "body": "Activa el embed de SmartFormly en tu editor de temas para mostrar formularios en tu tienda.",
+      "cta": "Abrir editor de temas →"
+    },
+    "learnMore": {
+      "title": "Más información",
+      "body": "Guías, consejos y respuestas para sacar el máximo partido a SmartFormly.",
+      "cta": "Visitar la base de conocimientos"
+    }
+  },
+  "formsTable": {
+    "heading": "Tus formularios",
+    "columns": {
+      "name": "Nombre del formulario",
+      "id": "ID del formulario",
+      "status": "Estado",
+      "submissions": "Envíos",
+      "created": "Creado",
+      "actions": "Acciones"
+    },
+    "viewSubmissions": "Envíos"
+  }
+}

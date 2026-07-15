@@ -9,14 +9,14 @@
 {% if block.settings.form_id == blank %}
   {% if request.design_mode %}
     <div style="padding:40px;text-align:center;border:2px dashed #ccc;border-radius:8px;color:#666;font-family:sans-serif;">
-      <p style="font-size:16px;font-weight:600;margin-bottom:8px;">SmartFormly Form</p>
-      <p style="font-size:13px;">Enter a Form ID in the block settings to display your form.</p>
+      <p style="font-size:16px;font-weight:600;margin-bottom:8px;">{{ 'smartformly.editor.no_form_id_title' | t }}</p>
+      <p style="font-size:13px;">{{ 'smartformly.editor.no_form_id_body' | t }}</p>
     </div>
   {% endif %}
 {% elsif app_url == blank %}
   {% if request.design_mode %}
     <div style="padding:20px;text-align:center;border:2px dashed #f59e0b;border-radius:8px;color:#92400e;font-family:sans-serif;font-size:13px;">
-      SmartFormly isn't fully configured yet. Please open the SmartFormly app from your Shopify admin once to initialize it.
+      {{ 'smartformly.editor.not_configured' | t }}
     </div>
   {% endif %}
 {% else %}
@@ -30,7 +30,7 @@
     style="max-width:{{ block.settings.max_width }}px;margin:0 auto;padding:{{ block.settings.section_padding }}px 0;"
   >
     <div class="smartformly-loading" style="text-align:center;padding:40px 0;color:#999;">
-      Loading form...
+      {{ 'smartformly.form.loading' | t }}
     </div>
   </div>
 
@@ -200,6 +200,28 @@
 
   <script>
   (function() {
+    /* Storefront copy, resolved by Liquid against this extension's locale files
+       using the shop's active language. Declared inside the IIFE so two blocks
+       on one page can't clobber each other. `| json` handles quoting/escaping —
+       never hand-quote these.
+
+       Precedence everywhere below is:
+         per-form merchant override (globalExtra.*)  >  T.*  >  nothing */
+    var T = {
+      submit:        {{ 'smartformly.form.submit'         | t | json }},
+      submitting:    {{ 'smartformly.form.submitting'     | t | json }},
+      requiredField: {{ 'smartformly.form.required_field' | t | json }},
+      loginRequired: {{ 'smartformly.form.login_required' | t | json }},
+      genericError:  {{ 'smartformly.form.generic_error'  | t | json }},
+      success:       {{ 'smartformly.form.success'        | t | json }},
+      ticket:        {{ 'smartformly.form.ticket'         | t | json }},
+      closingIn:     {{ 'smartformly.form.closing_in'     | t | json }}
+    };
+
+    /* The storefront's active language, forwarded to the API so it can localize
+       the one message it renders server-side. */
+    var SF_LOCALE = {{ request.locale.iso_code | json }};
+
     var wrapper        = document.getElementById('smartformly-form-{{ block.settings.form_id }}');
     var formId         = wrapper.dataset.formId;
     var appUrl = (wrapper.dataset.appUrl || '')
@@ -320,7 +342,7 @@
       globalExtra    = globalSettings.extra  || {};
 
       if (globalExtra.allowLoggedInOnly === true && !customerLoggedIn) {
-        var loginMsg = (globalExtra.loginMessage || 'Please login to access this form.').trim();
+        var loginMsg = (globalExtra.loginMessage || T.loginRequired).trim();
         wrapper.innerHTML = '<div class="sf-login-msg">' + escHtml(loginMsg) + '</div>';
         return;
       }
@@ -582,13 +604,13 @@
           html += '<label style="position:absolute;top:4px;left:10px;font-size:10px;color:' + (d.labelColor||'#000') + ';opacity:.6;pointer-events:none;">' + escHtml(f.label) + req + '</label>';
         }
 
-        html += '<div class="sf-field-error-msg">' + escHtml(globalExtra.requiredFieldMessage || 'This field is required.') + '</div>';
+        html += '<div class="sf-field-error-msg">' + escHtml(globalExtra.requiredFieldMessage || T.requiredField) + '</div>';
         html += '</div>';
       });
 
       var btnAlign   = d.buttonAlignment || 'full';
       var btnJustify = btnAlign==='full' ? 'stretch' : btnAlign==='center' ? 'center' : btnAlign==='right' ? 'flex-end' : 'flex-start';
-      var btnLabel   = globalExtra.submitButtonText || globalSettings.submitLabel || d.buttonText || 'Submit';
+      var btnLabel   = globalExtra.submitButtonText || globalSettings.submitLabel || d.buttonText || T.submit;
       var btnStyle   = [
         'width:'         + (btnAlign==='full' ? '100%' : 'auto'),
         'background:'    + (d.buttonBg           || '#000'),
@@ -666,7 +688,9 @@
 
       btn.disabled    = true;
       btn._origText   = btn.textContent;
-      btn.textContent = 'Submitting...';
+      // Was hardcoded; the override slot is new so merchants can customize it
+      // the same way as the other messages.
+      btn.textContent = globalExtra.submittingText || T.submitting;
       if (errEl) errEl.style.display = 'none';
 
       var data = {};
@@ -683,7 +707,9 @@
       });
 
       try {
-        var res    = await fetch(appUrl + '/api/submit/' + formId, {
+        /* ?locale= lets the API localize the strings it renders itself (the
+           success message), which the T table above can't reach. */
+        var res    = await fetch(appUrl + '/api/submit/' + formId + '?locale=' + encodeURIComponent(SF_LOCALE), {
           method:  'POST',
           headers: { 'Content-Type': 'application/json' },
           body:    JSON.stringify(data),
@@ -693,7 +719,7 @@
         if (!res.ok || !result.success) {
           var msgs = (result.errors && result.errors.length)
             ? result.errors.join(', ')
-            : (result.error || globalExtra.errorMessage || 'Something went wrong. Please try again.');
+            : (result.error || globalExtra.errorMessage || T.genericError);
           if (errEl) { errEl.textContent = msgs; errEl.style.display = 'block'; }
           btn.disabled    = false;
           btn.textContent = btn._origText;
@@ -710,7 +736,7 @@
         }
 
         var action     = result.afterSubmissionAction || 'clear_and_allow';
-        var successMsg = result.message || globalSettings.successMessage || 'Thank you! Your form has been submitted.';
+        var successMsg = result.message || globalSettings.successMessage || T.success;
         var tyMsg      = result.thankYouMessage || successMsg;
         var timerSec   = Number(result.thankYouTimerSec) || 5;
 
@@ -770,7 +796,7 @@
       if (ticketNumber) {
         var badge = document.createElement('div');
         badge.className   = 'sf-ticket-badge';
-        badge.textContent = 'Ticket #' + ticketNumber;
+        badge.textContent = T.ticket.replace('{number}', ticketNumber);
         el.appendChild(badge);
       }
       container.appendChild(el);
@@ -789,7 +815,7 @@
       if (ticketNumber) {
         var badge = document.createElement('div');
         badge.className   = 'sf-ticket-badge';
-        badge.textContent = 'Ticket #' + ticketNumber;
+        badge.textContent = T.ticket.replace('{number}', ticketNumber);
         el.appendChild(badge);
       }
 
@@ -800,10 +826,10 @@
 
       if (timerSec <= 0) { if (onDone) onDone(); return; }
       var remaining = timerSec;
-      timerEl.textContent = 'This message will close in ' + remaining + 's';
+      timerEl.textContent = T.closingIn.replace('{seconds}', remaining);
       var interval = setInterval(function() {
         remaining--;
-        timerEl.textContent = 'This message will close in ' + remaining + 's';
+        timerEl.textContent = T.closingIn.replace('{seconds}', remaining);
         if (remaining <= 0) {
           clearInterval(interval);
           el.remove();
@@ -824,19 +850,19 @@
 
 {% schema %}
 {
-  "name": "Smart Formly",
+  "name": "t:smartformly.form.name",
   "target": "section",
   "settings": [
     {
       "type": "text",
       "id": "form_id",
-      "label": "Form ID",
-      "info": "Enter the Form ID from your SmartFormly app dashboard"
+      "label": "t:smartformly.form.settings.form_id.label",
+      "info": "t:smartformly.form.settings.form_id.info"
     },
     {
       "type": "range",
       "id": "max_width",
-      "label": "Max width",
+      "label": "t:smartformly.form.settings.max_width.label",
       "min": 400,
       "max": 1200,
       "step": 50,
@@ -846,7 +872,7 @@
     {
       "type": "range",
       "id": "section_padding",
-      "label": "Section padding",
+      "label": "t:smartformly.form.settings.section_padding.label",
       "min": 0,
       "max": 100,
       "step": 5,

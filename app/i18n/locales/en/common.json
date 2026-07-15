@@ -1,0 +1,44 @@
+{
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "back": "Back",
+    "copy": "Copy",
+    "duplicate": "Duplicate",
+    "preview": "Preview",
+    "export": "Export",
+    "search": "Search"
+  },
+  "status": {
+    "saving": "Saving…",
+    "saved": "Saved",
+    "loading": "Loading…",
+    "active": "Active",
+    "inactive": "Inactive",
+    "draft": "Draft"
+  },
+  "language": {
+    "label": "Language",
+    "changed": "Language updated",
+    "changeFailed": "Could not change the language. Please try again."
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "required": "This field is required."
+  },
+  "forms": {
+    "confirmDelete": "Are you sure you want to delete this form?",
+    "copied": "Form ID copied to clipboard!",
+    "copyFailed": "Failed to copy ID",
+    "copyHint": "💡 Click any Form ID to copy it",
+    "copyTitle": "Click to copy: {{id}}",
+    "empty": {
+      "heading": "No forms yet",
+      "action": "Create your first form",
+      "body": "Create a form to start collecting submissions from your store."
+    }
+  }
+}

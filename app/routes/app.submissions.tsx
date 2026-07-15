@@ -22,12 +22,18 @@ import {
   Box,
 } from "@shopify/polaris";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { authenticate } from "../shopify.server";
+import i18next from "../i18n/i18next.server";
+import { resolveLocale } from "../i18n/resolve.server";
 import db from "../db.server";
+
+export const handle = { i18n: ["submissions", "common"] };
 
 // ── Loader ────────────────────────────────────────────────────────────────
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
+  const t = await i18next.getFixedT(await resolveLocale(request), "submissions");
 
   const forms = await db.formConfig.findMany({
     where: { shopDomain: session.shop },
@@ -46,7 +52,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     submissions: submissions.map((s) => ({
       id: s.id,
       formId: s.formId,
-      formName: formMap[s.formId] ?? "Unknown Form",
+      formName: formMap[s.formId] ?? t("all.unknownForm"),
       data: JSON.parse(s.data) as Record<string, any>,
       createdAt: s.createdAt,
     })),
@@ -90,6 +96,7 @@ export default function AllSubmissions() {
   const submit = useSubmit();
   const navigation = useNavigation();
   const isDeleting = navigation.state === "submitting";
+  const { t, i18n } = useTranslation(["submissions", "common"]);
 
   // View modal state
   const [viewingSubmission, setViewingSubmission] = useState<Submission | null>(null);
@@ -98,8 +105,9 @@ export default function AllSubmissions() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
+  // Follows the active UI language so dates don't stay US-formatted in de/es/it.
   function formatDate(dateStr: string) {
-    return new Date(dateStr).toLocaleDateString("en-US", {
+    return new Date(dateStr).toLocaleDateString(i18n.language, {
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -149,53 +157,55 @@ export default function AllSubmissions() {
         variant="secondary"
         onClick={() => setViewingSubmission(s)}
       >
-        View details
+        {t("all.viewDetails")}
       </Button>
       <Button
         size="slim"
         variant="secondary"
         onClick={() => navigate(`/app/forms/${s.formId}/submissions`)}
       >
-        All in form
+        {t("all.allInForm")}
       </Button>
       <Button
         size="slim"
         tone="critical"
         onClick={() => handleDeleteClick(s.id)}
       >
-        Delete
+        {t("common:actions.delete")}
       </Button>
     </InlineStack>,
   ]);
 
   return (
     <Page
-      title="All Submissions"
-      backAction={{ content: "Forms", url: "/app/formsly" }}
+      title={t("all.title")}
+      backAction={{ content: t("all.backToForms"), url: "/app/formsly" }}
     >
       <Layout>
         <Layout.Section>
           <Card>
             <BlockStack gap="400">
               <Text as="h2" variant="headingMd">
-                Recent Submissions
+                {t("all.recent")}
               </Text>
 
               {submissions.length === 0 ? (
                 <EmptyState
-                  heading="No submissions yet"
+                  heading={t("all.emptyHeading")}
                   image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png"
                 >
-                  <p>
-                    Submissions will appear here once customers fill out your
-                    forms.
-                  </p>
+                  <p>{t("all.emptyBody")}</p>
                 </EmptyState>
               ) : (
                 <>
                   <DataTable
                     columnContentTypes={["text", "text", "text", "text"]}
-                    headings={["Form", "Preview", "Submitted", "Actions"]}
+                    headings={[
+                      t("all.columns.form"),
+                      t("all.columns.preview"),
+                      t("all.columns.submitted"),
+                      t("all.columns.actions"),
+                    ]}
                     rows={rows}
                   />
                   <div
@@ -205,8 +215,7 @@ export default function AllSubmissions() {
                     }}
                   >
                     <Text as="p" variant="bodySm" tone="subdued">
-                      Showing {submissions.length} most recent{" "}
-                      {submissions.length === 1 ? "submission" : "submissions"}
+                      {t("all.showing", { count: submissions.length })}
                     </Text>
                   </div>
                 </>
@@ -221,14 +230,14 @@ export default function AllSubmissions() {
         <Modal
           open={!!viewingSubmission}
           onClose={() => setViewingSubmission(null)}
-          title={`Submission — ${viewingSubmission.formName}`}
+          title={t("modal.title", { form: viewingSubmission.formName })}
           primaryAction={{
-            content: "Close",
+            content: t("common:actions.close"),
             onAction: () => setViewingSubmission(null),
           }}
           secondaryActions={[
             {
-              content: "Delete this submission",
+              content: t("modal.deleteThis"),
               destructive: true,
               onAction: () => {
                 setViewingSubmission(null);
@@ -243,17 +252,17 @@ export default function AllSubmissions() {
               {/* Metadata */}
               <InlineStack gap="400">
                 <BlockStack gap="100">
-                  <Text as="p" variant="bodySm" tone="subdued">Form</Text>
+                  <Text as="p" variant="bodySm" tone="subdued">{t("modal.form")}</Text>
                   <Badge>{viewingSubmission.formName}</Badge>
                 </BlockStack>
                 <BlockStack gap="100">
-                  <Text as="p" variant="bodySm" tone="subdued">Submitted</Text>
+                  <Text as="p" variant="bodySm" tone="subdued">{t("modal.submitted")}</Text>
                   <Text as="p" variant="bodyMd">
                     {formatDate(viewingSubmission.createdAt)}
                   </Text>
                 </BlockStack>
                 <BlockStack gap="100">
-                  <Text as="p" variant="bodySm" tone="subdued">ID</Text>
+                  <Text as="p" variant="bodySm" tone="subdued">{t("modal.id")}</Text>
                   <Text as="p" variant="bodySm" tone="subdued">
                     {viewingSubmission.id}
                   </Text>
@@ -264,7 +273,7 @@ export default function AllSubmissions() {
 
               {/* Field data */}
               <Text as="h3" variant="headingSm">
-                Submitted Data
+                {t("modal.submittedData")}
               </Text>
 
               <BlockStack gap="300">
@@ -299,16 +308,16 @@ export default function AllSubmissions() {
           setShowDeleteConfirm(false);
           setDeletingId(null);
         }}
-        title="Delete submission?"
+        title={t("modal.confirmTitle")}
         primaryAction={{
-          content: "Delete",
+          content: t("common:actions.delete"),
           destructive: true,
           loading: isDeleting,
           onAction: handleDeleteConfirm,
         }}
         secondaryActions={[
           {
-            content: "Cancel",
+            content: t("common:actions.cancel"),
             onAction: () => {
               setShowDeleteConfirm(false);
               setDeletingId(null);
@@ -318,8 +327,7 @@ export default function AllSubmissions() {
       >
         <Modal.Section>
           <Banner tone="warning">
-            This action cannot be undone. The submission will be permanently
-            deleted.
+            {t("modal.confirmBody")}
           </Banner>
         </Modal.Section>
       </Modal>

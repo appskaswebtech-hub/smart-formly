@@ -2,6 +2,7 @@ import { json, type ActionFunctionArgs } from "@remix-run/node";
 import db from "../db.server";
 import { createSubmission } from "../models/submission.server";
 import { sendFormSubmissionEmail } from "../utils/email.server";
+import { getStorefrontStrings } from "../i18n/storefront.server";
 import nodemailer from "nodemailer";
 
 // const CORS_HEADERS = {
@@ -134,10 +135,17 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
       id: string; label: string; type: string; required: boolean;
     }>;
 
+    // The storefront passes its own language as ?locale=; it is independent of
+    // the merchant's admin language, so it is resolved here rather than reusing
+    // resolveLocale (which reads the admin's ShopSettings preference).
+    const storefront = getStorefrontStrings(
+      new URL(request.url).searchParams.get("locale"),
+    );
+
     const settings = {
       notifyOnSubmit:        rawSettings.notifyOnSubmit  ?? false,
       recipientEmail:        rawSettings.recipientEmail  ?? "",
-      successMessage:        rawSettings.successMessage  ?? "Form submitted successfully!",
+      successMessage:        rawSettings.successMessage  ?? storefront.successMessage,
       submitLabel:           rawSettings.submitLabel     ?? "Submit",
       afterSubmissionAction: extra.afterSubmissionAction ?? "clear_and_allow",
       redirectUrl:           extra.redirectUrl           ?? "",

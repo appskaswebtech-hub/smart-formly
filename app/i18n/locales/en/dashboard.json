@@ -1,0 +1,42 @@
+{
+  "title": "Hi there! 👋 Ready to create?",
+  "banner": {
+    "title": "Enable SmartFormly on your storefront",
+    "action": "Enable App Embed →",
+    "body": "Activate the SmartFormly app embed in your theme editor to start showing forms on your storefront. Click the button to open the theme editor — then toggle SmartFormly on and save."
+  },
+  "stats": {
+    "formsCreated": "Forms created",
+    "formSubmissions": "Form submissions",
+    "activeForms": "Active forms"
+  },
+  "quickActions": {
+    "createForm": {
+      "title": "Create a form",
+      "body": "Build and customize forms to collect the information you need.",
+      "cta": "+ Create Form"
+    },
+    "enableStorefront": {
+      "title": "Enable on storefront",
+      "body": "Toggle the SmartFormly embed in your theme editor to show forms on your store.",
+      "cta": "Open Theme Editor →"
+    },
+    "learnMore": {
+      "title": "Learn more",
+      "body": "Guides, tips and answers to help you get the most from SmartFormly.",
+      "cta": "Visit knowledge base"
+    }
+  },
+  "formsTable": {
+    "heading": "Your Forms",
+    "columns": {
+      "name": "Form name",
+      "id": "Form Id",
+      "status": "Status",
+      "submissions": "Submissions",
+      "created": "Created",
+      "actions": "Actions"
+    },
+    "viewSubmissions": "Submissions"
+  }
+}

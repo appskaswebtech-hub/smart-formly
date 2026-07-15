@@ -1,12 +1,17 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "@remix-run/node";
-import { Outlet, useLoaderData, useRouteError } from "@remix-run/react";
+import { Outlet, useLoaderData, useRouteError, useRouteLoaderData } from "@remix-run/react";
 import { boundary } from "@shopify/shopify-app-remix/server";
 import { AppProvider } from "@shopify/shopify-app-remix/react";
 import { NavMenu } from "@shopify/app-bridge-react";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
+import { useTranslation } from "react-i18next";
 import { authenticate } from "../shopify.server";
+import { getPolarisTranslations } from "../i18n/polaris";
+import type { loader as rootLoader } from "../root";
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
+
+export const handle = { i18n: ["common", "nav"] };
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
@@ -59,17 +64,23 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 export default function App() {
   const { apiKey } = useLoaderData<typeof loader>();
+  const { t } = useTranslation("nav");
+
+  // Read the locale from root rather than re-resolving it here: root is the
+  // single source of truth that entry.server rendered with.
+  const rootData = useRouteLoaderData<typeof rootLoader>("root");
+  const locale = rootData?.locale ?? "en";
 
   return (
-    <AppProvider isEmbeddedApp apiKey={apiKey}>
+    <AppProvider isEmbeddedApp apiKey={apiKey} i18n={getPolarisTranslations(locale)}>
       <NavMenu>
-        <a href="/app" rel="home">Dashboard</a>
-        <a href="/app/formsly">My Forms</a>
-        <a href="/app/formsnew">Create Form</a>
-        <a href="/app/submissions">Submissions</a>
-        <a href="/app/settings">Settings</a>
-        <a href="/app/pricing">Pricing</a>
-        <a href="/app/helpandsupport">Help & Support</a>
+        <a href="/app" rel="home">{t("dashboard")}</a>
+        <a href="/app/formsly">{t("myForms")}</a>
+        <a href="/app/formsnew">{t("createForm")}</a>
+        <a href="/app/submissions">{t("submissions")}</a>
+        <a href="/app/settings">{t("settings")}</a>
+        <a href="/app/pricing">{t("pricing")}</a>
+        <a href="/app/helpandsupport">{t("helpAndSupport")}</a>
       </NavMenu>
       <Outlet />
     </AppProvider>

@@ -1,0 +1,59 @@
+{
+  "all": {
+    "title": "Todos los envíos",
+    "backToForms": "Formularios",
+    "recent": "Envíos recientes",
+    "emptyHeading": "Aún no hay envíos",
+    "emptyBody": "Los envíos aparecerán aquí cuando los clientes completen tus formularios.",
+    "columns": {
+      "form": "Formulario",
+      "preview": "Vista previa",
+      "submitted": "Enviado",
+      "actions": "Acciones"
+    },
+    "viewDetails": "Ver detalles",
+    "allInForm": "Todos del formulario",
+    "showing_one": "Mostrando {{count}} envío más reciente",
+    "showing_other": "Mostrando los {{count}} envíos más recientes",
+    "unknownForm": "Formulario desconocido"
+  },
+  "modal": {
+    "title": "Envío — {{form}}",
+    "deleteThis": "Eliminar este envío",
+    "form": "Formulario",
+    "submitted": "Enviado",
+    "id": "ID",
+    "submittedData": "Datos enviados",
+    "confirmTitle": "¿Eliminar el envío?",
+    "confirmBody": "Esta acción no se puede deshacer. El envío se eliminará permanentemente."
+  },
+  "byForm": {
+    "title": "Envíos: {{name}}",
+    "subtitle_one": "{{count}} envío",
+    "subtitle_other": "{{count}} envíos",
+    "backToForms": "Volver a los formularios",
+    "deleteAll": "Eliminar todos los envíos",
+    "totalSubmissions": "Envíos totales",
+    "formStatus": "Estado del formulario",
+    "formFields": "Campos del formulario",
+    "heading": "Todos los envíos",
+    "editForm": "Editar formulario",
+    "emptyHeading": "Aún no hay envíos",
+    "emptyBody": "Los envíos aparecerán aquí cuando los clientes completen tu formulario. Asegúrate de que el formulario esté insertado en tu tienda y marcado como activo.",
+    "columns": {
+      "id": "ID",
+      "preview": "Vista previa de datos",
+      "submitted": "Enviado",
+      "actions": "Acciones"
+    },
+    "view": "Ver",
+    "confirmDeleteOne": "¿Seguro que quieres eliminar este envío?",
+    "confirmDeleteAll": "¿Eliminar TODOS los envíos de este formulario? Esta acción no se puede deshacer.",
+    "detailTitle": "Detalles del envío",
+    "idLabel": "ID:",
+    "submittedLabel": "Enviado:",
+    "formData": "Datos del formulario",
+    "deletedOne": "Envío eliminado",
+    "deletedAll": "Todos los envíos eliminados"
+  }
+}

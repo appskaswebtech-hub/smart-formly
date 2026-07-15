@@ -1,0 +1,44 @@
+{
+  "actions": {
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "close": "Schließen",
+    "back": "Zurück",
+    "copy": "Kopieren",
+    "duplicate": "Duplizieren",
+    "preview": "Vorschau",
+    "export": "Exportieren",
+    "search": "Suchen"
+  },
+  "status": {
+    "saving": "Wird gespeichert…",
+    "saved": "Gespeichert",
+    "loading": "Wird geladen…",
+    "active": "Aktiv",
+    "inactive": "Inaktiv",
+    "draft": "Entwurf"
+  },
+  "language": {
+    "label": "Sprache",
+    "changed": "Sprache aktualisiert",
+    "changeFailed": "Die Sprache konnte nicht geändert werden. Bitte versuche es erneut."
+  },
+  "errors": {
+    "generic": "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
+    "required": "Dieses Feld ist erforderlich."
+  },
+  "forms": {
+    "confirmDelete": "Möchtest du dieses Formular wirklich löschen?",
+    "copied": "Formular-ID in die Zwischenablage kopiert!",
+    "copyFailed": "ID konnte nicht kopiert werden",
+    "copyHint": "💡 Klicke auf eine Formular-ID, um sie zu kopieren",
+    "copyTitle": "Zum Kopieren klicken: {{id}}",
+    "empty": {
+      "heading": "Noch keine Formulare",
+      "action": "Erstelle dein erstes Formular",
+      "body": "Erstelle ein Formular, um Einsendungen aus deinem Shop zu sammeln."
+    }
+  }
+}

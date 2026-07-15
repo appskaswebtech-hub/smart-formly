@@ -1,0 +1,28 @@
+{
+  "title": "Prezzi",
+  "banner": "Fai clic su <bold>Scegli piano</bold> per attivare la fatturazione direttamente tramite Shopify.",
+  "choosePlan": "Scegli piano",
+  "perMonth": "/mese",
+  "trial_one": "{{count}} giorno di prova gratuita",
+  "trial_other": "{{count}} giorni di prova gratuita",
+  "showAllFeatures": "Mostra tutte le funzionalità",
+  "hideAllFeatures": "Nascondi tutte le funzionalità",
+  "plansAvailable_one": "{{count}} piano disponibile",
+  "plansAvailable_other": "{{count}} piani disponibili",
+  "highlights": {
+    "designCustomization": "Personalizzazione completa del design",
+    "exportSubmissions": "Esporta gli invii dei moduli",
+    "multipleRecipients": "Più destinatari per gli invii dei moduli",
+    "multipleNotifications": "Più notifiche per l'amministratore"
+  },
+  "features": {
+    "bingUet": "ID pixel UET di Bing",
+    "advancedJs": "JS avanzato",
+    "advancedCss": "CSS avanzato",
+    "apiAvailable": "API disponibile",
+    "customizeMessage": "Personalizza il messaggio del modulo",
+    "hiddenField": "Campo nascosto",
+    "restrictSubmissions": "Limita gli invii per singolo utente",
+    "utmTracking": "Tracciamento UTM"
+  }
+}

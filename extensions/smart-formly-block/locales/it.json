@@ -1,0 +1,20 @@
+{
+  "smartformly": {
+    "form": {
+      "loading": "Caricamento del modulo…",
+      "submit": "Invia",
+      "submitting": "Invio in corso…",
+      "required_field": "Questo campo è obbligatorio.",
+      "login_required": "Accedi per utilizzare questo modulo.",
+      "generic_error": "Qualcosa è andato storto. Riprova.",
+      "success": "Grazie! Il tuo modulo è stato inviato.",
+      "ticket": "Ticket n. {number}",
+      "closing_in": "Questo messaggio si chiuderà tra {seconds} s"
+    },
+    "editor": {
+      "no_form_id_title": "Modulo SmartFormly",
+      "no_form_id_body": "Inserisci un ID modulo nelle impostazioni del blocco per mostrare il tuo modulo.",
+      "not_configured": "SmartFormly non è ancora completamente configurato. Apri una volta l'app SmartFormly dal tuo admin Shopify per inizializzarla."
+    }
+  }
+}

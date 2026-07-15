@@ -1,0 +1,28 @@
+{
+  "title": "Pricing",
+  "banner": "Click <bold>Choose Plan</bold> to activate billing directly through Shopify.",
+  "choosePlan": "Choose Plan",
+  "perMonth": "/mo",
+  "trial_one": "{{count}}-day free trial",
+  "trial_other": "{{count}}-day free trial",
+  "showAllFeatures": "Show all features",
+  "hideAllFeatures": "Hide all features",
+  "plansAvailable_one": "{{count}} plan available",
+  "plansAvailable_other": "{{count}} plans available",
+  "highlights": {
+    "designCustomization": "Full design customization",
+    "exportSubmissions": "Export form submissions",
+    "multipleRecipients": "Multiple recipients for form submissions",
+    "multipleNotifications": "Multiple admin notifications"
+  },
+  "features": {
+    "bingUet": "Bing UET pixel ID",
+    "advancedJs": "Advanced JS",
+    "advancedCss": "Advanced CSS",
+    "apiAvailable": "API available",
+    "customizeMessage": "Customize form message",
+    "hiddenField": "Hidden field",
+    "restrictSubmissions": "Restrict form submissions per one user",
+    "utmTracking": "UTM tracking"
+  }
+}

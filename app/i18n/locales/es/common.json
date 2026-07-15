@@ -1,0 +1,44 @@
+{
+  "actions": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "close": "Cerrar",
+    "back": "Atrás",
+    "copy": "Copiar",
+    "duplicate": "Duplicar",
+    "preview": "Vista previa",
+    "export": "Exportar",
+    "search": "Buscar"
+  },
+  "status": {
+    "saving": "Guardando…",
+    "saved": "Guardado",
+    "loading": "Cargando…",
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "draft": "Borrador"
+  },
+  "language": {
+    "label": "Idioma",
+    "changed": "Idioma actualizado",
+    "changeFailed": "No se pudo cambiar el idioma. Inténtalo de nuevo."
+  },
+  "errors": {
+    "generic": "Algo salió mal. Inténtalo de nuevo.",
+    "required": "Este campo es obligatorio."
+  },
+  "forms": {
+    "confirmDelete": "¿Seguro que quieres eliminar este formulario?",
+    "copied": "¡ID del formulario copiado al portapapeles!",
+    "copyFailed": "No se pudo copiar el ID",
+    "copyHint": "💡 Haz clic en cualquier ID de formulario para copiarlo",
+    "copyTitle": "Haz clic para copiar: {{id}}",
+    "empty": {
+      "heading": "Aún no hay formularios",
+      "action": "Crea tu primer formulario",
+      "body": "Crea un formulario para empezar a recibir envíos desde tu tienda."
+    }
+  }
+}

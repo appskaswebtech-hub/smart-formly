@@ -1,0 +1,27 @@
+{
+  "smartformly": {
+    "form": {
+      "name": "Smart Formly",
+      "settings": {
+        "form_id": {
+          "label": "Form ID",
+          "info": "Enter the Form ID from your SmartFormly app dashboard"
+        },
+        "max_width": {
+          "label": "Max width"
+        },
+        "section_padding": {
+          "label": "Section padding"
+        }
+      }
+    },
+    "app_embed": {
+      "name": "SmartFormly",
+      "settings": {
+        "paragraph": {
+          "content": "SmartFormly is active on your storefront. Add the SmartFormly section to any page to display your forms."
+        }
+      }
+    }
+  }
+}

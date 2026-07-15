@@ -1,0 +1,217 @@
+{
+  "title": "Help & Support",
+  "backHome": "Home",
+  "banners": {
+    "chat": "Email compose opened! Send us your question and we'll get back to you shortly.",
+    "email": "Email compose opened! We'll get back to you within a few hours."
+  },
+  "setupBanner": {
+    "title": "Enable SmartFormly on your storefront",
+    "action": "Open App Embeds Panel →",
+    "body": "Open the theme editor and toggle SmartFormly ON in the App Embeds panel to start showing forms on your store."
+  },
+  "search": {
+    "heading": "How can we help you?",
+    "placeholder": "Search for answers... e.g. 'how to create form' or 'app embed'",
+    "results_one": "{{count}} result found",
+    "results_other": "{{count}} results found"
+  },
+  "articles_one": "{{count}} article",
+  "articles_other": "{{count}} articles",
+  "noResults": {
+    "heading": "No articles found for \"{{query}}\"",
+    "body": "Try different keywords or contact our support team below"
+  },
+  "openEmbedPanel": "Open App Embeds Panel →",
+  "links": {
+    "docs": "Documentation",
+    "docsSub": "Full guides and reference",
+    "feature": "Feature Request",
+    "featureSub": "Suggest new features"
+  },
+  "contact": {
+    "heading": "Still need help?",
+    "body": "Can't find what you're looking for? Our support team is ready to assist you.",
+    "chat": "Chat with us",
+    "chatSub": "Talk with our team now.",
+    "chatBadge": "Typically replies in minutes",
+    "email": "Email us",
+    "emailSub": "Send us a detailed message.",
+    "emailBadge": "Replies within a few hours"
+  },
+  "faq": {
+    "setup": {
+      "title": "Setting Up SmartFormly on Your Store",
+      "badge": "Start Here",
+      "items": {
+        "setup-1": {
+          "question": "How do I enable SmartFormly on my storefront? (App Embed)",
+          "answer": [
+            "Go to Online Store → Themes → Customize in your Shopify admin.",
+            "Click the puzzle piece icon (App Embeds) in the left sidebar.",
+            "Find SmartFormly in the list and toggle it ON.",
+            "Click Save in the top right corner.",
+            "SmartFormly is now active on your storefront!"
+          ]
+        },
+        "setup-2": {
+          "question": "How do I add a form to a specific page?",
+          "answer": [
+            "Once the App Embed is enabled, add forms to any page:",
+            "1. Go to Online Store → Themes → Customize.",
+            "2. Navigate to the page where you want to show the form.",
+            "3. Click 'Add section' or 'Add block' in the left sidebar.",
+            "4. Search for 'SmartFormly' and select the form block.",
+            "5. In the block settings panel, select your form from the dropdown.",
+            "6. Click Save."
+          ]
+        },
+        "setup-3": {
+          "question": "Why isn't my form showing on the storefront?",
+          "answer": [
+            "Check these common causes in order:",
+            "1. App Embed — Make sure the SmartFormly App Embed toggle is ON in the theme editor.",
+            "2. Form status — Confirm the form is set to 'Active' in the SmartFormly dashboard.",
+            "3. Form block — Verify the SmartFormly block is added to the correct page with the right form selected.",
+            "4. Browser cache — Try viewing your store in an incognito/private browser window."
+          ]
+        },
+        "setup-4": {
+          "question": "Do I need to edit my theme code?",
+          "answer": [
+            "No code editing needed. SmartFormly uses Shopify's App Blocks system which works with all Online Store 2.0 themes.",
+            "Simply enable the App Embed in the theme editor and add the form block to any page.",
+            "If you're using a vintage theme (pre-OS 2.0), please contact our support team."
+          ]
+        }
+      }
+    },
+    "getting-started": {
+      "title": "Getting Started",
+      "items": {
+        "gs-1": {
+          "question": "How do I create my first form?",
+          "answer": [
+            "Creating your first form is simple:",
+            "1. Click 'Create Form' on the Dashboard or go to Forms → New Form.",
+            "2. Give your form a name.",
+            "3. Add fields using the field palette (text, email, phone, dropdown, etc.).",
+            "4. Customize the design — colors, border, button style.",
+            "5. Set the form to Active.",
+            "6. Click Save — your form is now ready to embed in your store."
+          ]
+        },
+        "gs-2": {
+          "question": "How do I find my Form ID?",
+          "answer": [
+            "Your Form ID is shown in the Forms list on the Dashboard.",
+            "Click the Form ID column to copy it to your clipboard automatically.",
+            "You can also find it in the form settings page — it appears below the form name."
+          ]
+        },
+        "gs-3": {
+          "question": "Where do I see form submissions?",
+          "answer": [
+            "Go to the Forms page and click 'Submissions' on any form.",
+            "You can view each submission in detail, see a data preview, and delete individual or all submissions.",
+            "If you've set up email notifications in Settings, you'll also receive an email for each new submission."
+          ]
+        },
+        "gs-4": {
+          "question": "Can I have multiple forms on my store?",
+          "answer": [
+            "Yes — you can create as many forms as you need.",
+            "Each form has a unique ID and can be placed independently on different pages.",
+            "Simply add multiple SmartFormly blocks in the theme editor and assign a different form to each one."
+          ]
+        }
+      }
+    },
+    "forms": {
+      "title": "Forms & Fields",
+      "items": {
+        "f-1": {
+          "question": "What field types are available?",
+          "answer": [
+            "SmartFormly supports the following field types:",
+            "Text — single line text input",
+            "Email — email address with validation",
+            "Phone — phone number input",
+            "Textarea — multi-line text",
+            "Dropdown / Select — choose from a list of options",
+            "Checkbox — single or multiple checkbox options",
+            "Number — numeric input",
+            "Date — date picker",
+            "File upload — allow customers to attach files"
+          ]
+        },
+        "f-2": {
+          "question": "How do I make a field required?",
+          "answer": [
+            "Click on the field in the form builder to open its settings.",
+            "Toggle the 'Required' switch to ON.",
+            "Required fields show a red asterisk (*) and block submission if left empty."
+          ]
+        },
+        "f-3": {
+          "question": "Can I reorder form fields?",
+          "answer": [
+            "Yes — drag and drop fields in the form builder to reorder them.",
+            "Use the drag handle (⠿) on the left side of each field.",
+            "Click Save after reordering."
+          ]
+        },
+        "f-4": {
+          "question": "How do I set a custom success message?",
+          "answer": [
+            "In the form settings, find the 'Success Message' field.",
+            "Enter the message you want customers to see after submitting.",
+            "Default: 'Thank you! Your form has been submitted.'"
+          ]
+        }
+      }
+    },
+    "troubleshooting": {
+      "title": "Troubleshooting",
+      "items": {
+        "ts-1": {
+          "question": "The form shows 'Unable to load form. Please check the Form ID.'",
+          "answer": [
+            "This means the form block can't reach the SmartFormly API. Check:",
+            "1. Form ID — Make sure the correct Form ID is in the theme block settings.",
+            "2. Form is Active — Confirm the form status is Active in your dashboard.",
+            "3. App Embed enabled — The SmartFormly App Embed must be toggled ON."
+          ]
+        },
+        "ts-2": {
+          "question": "The form loads but submission fails.",
+          "answer": [
+            "Check these:",
+            "1. Required fields — Make sure all required fields are filled correctly.",
+            "2. Email validation — Email fields only accept valid email addresses.",
+            "3. Open browser DevTools (F12) → Network tab and look for a failed POST to /api/submit/.",
+            "4. Contact support with the error details."
+          ]
+        },
+        "ts-3": {
+          "question": "I'm not receiving email notifications for submissions.",
+          "answer": [
+            "1. Go to Settings → Email Notifications and confirm your notification email is correct.",
+            "2. Check your spam/junk folder.",
+            "3. Verify SMTP or Gmail credentials in Settings are correct.",
+            "4. Try submitting a test form and check for email errors."
+          ]
+        },
+        "ts-4": {
+          "question": "The app is loading slowly or showing errors.",
+          "answer": [
+            "1. Refresh the page (Ctrl+R or Cmd+R).",
+            "2. Clear your browser cache.",
+            "3. Try a different browser.",
+            "4. If the error persists, take a screenshot and contact our support team."
+          ]
+        }
+      }
+    }
+  }
+}

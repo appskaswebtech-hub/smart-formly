@@ -1,0 +1,98 @@
+{
+  "title": "Settings",
+  "verify": "Verify",
+  "submit": "Submit",
+  "tabs": {
+    "basic": "Basic",
+    "language": "Language",
+    "blockedDomains": "Blocked domains",
+    "integrations": "Integrations"
+  },
+  "language": {
+    "title": "App language",
+    "desc": "Choose the language for the SmartFormly admin interface.",
+    "label": "Language",
+    "help": "This applies to every page in the app and is saved for your store."
+  },
+  "basic": {
+    "monthlyTitle": "Monthly analysis",
+    "monthlyDesc": "Our monthly analysis emails will keep you up to date on your store's success with our app.",
+    "monthlyOptOut": "I don't want to receive monthly analysis emails.",
+    "altEmailLabel": "Alternative email address (optional)",
+    "altEmailPlaceholder": "Email for monthly analysis",
+    "altEmailHelp": "By default, it will be sent to your store admin email.",
+    "themeTitle": "Theme change/update notification",
+    "themeDesc": "This email is triggered and sent to the store owner every time there is a change to your theme files.",
+    "themeOptIn": "I agree to receive theme change/update email notifications."
+  },
+  "blockedDomains": {
+    "title": "Blocked domains",
+    "desc": "If you wish to block certain email domains use this settings page to do so.",
+    "label": "Email domains to block",
+    "placeholder": "example.com, another-example.com",
+    "help": "Enter the domain (e.g., \"gmail.com\") to block all emails from it, or enter a full email (e.g., \"user@gmail.com\") to block only that address. Don't include \"www\" or \"@\"."
+  },
+  "apiTokens": {
+    "title": "API Tokens",
+    "newKey": "New API Key",
+    "columns": {
+      "name": "Name",
+      "supportEmail": "Support email",
+      "token": "Token",
+      "copy": "Copy",
+      "lastUpdated": "Last updated",
+      "actions": "Actions"
+    },
+    "noRecords": "No records available"
+  },
+  "domainSetup": {
+    "title": "Sending domain",
+    "methodLabel": "Sending domain settings method you want to use",
+    "docsHint": "You can follow the custom domain setup instruction from <link>here</link>.",
+    "detailsHeading": "Domain details",
+    "serverLabel": "Server address",
+    "portLabel": "Port",
+    "emailLabel": "Email",
+    "authHeading": "Domain authentication",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Password",
+    "authLabel": "Authentication",
+    "sslLabel": "Enable SSL",
+    "sslTrue": "True",
+    "sslFalse": "False",
+    "verifyNote": "Note: Please verify SMTP details before submitting."
+  },
+  "payment": {
+    "title": "Payment integration",
+    "typeLabel": "Select Payment type",
+    "connectHeading": "Connect to {{provider}}",
+    "publishableKey": "Publishable Key",
+    "secretKey": "Secret Key",
+    "docsHint": "You can get your {{provider}} Key from <link>here</link>."
+  },
+  "emailService": {
+    "title": "Mail integration",
+    "typeLabel": "Select integration type",
+    "connectHeading": "Connect {{service}}",
+    "keyLabel": "{{service}} Key",
+    "docsHint": "You can get your {{service}} key from <link>here</link>."
+  },
+  "zerobounce": {
+    "title": "Zerobounce integration",
+    "connectHeading": "Connect to Zerobounce",
+    "keyLabel": "Zerobounce Key",
+    "docsHint": "You can get your Zerobounce Key from <link>here</link>."
+  },
+  "integrations": {
+    "apiTokens": "API Tokens",
+    "domainSetup": "Domain setup",
+    "payment": "Payment integration",
+    "emailService": "Email service provider",
+    "zerobounce": "Zerobounce Email Validation"
+  },
+  "footer": {
+    "tagline": "The Form Builder app.",
+    "privacy": "Privacy policy",
+    "terms": "Terms and conditions"
+  }
+}

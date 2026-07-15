@@ -9,7 +9,10 @@ import {
   ChevronDownIcon, NoteIcon, FlagIcon, SearchIcon,
 } from "@shopify/polaris-icons";
 import { useState, useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { authenticate } from "../shopify.server";
+
+export const handle = { i18n: ["help", "common"] };
 
 // ── Extension config ──────────────────────────────────────────────────────────
 const EXTENSION_UUID   = "b6e78f32-b464-3f93-fdf4-9265df8aeaaa73b1a718";
@@ -36,210 +39,42 @@ interface FAQSection {
   items: FAQItem[];
 }
 
-const FAQ_SECTIONS: FAQSection[] = [
+// Only the shape lives here — every question/answer comes from the `help`
+// namespace under `faq.<sectionId>.items.<itemId>`, resolved at render time.
+const FAQ_STRUCTURE: {
+  id: string;
+  icon: string;
+  hasBadge?: boolean;
+  items: { id: string; isEmbed?: boolean }[];
+}[] = [
   {
     id: "setup",
-    title: "Setting Up SmartFormly on Your Store",
     icon: "🔌",
-    badge: "Start Here",
-    items: [
-      {
-        id: "setup-1",
-        question: "How do I enable SmartFormly on my storefront? (App Embed)",
-        isEmbed: true,
-        answer: [
-          "Go to Online Store → Themes → Customize in your Shopify admin.",
-          "Click the puzzle piece icon (App Embeds) in the left sidebar.",
-          "Find SmartFormly in the list and toggle it ON.",
-          "Click Save in the top right corner.",
-          "SmartFormly is now active on your storefront!",
-        ],
-      },
-      {
-        id: "setup-2",
-        question: "How do I add a form to a specific page?",
-        answer: [
-          "Once the App Embed is enabled, add forms to any page:",
-          "1. Go to Online Store → Themes → Customize.",
-          "2. Navigate to the page where you want to show the form.",
-          "3. Click 'Add section' or 'Add block' in the left sidebar.",
-          "4. Search for 'SmartFormly' and select the form block.",
-          "5. In the block settings panel, select your form from the dropdown.",
-          "6. Click Save.",
-        ],
-      },
-      {
-        id: "setup-3",
-        question: "Why isn't my form showing on the storefront?",
-        answer: [
-          "Check these common causes in order:",
-          "1. App Embed — Make sure the SmartFormly App Embed toggle is ON in the theme editor.",
-          "2. Form status — Confirm the form is set to 'Active' in the SmartFormly dashboard.",
-          "3. Form block — Verify the SmartFormly block is added to the correct page with the right form selected.",
-          "4. Browser cache — Try viewing your store in an incognito/private browser window.",
-        ],
-      },
-      {
-        id: "setup-4",
-        question: "Do I need to edit my theme code?",
-        answer: [
-          "No code editing needed. SmartFormly uses Shopify's App Blocks system which works with all Online Store 2.0 themes.",
-          "Simply enable the App Embed in the theme editor and add the form block to any page.",
-          "If you're using a vintage theme (pre-OS 2.0), please contact our support team.",
-        ],
-      },
-    ],
+    hasBadge: true,
+    items: [{ id: "setup-1", isEmbed: true }, { id: "setup-2" }, { id: "setup-3" }, { id: "setup-4" }],
   },
   {
     id: "getting-started",
-    title: "Getting Started",
     icon: "🚀",
-    items: [
-      {
-        id: "gs-1",
-        question: "How do I create my first form?",
-        answer: [
-          "Creating your first form is simple:",
-          "1. Click 'Create Form' on the Dashboard or go to Forms → New Form.",
-          "2. Give your form a name.",
-          "3. Add fields using the field palette (text, email, phone, dropdown, etc.).",
-          "4. Customize the design — colors, border, button style.",
-          "5. Set the form to Active.",
-          "6. Click Save — your form is now ready to embed in your store.",
-        ],
-      },
-      {
-        id: "gs-2",
-        question: "How do I find my Form ID?",
-        answer: [
-          "Your Form ID is shown in the Forms list on the Dashboard.",
-          "Click the Form ID column to copy it to your clipboard automatically.",
-          "You can also find it in the form settings page — it appears below the form name.",
-        ],
-      },
-      {
-        id: "gs-3",
-        question: "Where do I see form submissions?",
-        answer: [
-          "Go to the Forms page and click 'Submissions' on any form.",
-          "You can view each submission in detail, see a data preview, and delete individual or all submissions.",
-          "If you've set up email notifications in Settings, you'll also receive an email for each new submission.",
-        ],
-      },
-      {
-        id: "gs-4",
-        question: "Can I have multiple forms on my store?",
-        answer: [
-          "Yes — you can create as many forms as you need.",
-          "Each form has a unique ID and can be placed independently on different pages.",
-          "Simply add multiple SmartFormly blocks in the theme editor and assign a different form to each one.",
-        ],
-      },
-    ],
+    items: [{ id: "gs-1" }, { id: "gs-2" }, { id: "gs-3" }, { id: "gs-4" }],
   },
   {
     id: "forms",
-    title: "Forms & Fields",
     icon: "📋",
-    items: [
-      {
-        id: "f-1",
-        question: "What field types are available?",
-        answer: [
-          "SmartFormly supports the following field types:",
-          "Text — single line text input",
-          "Email — email address with validation",
-          "Phone — phone number input",
-          "Textarea — multi-line text",
-          "Dropdown / Select — choose from a list of options",
-          "Checkbox — single or multiple checkbox options",
-          "Number — numeric input",
-          "Date — date picker",
-          "File upload — allow customers to attach files",
-        ],
-      },
-      {
-        id: "f-2",
-        question: "How do I make a field required?",
-        answer: [
-          "Click on the field in the form builder to open its settings.",
-          "Toggle the 'Required' switch to ON.",
-          "Required fields show a red asterisk (*) and block submission if left empty.",
-        ],
-      },
-      {
-        id: "f-3",
-        question: "Can I reorder form fields?",
-        answer: [
-          "Yes — drag and drop fields in the form builder to reorder them.",
-          "Use the drag handle (⠿) on the left side of each field.",
-          "Click Save after reordering.",
-        ],
-      },
-      {
-        id: "f-4",
-        question: "How do I set a custom success message?",
-        answer: [
-          "In the form settings, find the 'Success Message' field.",
-          "Enter the message you want customers to see after submitting.",
-          "Default: 'Thank you! Your form has been submitted.'",
-        ],
-      },
-    ],
+    items: [{ id: "f-1" }, { id: "f-2" }, { id: "f-3" }, { id: "f-4" }],
   },
   {
     id: "troubleshooting",
-    title: "Troubleshooting",
     icon: "🔧",
-    items: [
-      {
-        id: "ts-1",
-        question: "The form shows 'Unable to load form. Please check the Form ID.'",
-        answer: [
-          "This means the form block can't reach the SmartFormly API. Check:",
-          "1. Form ID — Make sure the correct Form ID is in the theme block settings.",
-          "2. Form is Active — Confirm the form status is Active in your dashboard.",
-          "3. App Embed enabled — The SmartFormly App Embed must be toggled ON.",
-        ],
-      },
-      {
-        id: "ts-2",
-        question: "The form loads but submission fails.",
-        answer: [
-          "Check these:",
-          "1. Required fields — Make sure all required fields are filled correctly.",
-          "2. Email validation — Email fields only accept valid email addresses.",
-          "3. Open browser DevTools (F12) → Network tab and look for a failed POST to /api/submit/.",
-          "4. Contact support with the error details.",
-        ],
-      },
-      {
-        id: "ts-3",
-        question: "I'm not receiving email notifications for submissions.",
-        answer: [
-          "1. Go to Settings → Email Notifications and confirm your notification email is correct.",
-          "2. Check your spam/junk folder.",
-          "3. Verify SMTP or Gmail credentials in Settings are correct.",
-          "4. Try submitting a test form and check for email errors.",
-        ],
-      },
-      {
-        id: "ts-4",
-        question: "The app is loading slowly or showing errors.",
-        answer: [
-          "1. Refresh the page (Ctrl+R or Cmd+R).",
-          "2. Clear your browser cache.",
-          "3. Try a different browser.",
-          "4. If the error persists, take a screenshot and contact our support team.",
-        ],
-      },
-    ],
+    items: [{ id: "ts-1" }, { id: "ts-2" }, { id: "ts-3" }, { id: "ts-4" }],
   },
 ];
+
 
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function HelpAndSupport() {
   const { shop } = useLoaderData<typeof loader>();
+  const { t } = useTranslation(["help", "common"]);
 
   const appEmbedUrl =
     `https://${shop}/admin/themes/current/editor` +
@@ -268,10 +103,31 @@ export default function HelpAndSupport() {
     });
   }, []);
 
+  // Resolve the FAQ copy for the active language. Built before filtering so the
+  // search matches what the merchant actually reads, not the English source.
+  const faqSections: FAQSection[] = useMemo(
+    () =>
+      FAQ_STRUCTURE.map((section) => ({
+        id: section.id,
+        icon: section.icon,
+        title: t(`faq.${section.id}.title`),
+        badge: section.hasBadge ? t(`faq.${section.id}.badge`) : undefined,
+        items: section.items.map((item) => ({
+          id: item.id,
+          isEmbed: item.isEmbed,
+          question: t(`faq.${section.id}.items.${item.id}.question`),
+          answer: t(`faq.${section.id}.items.${item.id}.answer`, {
+            returnObjects: true,
+          }) as unknown as string[],
+        })),
+      })),
+    [t],
+  );
+
   const filteredSections = useMemo(() => {
-    if (!searchQuery.trim()) return FAQ_SECTIONS;
+    if (!searchQuery.trim()) return faqSections;
     const q = searchQuery.toLowerCase();
-    return FAQ_SECTIONS.map((section) => ({
+    return faqSections.map((section) => ({
       ...section,
       items: section.items.filter(
         (item) =>
@@ -279,49 +135,48 @@ export default function HelpAndSupport() {
           item.answer.some((line) => line.toLowerCase().includes(q))
       ),
     })).filter((section) => section.items.length > 0);
-  }, [searchQuery]);
+  }, [faqSections, searchQuery]);
 
   const totalResults = filteredSections.reduce((sum, s) => sum + s.items.length, 0);
 
   return (
-    <Page backAction={{ content: "Home", url: "/app" }} title="Help & Support">
+    <Page backAction={{ content: t("backHome"), url: "/app" }} title={t("title")}>
       <BlockStack gap="400">
 
         {/* ── Banners ── */}
         {showChatBanner && (
           <Banner tone="success" onDismiss={() => setShowChatBanner(false)}>
-            <p>Email compose opened! Send us your question and we'll get back to you shortly.</p>
+            <p>{t("banners.chat")}</p>
           </Banner>
         )}
         {showEmailBanner && (
           <Banner tone="success" onDismiss={() => setShowEmailBanner(false)}>
-            <p>Email compose opened! We'll get back to you within a few hours.</p>
+            <p>{t("banners.email")}</p>
           </Banner>
         )}
 
         {/* ── Quick Setup Banner ── */}
         <Banner
-          title="Enable SmartFormly on your storefront"
+          title={t("setupBanner.title")}
           tone="info"
           action={{
-            content: "Open App Embeds Panel →",
+            content: t("setupBanner.action"),
             onAction: () => window.open(appEmbedUrl, "_blank"),
           }}
         >
           <Text as="p" tone="subdued">
-            Open the theme editor and toggle SmartFormly ON in the App Embeds panel
-            to start showing forms on your store.
+            {t("setupBanner.body")}
           </Text>
         </Banner>
 
         {/* ── Search ── */}
         <Card>
           <BlockStack gap="300">
-            <Text as="h2" variant="headingMd">How can we help you?</Text>
+            <Text as="h2" variant="headingMd">{t("search.heading")}</Text>
             <TextField
               label=""
               labelHidden
-              placeholder="Search for answers... e.g. 'how to create form' or 'app embed'"
+              placeholder={t("search.placeholder")}
               value={searchQuery}
               onChange={setSearchQuery}
               autoComplete="off"
@@ -331,7 +186,7 @@ export default function HelpAndSupport() {
             />
             {searchQuery && (
               <Text as="p" variant="bodySm" tone="subdued">
-                {totalResults} result{totalResults !== 1 ? "s" : ""} found
+                {t("search.results", { count: totalResults })}
               </Text>
             )}
           </BlockStack>
@@ -363,7 +218,7 @@ export default function HelpAndSupport() {
                     {section.badge && <Badge tone="info">{section.badge}</Badge>}
                   </InlineStack>
                   <Text as="p" variant="bodySm" tone="subdued">
-                    {section.items.length} article{section.items.length !== 1 ? "s" : ""}
+                    {t("articles", { count: section.items.length })}
                   </Text>
                 </div>
               </div>
@@ -441,7 +296,7 @@ export default function HelpAndSupport() {
                                   variant="primary"
                                   onClick={() => window.open(appEmbedUrl, "_blank")}
                                 >
-                                  Open App Embeds Panel →
+                                  {t("openEmbedPanel")}
                                 </Button>
                               </div>
                             </>
@@ -466,10 +321,10 @@ export default function HelpAndSupport() {
           <Card>
             <BlockStack gap="300" inlineAlign="center">
               <Text as="p" variant="bodyMd" alignment="center">
-                No articles found for "{searchQuery}"
+                {t("noResults.heading", { query: searchQuery })}
               </Text>
               <Text as="p" variant="bodySm" tone="subdued" alignment="center">
-                Try different keywords or contact our support team below
+                {t("noResults.body")}
               </Text>
             </BlockStack>
           </Card>
@@ -489,8 +344,8 @@ export default function HelpAndSupport() {
               <InlineStack gap="300" blockAlign="center">
                 <Icon source={NoteIcon} tone="base" />
                 <BlockStack gap="0">
-                  <Text as="h3" variant="headingSm">Documentation</Text>
-                  <Text as="p" variant="bodySm" tone="subdued">Full guides and reference</Text>
+                  <Text as="h3" variant="headingSm">{t("links.docs")}</Text>
+                  <Text as="p" variant="bodySm" tone="subdued">{t("links.docsSub")}</Text>
                 </BlockStack>
               </InlineStack>
               <Icon source={ExternalIcon} tone="subdued" />
@@ -507,8 +362,8 @@ export default function HelpAndSupport() {
               <InlineStack gap="300" blockAlign="center">
                 <Icon source={FlagIcon} tone="base" />
                 <BlockStack gap="0">
-                  <Text as="h3" variant="headingSm">Feature Request</Text>
-                  <Text as="p" variant="bodySm" tone="subdued">Suggest new features</Text>
+                  <Text as="h3" variant="headingSm">{t("links.feature")}</Text>
+                  <Text as="p" variant="bodySm" tone="subdued">{t("links.featureSub")}</Text>
                 </BlockStack>
               </InlineStack>
               <Icon source={ExternalIcon} tone="subdued" />
@@ -519,9 +374,9 @@ export default function HelpAndSupport() {
         {/* ── Contact Support ── */}
         <Card>
           <BlockStack gap="400">
-            <Text as="h2" variant="headingMd">Still need help?</Text>
+            <Text as="h2" variant="headingMd">{t("contact.heading")}</Text>
             <Text as="p" variant="bodySm" tone="subdued">
-              Can't find what you're looking for? Our support team is ready to assist you.
+              {t("contact.body")}
             </Text>
             <InlineGrid columns={2} gap="400">
 
@@ -535,9 +390,9 @@ export default function HelpAndSupport() {
                   <div style={{ width: "52px", height: "52px", borderRadius: "50%", background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto" }}>
                     <Icon source={ChatIcon} tone="base" />
                   </div>
-                  <Text as="h3" variant="headingSm" alignment="center">Chat with us</Text>
-                  <Text as="p" variant="bodySm" tone="subdued" alignment="center">Talk with our team now.</Text>
-                  <Badge tone="success">Typically replies in minutes</Badge>
+                  <Text as="h3" variant="headingSm" alignment="center">{t("contact.chat")}</Text>
+                  <Text as="p" variant="bodySm" tone="subdued" alignment="center">{t("contact.chatSub")}</Text>
+                  <Badge tone="success">{t("contact.chatBadge")}</Badge>
                 </BlockStack>
               </div>
 
@@ -551,9 +406,9 @@ export default function HelpAndSupport() {
                   <div style={{ width: "52px", height: "52px", borderRadius: "50%", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto" }}>
                     <Icon source={EmailIcon} tone="base" />
                   </div>
-                  <Text as="h3" variant="headingSm" alignment="center">Email us</Text>
-                  <Text as="p" variant="bodySm" tone="subdued" alignment="center">Send us a detailed message.</Text>
-                  <Badge tone="info">Replies within a few hours</Badge>
+                  <Text as="h3" variant="headingSm" alignment="center">{t("contact.email")}</Text>
+                  <Text as="p" variant="bodySm" tone="subdued" alignment="center">{t("contact.emailSub")}</Text>
+                  <Badge tone="info">{t("contact.emailBadge")}</Badge>
                 </BlockStack>
               </div>
 

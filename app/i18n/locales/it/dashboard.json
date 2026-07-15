@@ -1,0 +1,42 @@
+{
+  "title": "Ciao! 👋 Pronto a creare?",
+  "banner": {
+    "title": "Attiva SmartFormly sul tuo negozio",
+    "action": "Attiva App Embed →",
+    "body": "Attiva l'app embed di SmartFormly nell'editor dei temi per iniziare a mostrare i moduli sul tuo negozio. Fai clic sul pulsante per aprire l'editor dei temi, poi attiva SmartFormly e salva."
+  },
+  "stats": {
+    "formsCreated": "Moduli creati",
+    "formSubmissions": "Invii dei moduli",
+    "activeForms": "Moduli attivi"
+  },
+  "quickActions": {
+    "createForm": {
+      "title": "Crea un modulo",
+      "body": "Crea e personalizza i moduli per raccogliere le informazioni di cui hai bisogno.",
+      "cta": "+ Crea modulo"
+    },
+    "enableStorefront": {
+      "title": "Attiva sul negozio",
+      "body": "Attiva l'embed di SmartFormly nell'editor dei temi per mostrare i moduli sul tuo negozio.",
+      "cta": "Apri editor dei temi →"
+    },
+    "learnMore": {
+      "title": "Scopri di più",
+      "body": "Guide, consigli e risposte per sfruttare al meglio SmartFormly.",
+      "cta": "Vai alla knowledge base"
+    }
+  },
+  "formsTable": {
+    "heading": "I tuoi moduli",
+    "columns": {
+      "name": "Nome del modulo",
+      "id": "ID modulo",
+      "status": "Stato",
+      "submissions": "Invii",
+      "created": "Creato",
+      "actions": "Azioni"
+    },
+    "viewSubmissions": "Invii"
+  }
+}

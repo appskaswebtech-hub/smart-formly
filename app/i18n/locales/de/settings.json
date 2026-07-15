@@ -1,0 +1,98 @@
+{
+  "title": "Einstellungen",
+  "verify": "Überprüfen",
+  "submit": "Absenden",
+  "tabs": {
+    "basic": "Allgemein",
+    "language": "Sprache",
+    "blockedDomains": "Gesperrte Domains",
+    "integrations": "Integrationen"
+  },
+  "language": {
+    "title": "App-Sprache",
+    "desc": "Wählen Sie die Sprache für die SmartFormly-Verwaltungsoberfläche.",
+    "label": "Sprache",
+    "help": "Dies gilt für jede Seite der App und wird für Ihren Shop gespeichert."
+  },
+  "basic": {
+    "monthlyTitle": "Monatliche Auswertung",
+    "monthlyDesc": "Unsere monatlichen Auswertungs-E-Mails halten dich über den Erfolg deines Shops mit unserer App auf dem Laufenden.",
+    "monthlyOptOut": "Ich möchte keine monatlichen Auswertungs-E-Mails erhalten.",
+    "altEmailLabel": "Alternative E-Mail-Adresse (optional)",
+    "altEmailPlaceholder": "E-Mail für die monatliche Auswertung",
+    "altEmailHelp": "Standardmäßig wird sie an die Admin-E-Mail deines Shops gesendet.",
+    "themeTitle": "Benachrichtigung bei Theme-Änderungen",
+    "themeDesc": "Diese E-Mail wird ausgelöst und an den Shop-Inhaber gesendet, sobald sich deine Theme-Dateien ändern.",
+    "themeOptIn": "Ich stimme zu, E-Mail-Benachrichtigungen bei Theme-Änderungen zu erhalten."
+  },
+  "blockedDomains": {
+    "title": "Gesperrte Domains",
+    "desc": "Wenn du bestimmte E-Mail-Domains sperren möchtest, nutze diese Einstellungsseite.",
+    "label": "Zu sperrende E-Mail-Domains",
+    "placeholder": "beispiel.com, anderes-beispiel.com",
+    "help": "Gib die Domain ein (z. B. „gmail.com“), um alle E-Mails von dort zu sperren, oder eine vollständige E-Mail-Adresse (z. B. „user@gmail.com“), um nur diese Adresse zu sperren. Gib dabei kein „www“ oder „@“ an."
+  },
+  "apiTokens": {
+    "title": "API-Tokens",
+    "newKey": "Neuer API-Schlüssel",
+    "columns": {
+      "name": "Name",
+      "supportEmail": "Support-E-Mail",
+      "token": "Token",
+      "copy": "Kopieren",
+      "lastUpdated": "Zuletzt aktualisiert",
+      "actions": "Aktionen"
+    },
+    "noRecords": "Keine Einträge vorhanden"
+  },
+  "domainSetup": {
+    "title": "Versand-Domain",
+    "methodLabel": "Methode für die Einstellungen der Versand-Domain",
+    "docsHint": "Die Anleitung zur Einrichtung einer eigenen Domain findest du <link>hier</link>.",
+    "detailsHeading": "Domain-Details",
+    "serverLabel": "Serveradresse",
+    "portLabel": "Port",
+    "emailLabel": "E-Mail",
+    "authHeading": "Domain-Authentifizierung",
+    "passwordLabel": "Passwort",
+    "passwordPlaceholder": "Passwort",
+    "authLabel": "Authentifizierung",
+    "sslLabel": "SSL aktivieren",
+    "sslTrue": "Wahr",
+    "sslFalse": "Falsch",
+    "verifyNote": "Hinweis: Bitte überprüfe die SMTP-Daten, bevor du sie absendest."
+  },
+  "payment": {
+    "title": "Zahlungsintegration",
+    "typeLabel": "Zahlungsart auswählen",
+    "connectHeading": "Mit {{provider}} verbinden",
+    "publishableKey": "Veröffentlichbarer Schlüssel",
+    "secretKey": "Geheimer Schlüssel",
+    "docsHint": "Deinen {{provider}}-Schlüssel erhältst du <link>hier</link>."
+  },
+  "emailService": {
+    "title": "Mail-Integration",
+    "typeLabel": "Integrationstyp auswählen",
+    "connectHeading": "{{service}} verbinden",
+    "keyLabel": "{{service}}-Schlüssel",
+    "docsHint": "Deinen {{service}}-Schlüssel erhältst du <link>hier</link>."
+  },
+  "zerobounce": {
+    "title": "Zerobounce-Integration",
+    "connectHeading": "Mit Zerobounce verbinden",
+    "keyLabel": "Zerobounce-Schlüssel",
+    "docsHint": "Deinen Zerobounce-Schlüssel erhältst du <link>hier</link>."
+  },
+  "integrations": {
+    "apiTokens": "API-Tokens",
+    "domainSetup": "Domain-Einrichtung",
+    "payment": "Zahlungsintegration",
+    "emailService": "E-Mail-Dienstanbieter",
+    "zerobounce": "Zerobounce E-Mail-Validierung"
+  },
+  "footer": {
+    "tagline": "Die Form-Builder-App.",
+    "privacy": "Datenschutzerklärung",
+    "terms": "Allgemeine Geschäftsbedingungen"
+  }
+}

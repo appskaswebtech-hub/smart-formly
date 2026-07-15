@@ -1,0 +1,27 @@
+{
+  "smartformly": {
+    "form": {
+      "name": "Smart Formly",
+      "settings": {
+        "form_id": {
+          "label": "ID modulo",
+          "info": "Inserisci l'ID del modulo dalla dashboard della tua app SmartFormly"
+        },
+        "max_width": {
+          "label": "Larghezza massima"
+        },
+        "section_padding": {
+          "label": "Spaziatura della sezione"
+        }
+      }
+    },
+    "app_embed": {
+      "name": "SmartFormly",
+      "settings": {
+        "paragraph": {
+          "content": "SmartFormly è attivo sul tuo negozio. Aggiungi la sezione SmartFormly a qualsiasi pagina per mostrare i tuoi moduli."
+        }
+      }
+    }
+  }
+}

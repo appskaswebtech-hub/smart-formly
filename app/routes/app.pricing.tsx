@@ -7,10 +7,15 @@ import {
 } from "@shopify/polaris";
 import { CheckIcon, XIcon } from "@shopify/polaris-icons";
 import { boundary } from "@shopify/shopify-app-remix/server";
+import { Trans, useTranslation } from "react-i18next";
 import { authenticate } from "../shopify.server";
 import { useState } from "react";
 
+export const handle = { i18n: ["pricing", "common"] };
+
 // ─── Billing plan name map ────────────────────────────────────────────────────
+// NOT translatable — these are keys into the `billing` config in shopify.server.ts
+// and Shopify's billing API. Translating them breaks checkout.
 const PLAN_NAME_MAP: Record<string, string> = {
   base:    "Base Monthly",
   pro:     "Pro Monthly",
@@ -57,58 +62,39 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 // ─── Static data ──────────────────────────────────────────────────────────────
+// `name` is a product tier, not prose — left untranslated on purpose.
+// `highlights` / FEATURES hold translation keys resolved at render time.
+const HIGHLIGHT_KEYS = [
+  "designCustomization",
+  "exportSubmissions",
+  "multipleRecipients",
+  "multipleNotifications",
+];
+
 const PLANS = [
-  {
-    id: "base",
-    name: "Base",
-    price: 9.99,
-    trialDays: 7,
-    highlights: [
-      "Full design customization",
-      "Export form submissions",
-      "Multiple recipients for form submissions",
-      "Multiple admin notifications",
-    ],
-  },
-  {
-    id: "pro",
-    name: "Pro",
-    price: 17.99,
-    trialDays: 7,
-    highlights: [
-      "Full design customization",
-      "Export form submissions",
-      "Multiple recipients for form submissions",
-      "Multiple admin notifications",
-    ],
-  },
-  {
-    id: "proplus",
-    name: "Pro+",
-    price: 25.99,
-    trialDays: 7,
-    highlights: [
-      "Full design customization",
-      "Export form submissions",
-      "Multiple recipients for form submissions",
-      "Multiple admin notifications",
-    ],
-  },
+  { id: "base",    name: "Base", price: 9.99,  trialDays: 7, highlights: HIGHLIGHT_KEYS },
+  { id: "pro",     name: "Pro",  price: 17.99, trialDays: 7, highlights: HIGHLIGHT_KEYS },
+  { id: "proplus", name: "Pro+", price: 25.99, trialDays: 7, highlights: HIGHLIGHT_KEYS },
 ];
 
-const FEATURES: { label: string; values: [boolean, boolean, boolean] }[] = [
-  { label: "Bing UET pixel ID",                      values: [false, true, true] },
-  { label: "Advanced JS",                            values: [false, true, true] },
-  { label: "Advanced CSS",                           values: [false, true, true] },
-  { label: "API available",                          values: [false, true, true] },
-  { label: "Customize form message",                 values: [false, true, true] },
-  { label: "Hidden field",                           values: [false, true, true] },
-  { label: "Restrict form submissions per one user", values: [false, true, true] },
-  { label: "UTM tracking",                           values: [false, true, true] },
+const FEATURES: { key: string; values: [boolean, boolean, boolean] }[] = [
+  { key: "bingUet",             values: [false, true, true] },
+  { key: "advancedJs",          values: [false, true, true] },
+  { key: "advancedCss",         values: [false, true, true] },
+  { key: "apiAvailable",        values: [false, true, true] },
+  { key: "customizeMessage",    values: [false, true, true] },
+  { key: "hiddenField",         values: [false, true, true] },
+  { key: "restrictSubmissions", values: [false, true, true] },
+  { key: "utmTracking",         values: [false, true, true] },
 ];
 
-function formatPrice(n: number) {
-  return `$${n.toFixed(2)}`;
+// Charged in USD (see the `billing` config in shopify.server.ts), but the
+// number format follows the merchant's language — German renders "9,99 $".
+function formatPrice(n: number, locale: string) {
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency: "USD",
+  }).format(n);
 }
 
 // ─── Choose Plan button ───────────────────────────────────────────────────────
@@ -123,12 +109,13 @@ function ChoosePlanButton({
 }) {
   const fetcher = useFetcher();
   const loading = fetcher.state !== "idle";
+  const { t } = useTranslation("pricing");
 
   return (
     <fetcher.Form method="post">
       <input type="hidden" name="planName" value={PLAN_NAME_MAP[planId]} />
       <Button variant="primary" fullWidth={fullWidth} size={size} submit loading={loading}>
-        Choose Plan
+        {t("choosePlan")}
       </Button>
     </fetcher.Form>
   );
@@ -137,14 +124,15 @@ function ChoosePlanButton({
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function PricingPage() {
   const [showAllFeatures, setShowAllFeatures] = useState(false);
+  const { t, i18n } = useTranslation(["pricing", "common"]);
 
   return (
-    <Page title="Pricing">
+    <Page title={t("title")}>
       <Layout>
 
         <Layout.Section>
           <Banner tone="info">
-            Click <strong>Choose Plan</strong> to activate billing directly through Shopify.
+            <Trans i18nKey="pricing:banner" components={{ bold: <strong /> }} />
           </Banner>
         </Layout.Section>
 
@@ -161,9 +149,9 @@ export default function PricingPage() {
                       </Text>
                       <InlineStack gap="100" blockAlign="baseline">
                         <Text as="p" variant="heading2xl">
-                          {formatPrice(plan.price)}
+                          {formatPrice(plan.price, i18n.language)}
                         </Text>
-                        <Text as="span" variant="bodyMd" tone="subdued">/mo</Text>
+                        <Text as="span" variant="bodyMd" tone="subdued">{t("perMonth")}</Text>
                       </InlineStack>
                     </BlockStack>
 
@@ -171,19 +159,19 @@ export default function PricingPage() {
 
                     {plan.trialDays && (
                       <Text as="p" variant="bodySm" tone="subdued" alignment="center">
-                        {plan.trialDays}-day free trial
+                        {t("trial", { count: plan.trialDays })}
                       </Text>
                     )}
 
                     <Divider />
 
                     <BlockStack gap="200">
-                      {plan.highlights.map((feature) => (
-                        <InlineStack key={feature} gap="200" blockAlign="start" wrap={false}>
+                      {plan.highlights.map((key) => (
+                        <InlineStack key={key} gap="200" blockAlign="start" wrap={false}>
                           <Box>
                             <Icon source={CheckIcon} tone="success" />
                           </Box>
-                          <Text as="span" variant="bodyMd">{feature}</Text>
+                          <Text as="span" variant="bodyMd">{t(`highlights.${key}`)}</Text>
                         </InlineStack>
                       ))}
                     </BlockStack>
@@ -198,7 +186,7 @@ export default function PricingPage() {
         <Layout.Section>
           <InlineStack align="center">
             <Button variant="tertiary" onClick={() => setShowAllFeatures((v) => !v)}>
-              {showAllFeatures ? "Hide all features" : "Show all features"}
+              {showAllFeatures ? t("hideAllFeatures") : t("showAllFeatures")}
             </Button>
           </InlineStack>
         </Layout.Section>
@@ -213,13 +201,13 @@ export default function PricingPage() {
                 borderColor="border"
               >
                 <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 16, alignItems: "center" }}>
-                  <Text as="h3" variant="headingSm">{PLANS.length} plans available</Text>
+                  <Text as="h3" variant="headingSm">{t("plansAvailable", { count: PLANS.length })}</Text>
                   {PLANS.map((plan) => (
                     <BlockStack key={plan.id} gap="200" inlineAlign="center">
                       <InlineStack gap="100" blockAlign="baseline">
                         <Text as="span" variant="headingSm">{plan.name}</Text>
                         <Text as="span" variant="bodySm" tone="subdued">
-                          {formatPrice(plan.price)}/mo
+                          {formatPrice(plan.price, i18n.language)}{t("perMonth")}
                         </Text>
                       </InlineStack>
                       <ChoosePlanButton planId={plan.id} size="slim" />
@@ -231,13 +219,13 @@ export default function PricingPage() {
               <BlockStack gap="0">
                 {FEATURES.map((feature, idx) => (
                   <Box
-                    key={feature.label}
+                    key={feature.key}
                     padding="400"
                     borderBlockEndWidth={idx < FEATURES.length - 1 ? "025" : "0"}
                     borderColor="border"
                   >
                     <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 16, alignItems: "center" }}>
-                      <Text as="span" variant="bodyMd">{feature.label}</Text>
+                      <Text as="span" variant="bodyMd">{t(`features.${feature.key}`)}</Text>
                       {feature.values.map((included, i) => (
                         <div key={i} style={{ display: "flex", justifyContent: "center" }}>
                           <Icon

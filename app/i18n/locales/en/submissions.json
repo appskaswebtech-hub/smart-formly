@@ -1,0 +1,59 @@
+{
+  "all": {
+    "title": "All Submissions",
+    "backToForms": "Forms",
+    "recent": "Recent Submissions",
+    "emptyHeading": "No submissions yet",
+    "emptyBody": "Submissions will appear here once customers fill out your forms.",
+    "columns": {
+      "form": "Form",
+      "preview": "Preview",
+      "submitted": "Submitted",
+      "actions": "Actions"
+    },
+    "viewDetails": "View details",
+    "allInForm": "All in form",
+    "showing_one": "Showing {{count}} most recent submission",
+    "showing_other": "Showing {{count}} most recent submissions",
+    "unknownForm": "Unknown Form"
+  },
+  "modal": {
+    "title": "Submission — {{form}}",
+    "deleteThis": "Delete this submission",
+    "form": "Form",
+    "submitted": "Submitted",
+    "id": "ID",
+    "submittedData": "Submitted Data",
+    "confirmTitle": "Delete submission?",
+    "confirmBody": "This action cannot be undone. The submission will be permanently deleted."
+  },
+  "byForm": {
+    "title": "Submissions: {{name}}",
+    "subtitle_one": "{{count}} submission",
+    "subtitle_other": "{{count}} submissions",
+    "backToForms": "Back to forms",
+    "deleteAll": "Delete all submissions",
+    "totalSubmissions": "Total submissions",
+    "formStatus": "Form status",
+    "formFields": "Form fields",
+    "heading": "All Submissions",
+    "editForm": "Edit Form",
+    "emptyHeading": "No submissions yet",
+    "emptyBody": "Submissions will appear here once customers fill out your form. Make sure the form is embedded in your store and set to Active.",
+    "columns": {
+      "id": "ID",
+      "preview": "Data Preview",
+      "submitted": "Submitted",
+      "actions": "Actions"
+    },
+    "view": "View",
+    "confirmDeleteOne": "Are you sure you want to delete this submission?",
+    "confirmDeleteAll": "Delete ALL submissions for this form? This cannot be undone.",
+    "detailTitle": "Submission Details",
+    "idLabel": "ID:",
+    "submittedLabel": "Submitted:",
+    "formData": "Form Data",
+    "deletedOne": "Submission deleted",
+    "deletedAll": "All submissions deleted"
+  }
+}

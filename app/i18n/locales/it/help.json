@@ -1,0 +1,217 @@
+{
+  "title": "Aiuto e supporto",
+  "backHome": "Home",
+  "banners": {
+    "chat": "Finestra di composizione email aperta! Inviaci la tua domanda e ti risponderemo a breve.",
+    "email": "Finestra di composizione email aperta! Ti risponderemo entro poche ore."
+  },
+  "setupBanner": {
+    "title": "Attiva SmartFormly sul tuo negozio",
+    "action": "Apri il pannello App Embeds →",
+    "body": "Apri l'editor dei temi e attiva SmartFormly nel pannello App Embeds per iniziare a mostrare i moduli sul tuo negozio."
+  },
+  "search": {
+    "heading": "Come possiamo aiutarti?",
+    "placeholder": "Cerca risposte… es. «come creare un modulo» o «app embed»",
+    "results_one": "{{count}} risultato trovato",
+    "results_other": "{{count}} risultati trovati"
+  },
+  "articles_one": "{{count}} articolo",
+  "articles_other": "{{count}} articoli",
+  "noResults": {
+    "heading": "Nessun articolo trovato per «{{query}}»",
+    "body": "Prova con altre parole chiave oppure contatta il nostro team di supporto qui sotto"
+  },
+  "openEmbedPanel": "Apri il pannello App Embeds →",
+  "links": {
+    "docs": "Documentazione",
+    "docsSub": "Guide complete e riferimento",
+    "feature": "Richiesta di funzionalità",
+    "featureSub": "Proponi nuove funzionalità"
+  },
+  "contact": {
+    "heading": "Hai ancora bisogno di aiuto?",
+    "body": "Non trovi quello che cerchi? Il nostro team di supporto è pronto ad aiutarti.",
+    "chat": "Chatta con noi",
+    "chatSub": "Parla subito con il nostro team.",
+    "chatBadge": "Di solito risponde in pochi minuti",
+    "email": "Scrivici",
+    "emailSub": "Inviaci un messaggio dettagliato.",
+    "emailBadge": "Risponde entro poche ore"
+  },
+  "faq": {
+    "setup": {
+      "title": "Configurare SmartFormly sul tuo negozio",
+      "badge": "Inizia da qui",
+      "items": {
+        "setup-1": {
+          "question": "Come attivo SmartFormly sul mio negozio? (App Embed)",
+          "answer": [
+            "Vai su Negozio online → Temi → Personalizza nel tuo admin Shopify.",
+            "Fai clic sull'icona del pezzo di puzzle (App Embeds) nella barra laterale sinistra.",
+            "Trova SmartFormly nell'elenco e attivalo.",
+            "Fai clic su Salva in alto a destra.",
+            "SmartFormly è ora attivo sul tuo negozio!"
+          ]
+        },
+        "setup-2": {
+          "question": "Come aggiungo un modulo a una pagina specifica?",
+          "answer": [
+            "Una volta attivato l'App Embed, puoi aggiungere moduli a qualsiasi pagina:",
+            "1. Vai su Negozio online → Temi → Personalizza.",
+            "2. Vai alla pagina in cui vuoi mostrare il modulo.",
+            "3. Fai clic su «Aggiungi sezione» o «Aggiungi blocco» nella barra laterale sinistra.",
+            "4. Cerca «SmartFormly» e seleziona il blocco del modulo.",
+            "5. Nel pannello delle impostazioni del blocco, seleziona il tuo modulo dal menu a discesa.",
+            "6. Fai clic su Salva."
+          ]
+        },
+        "setup-3": {
+          "question": "Perché il mio modulo non appare sul negozio?",
+          "answer": [
+            "Controlla in ordine queste cause comuni:",
+            "1. App Embed — Assicurati che l'App Embed di SmartFormly sia attivo nell'editor dei temi.",
+            "2. Stato del modulo — Verifica che il modulo sia impostato su «Attivo» nella dashboard di SmartFormly.",
+            "3. Blocco del modulo — Verifica che il blocco SmartFormly sia inserito nella pagina giusta con il modulo corretto selezionato.",
+            "4. Cache del browser — Prova a visitare il tuo negozio in una finestra in incognito o privata."
+          ]
+        },
+        "setup-4": {
+          "question": "Devo modificare il codice del mio tema?",
+          "answer": [
+            "Non serve modificare il codice. SmartFormly usa il sistema App Blocks di Shopify, compatibile con tutti i temi Online Store 2.0.",
+            "Basta attivare l'App Embed nell'editor dei temi e aggiungere il blocco del modulo a qualsiasi pagina.",
+            "Se usi un tema datato (precedente a OS 2.0), contatta il nostro team di supporto."
+          ]
+        }
+      }
+    },
+    "getting-started": {
+      "title": "Per iniziare",
+      "items": {
+        "gs-1": {
+          "question": "Come creo il mio primo modulo?",
+          "answer": [
+            "Creare il tuo primo modulo è semplice:",
+            "1. Fai clic su «Crea modulo» nella dashboard oppure vai su Moduli → Nuovo modulo.",
+            "2. Dai un nome al tuo modulo.",
+            "3. Aggiungi i campi usando la palette dei campi (testo, email, telefono, menu a discesa ecc.).",
+            "4. Personalizza il design: colori, bordo, stile del pulsante.",
+            "5. Imposta il modulo su «Attivo».",
+            "6. Fai clic su Salva: il tuo modulo è pronto per essere integrato nel negozio."
+          ]
+        },
+        "gs-2": {
+          "question": "Come trovo l'ID del mio modulo?",
+          "answer": [
+            "L'ID del modulo è mostrato nell'elenco dei moduli nella dashboard.",
+            "Fai clic sulla colonna dell'ID modulo per copiarlo automaticamente negli appunti.",
+            "Lo trovi anche nella pagina delle impostazioni del modulo, sotto il nome del modulo."
+          ]
+        },
+        "gs-3": {
+          "question": "Dove vedo gli invii dei moduli?",
+          "answer": [
+            "Vai alla pagina Moduli e fai clic su «Invii» su un modulo qualsiasi.",
+            "Puoi vedere ogni invio nel dettaglio, consultare un'anteprima dei dati ed eliminare singoli invii o tutti.",
+            "Se hai configurato le notifiche email nelle Impostazioni, riceverai anche un'email per ogni nuovo invio."
+          ]
+        },
+        "gs-4": {
+          "question": "Posso avere più moduli sul mio negozio?",
+          "answer": [
+            "Sì: puoi creare tutti i moduli che ti servono.",
+            "Ogni modulo ha un ID univoco e può essere inserito in modo indipendente su pagine diverse.",
+            "Basta aggiungere più blocchi SmartFormly nell'editor dei temi e assegnare a ciascuno un modulo diverso."
+          ]
+        }
+      }
+    },
+    "forms": {
+      "title": "Moduli e campi",
+      "items": {
+        "f-1": {
+          "question": "Quali tipi di campo sono disponibili?",
+          "answer": [
+            "SmartFormly supporta i seguenti tipi di campo:",
+            "Testo — inserimento di testo su una riga",
+            "Email — indirizzo email con convalida",
+            "Telefono — inserimento di un numero di telefono",
+            "Area di testo — testo su più righe",
+            "Menu a discesa / Selezione — scegli da un elenco di opzioni",
+            "Casella di controllo — una o più opzioni",
+            "Numero — inserimento numerico",
+            "Data — selettore di data",
+            "Caricamento file — consenti ai clienti di allegare file"
+          ]
+        },
+        "f-2": {
+          "question": "Come rendo obbligatorio un campo?",
+          "answer": [
+            "Fai clic sul campo nel costruttore di moduli per aprirne le impostazioni.",
+            "Attiva l'interruttore «Obbligatorio».",
+            "I campi obbligatori mostrano un asterisco rosso (*) e bloccano l'invio se lasciati vuoti."
+          ]
+        },
+        "f-3": {
+          "question": "Posso riordinare i campi del modulo?",
+          "answer": [
+            "Sì: trascina i campi nel costruttore di moduli per riordinarli.",
+            "Usa la maniglia di trascinamento (⠿) sul lato sinistro di ogni campo.",
+            "Fai clic su Salva dopo il riordino."
+          ]
+        },
+        "f-4": {
+          "question": "Come imposto un messaggio di successo personalizzato?",
+          "answer": [
+            "Nelle impostazioni del modulo, cerca il campo «Messaggio di successo».",
+            "Inserisci il messaggio che vuoi mostrare ai clienti dopo l'invio.",
+            "Predefinito: «Grazie! Il tuo modulo è stato inviato.»"
+          ]
+        }
+      }
+    },
+    "troubleshooting": {
+      "title": "Risoluzione dei problemi",
+      "items": {
+        "ts-1": {
+          "question": "Il modulo mostra «Impossibile caricare il modulo. Controlla l'ID del modulo.»",
+          "answer": [
+            "Significa che il blocco del modulo non riesce a raggiungere l'API di SmartFormly. Controlla:",
+            "1. ID modulo — Assicurati che l'ID corretto sia nelle impostazioni del blocco del tema.",
+            "2. Il modulo è attivo — Verifica che lo stato del modulo sia «Attivo» nella tua dashboard.",
+            "3. App Embed attivo — L'App Embed di SmartFormly deve essere attivato."
+          ]
+        },
+        "ts-2": {
+          "question": "Il modulo si carica ma l'invio non riesce.",
+          "answer": [
+            "Controlla quanto segue:",
+            "1. Campi obbligatori — Assicurati che tutti i campi obbligatori siano compilati correttamente.",
+            "2. Convalida email — I campi email accettano solo indirizzi validi.",
+            "3. Apri i DevTools del browser (F12) → scheda Rete e cerca un POST fallito verso /api/submit/.",
+            "4. Contatta il supporto con i dettagli dell'errore."
+          ]
+        },
+        "ts-3": {
+          "question": "Non ricevo le notifiche email per gli invii.",
+          "answer": [
+            "1. Vai su Impostazioni → Notifiche email e verifica che la tua email di notifica sia corretta.",
+            "2. Controlla la cartella spam o posta indesiderata.",
+            "3. Verifica che le credenziali SMTP o Gmail nelle Impostazioni siano corrette.",
+            "4. Prova a inviare un modulo di test e controlla eventuali errori email."
+          ]
+        },
+        "ts-4": {
+          "question": "L'app si carica lentamente o mostra errori.",
+          "answer": [
+            "1. Ricarica la pagina (Ctrl+R o Cmd+R).",
+            "2. Svuota la cache del browser.",
+            "3. Prova con un altro browser.",
+            "4. Se l'errore persiste, fai uno screenshot e contatta il nostro team di supporto."
+          ]
+        }
+      }
+    }
+  }
+}

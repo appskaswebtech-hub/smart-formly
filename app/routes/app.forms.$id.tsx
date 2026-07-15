@@ -4,7 +4,10 @@ import {
   type ActionFunctionArgs, type LoaderFunctionArgs,
 } from "@remix-run/node";
 import { useLoaderData, useSubmit, useActionData, useNavigation } from "@remix-run/react";
+import { Trans, useTranslation } from "react-i18next";
 import { authenticate } from "../shopify.server";
+import i18next from "../i18n/i18next.server";
+import { resolveLocale } from "../i18n/resolve.server";
 import { getForm, updateForm } from "../models/form.server";
 import type { FormField, FormSettings } from "../models/form.server";
 import { v4 as uuidv4 } from "uuid";
@@ -13,6 +16,8 @@ import {
   Button, TextField, Select, Checkbox, Badge,
   Tabs, Divider, Box, Banner,
 } from "@shopify/polaris";
+
+export const handle = { i18n: ["forms", "common"] };
 
 /* ── ColorInput ── */
 function ColorInput({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
@@ -217,29 +222,32 @@ const defaultDesign: DesignSettings = {
   formBannerAlignment: "center", formDescription: "",
 };
 
+// Labels live in the `forms` namespace under `fieldTypes.<type>` / `pills.<key>`
+// and are resolved at render time — these constants are evaluated at import,
+// before i18next knows the request's language.
 const FIELD_TYPES = [
-  { type: "text",     label: "Single line text", icon: "T" },
-  { type: "email",    label: "Email address",    icon: "@" },
-  { type: "phone",    label: "Phone number",     icon: "☎" },
-  { type: "textarea", label: "Paragraph text",   icon: "¶" },
-  { type: "select",   label: "Dropdown",         icon: "▾" },
-  { type: "checkbox", label: "Checkbox",         icon: "☑" },
-  { type: "file",     label: "File upload",      icon: "⬆" },
+  { type: "text",     icon: "T" },
+  { type: "email",    icon: "@" },
+  { type: "phone",    icon: "☎" },
+  { type: "textarea", icon: "¶" },
+  { type: "select",   icon: "▾" },
+  { type: "checkbox", icon: "☑" },
+  { type: "file",     icon: "⬆" },
 ] as const;
 
 const PILLS = [
-  { key: "form_details",             label: "Form details" },
-  { key: "ticket_system",            label: "Ticket system",           plan: "pro_plus" as const },
-  { key: "allow_form_access",        label: "Allow form access",       plan: "pro_plus" as const },
-  { key: "form_schedule",            label: "Form schedule",           plan: "pro" as const },
-  { key: "customize_form_messages",  label: "Customize form messages", plan: "pro" as const },
-  { key: "customize_form_scrolling", label: "Customize form scrolling",plan: "pro" as const },
-  { key: "after_submission_action",  label: "After submission action" },
-  { key: "after_submit_script",      label: "After submit script",     plan: "pro" as const },
-  { key: "auto_responder_email",     label: "Auto responder email" },
-  { key: "admin_email",              label: "Admin email" },
-  { key: "email_export",             label: "Email export",            plan: "pro" as const },
-  { key: "form_load_as_popup",       label: "Form load as popup",      plan: "pro" as const },
+  { key: "form_details" },
+  { key: "ticket_system",            plan: "pro_plus" as const },
+  { key: "allow_form_access",        plan: "pro_plus" as const },
+  { key: "form_schedule",            plan: "pro" as const },
+  { key: "customize_form_messages",  plan: "pro" as const },
+  { key: "customize_form_scrolling", plan: "pro" as const },
+  { key: "after_submission_action" },
+  { key: "after_submit_script",      plan: "pro" as const },
+  { key: "auto_responder_email" },
+  { key: "admin_email" },
+  { key: "email_export",             plan: "pro" as const },
+  { key: "form_load_as_popup",       plan: "pro" as const },
 ];
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -247,10 +255,11 @@ const PILLS = [
    ══════════════════════════════════════════════════════════════════ */
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
+  const t = await i18next.getFixedT(await resolveLocale(request), "forms");
   const { id } = params;
-  if (!id) throw new Response("Form ID required", { status: 400 });
+  if (!id) throw new Response(t("errors.formIdRequired"), { status: 400 });
   const form = await getForm(id, session.shop);
-  if (!form) throw new Response("Form not found", { status: 404 });
+  if (!form) throw new Response(t("errors.notFound"), { status: 404 });
   return json({ form });
 };
 
@@ -259,8 +268,11 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
    ══════════════════════════════════════════════════════════════════ */
 export const action = async ({ request, params }: ActionFunctionArgs) => {
   const { session } = await authenticate.admin(request);
+  // These errors are rendered to the merchant, so they must follow the same
+  // locale the page was rendered in — not the server's default.
+  const t = await i18next.getFixedT(await resolveLocale(request), "forms");
   const { id } = params;
-  if (!id) return json({ error: "Form ID required" }, { status: 400 });
+  if (!id) return json({ error: t("errors.formIdRequired") }, { status: 400 });
 
   const body     = await request.formData();
   const formName = body.get("formName") as string;
@@ -268,8 +280,8 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
   const settings = JSON.parse(body.get("settings") as string) as FormSettings;
   const isActive = body.get("isActive") === "true";
 
-  if (!formName?.trim()) return json({ error: "Form name is required" }, { status: 422 });
-  if (!fields || fields.length === 0) return json({ error: "Add at least one field" }, { status: 422 });
+  if (!formName?.trim()) return json({ error: t("errors.nameRequired") }, { status: 422 });
+  if (!fields || fields.length === 0) return json({ error: t("errors.addField") }, { status: 422 });
 
   await updateForm(id, session.shop, { formName, fields, settings, isActive });
   return redirect("/app/formsly?updated=1");
@@ -284,6 +296,7 @@ export default function EditForm() {
   const submit     = useSubmit();
   const navigation = useNavigation();
   const saving     = navigation.state === "submitting";
+  const { t } = useTranslation(["forms", "common"]);
 
   const [bannerFile,    setBannerFile]    = useState<File | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string>("");
@@ -326,7 +339,8 @@ export default function EditForm() {
 
   /* ── Field helpers ── */
   function addField(type: FormField["type"]) {
-    const label = FIELD_TYPES.find(f => f.type === type)?.label ?? type;
+    // Seeds the field's editable label in the merchant's language.
+    const label = t(`fieldTypes.${type}`, { defaultValue: type });
     const nf: FormField = {
       id: uuidv4(), type, label, placeholder: "", required: false,
       halfWidth: false, fieldInCenter: false, sendSubmissionEmail: false, emailValidation: false,
@@ -375,18 +389,18 @@ export default function EditForm() {
 
   /* ── Tabs ── */
   const mainTabs = [
-    { id: "settings",    content: "Form settings" },
-    { id: "design",      content: "Form design" },
-    { id: "integration", content: "Form integration" },
+    { id: "settings",    content: t("mainTabs.settings") },
+    { id: "design",      content: t("mainTabs.design") },
+    { id: "integration", content: t("mainTabs.integration") },
   ];
   const designTabs = [
-    { id: "heading",  content: "Form heading" },
-    { id: "elements", content: "Form elements" },
-    { id: "captcha",  content: "Captcha" },
-    { id: "form",     content: "Form" },
-    { id: "input",    content: "Input" },
-    { id: "button",   content: "Submit button" },
-    { id: "layout",   content: "Layout" },
+    { id: "heading",  content: t("designTabs.heading") },
+    { id: "elements", content: t("designTabs.elements") },
+    { id: "captcha",  content: t("designTabs.captcha") },
+    { id: "form",     content: t("designTabs.form") },
+    { id: "input",    content: t("designTabs.input") },
+    { id: "button",   content: t("designTabs.button") },
+    { id: "layout",   content: t("designTabs.layout") },
   ];
 
   /* ── Preview styles ── */
@@ -405,7 +419,7 @@ export default function EditForm() {
   function renderPreview(field: FormField) {
     switch (field.type) {
       case "textarea": return <textarea placeholder={field.placeholder} style={pInput} rows={3} />;
-      case "select":   return <select style={pInput}><option>Please select</option>{(field.options??[]).map(o=><option key={o}>{o}</option>)}</select>;
+      case "select":   return <select style={pInput}><option>{t("preview.pleaseSelect")}</option>{(field.options??[]).map(o=><option key={o}>{o}</option>)}</select>;
       case "checkbox": return <div style={{display:"flex",flexDirection:"column",gap:4}}>{(field.options??[]).map(o=><label key={o} style={{display:"flex",gap:8,alignItems:"center",fontSize:14}}><input type="checkbox"/>{o}</label>)}</div>;
       case "file":     return <input type="file" style={{fontSize:13}} />;
       default:         return <input type={field.type} placeholder={field.placeholder} style={pInput} />;
@@ -421,19 +435,19 @@ export default function EditForm() {
       case "form_details": return (
         <BlockStack gap="500">
           <BlockStack gap="300">
-            <Text as="h3" variant="headingSm" fontWeight="semibold">Form details</Text>
-            <TextField label="Form name *" value={formName} onChange={setFormName} autoComplete="off" />
-            <TextField label="Notification email" value={settings.recipientEmail}
-              onChange={v => setSettings(s => ({...s, recipientEmail: v}))} placeholder="you@example.com" autoComplete="off" />
-            <TextField label="Success message" value={settings.successMessage}
+            <Text as="h3" variant="headingSm" fontWeight="semibold">{t("details.heading")}</Text>
+            <TextField label={t("details.formName")} value={formName} onChange={setFormName} autoComplete="off" />
+            <TextField label={t("details.notificationEmail")} value={settings.recipientEmail}
+              onChange={v => setSettings(s => ({...s, recipientEmail: v}))} placeholder={t("details.notificationEmailPlaceholder")} autoComplete="off" />
+            <TextField label={t("details.successMessage")} value={settings.successMessage}
               onChange={v => setSettings(s => ({...s, successMessage: v}))} autoComplete="off" />
-            <Checkbox label="Notify on submit" checked={settings.notifyOnSubmit}
+            <Checkbox label={t("details.notifyOnSubmit")} checked={settings.notifyOnSubmit}
               onChange={v => setSettings(s => ({...s, notifyOnSubmit: v}))} />
           </BlockStack>
           <Divider />
           <BlockStack gap="300">
-            <Text as="h3" variant="headingSm" fontWeight="semibold">Form elements</Text>
-            <Text as="p" variant="bodySm" tone="subdued">Click to add fields</Text>
+            <Text as="h3" variant="headingSm" fontWeight="semibold">{t("details.elementsHeading")}</Text>
+            <Text as="p" variant="bodySm" tone="subdued">{t("details.clickToAdd")}</Text>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
               {FIELD_TYPES.map(ft => (
                 <button key={ft.type} onClick={() => addField(ft.type as FormField["type"])}
@@ -441,7 +455,7 @@ export default function EditForm() {
                   onMouseEnter={e=>(e.currentTarget.style.borderColor="#5C6AC4")}
                   onMouseLeave={e=>(e.currentTarget.style.borderColor="#E5E7EB")}>
                   <span style={{width:28,height:28,borderRadius:6,background:"#EEF0FB",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,color:"#5C6AC4",flexShrink:0}}>{ft.icon}</span>
-                  <span style={{fontSize:12.5,fontWeight:500,color:"#111827"}}>{ft.label}</span>
+                  <span style={{fontSize:12.5,fontWeight:500,color:"#111827"}}>{t(`fieldTypes.${ft.type}`)}</span>
                 </button>
               ))}
             </div>
@@ -455,7 +469,7 @@ export default function EditForm() {
                   <div style={{display:"flex",alignItems:"center",gap:6}}>
                     <Text as="span" variant="bodySm" fontWeight="semibold">{f.label}</Text>
                     <Badge>{f.type}</Badge>
-                    {f.required && <Badge tone="attention">Required</Badge>}
+                    {f.required && <Badge tone="attention">{t("details.requiredBadge")}</Badge>}
                   </div>
                   <button onClick={()=>deleteField(f.id)} style={{...iconBtn,color:"#C0392B"}}>✕</button>
                 </div>
@@ -473,7 +487,7 @@ export default function EditForm() {
             tracking forms, and similar.
           </Text>
           <Checkbox
-            label={<InlineStack gap="200" blockAlign="center"><span>Do you want to enable ticketing system for this form?</span><Badge tone="warning" size="small">Pro+</Badge></InlineStack>}
+            label={<InlineStack gap="200" blockAlign="center"><span>{t("ticket.enable")}</span><Badge tone="warning" size="small">Pro+</Badge></InlineStack>}
             checked={extra.ticketEnabled}
             onChange={v => setE({ ticketEnabled: v })}
           />
@@ -483,82 +497,82 @@ export default function EditForm() {
       case "allow_form_access": return (
         <BlockStack gap="400">
           <Checkbox
-            label={<InlineStack gap="200" blockAlign="center"><span>Allow form access to logged in users only</span><Badge tone="warning" size="small">Pro+</Badge></InlineStack>}
+            label={<InlineStack gap="200" blockAlign="center"><span>{t("access.loggedInOnly")}</span><Badge tone="warning" size="small">Pro+</Badge></InlineStack>}
             checked={extra.allowLoggedInOnly}
             onChange={v => setE({ allowLoggedInOnly: v })}
           />
           {extra.allowLoggedInOnly && (
-            <RichArea label="Login message" value={extra.loginMessage} onChange={v => setE({ loginMessage: v })} />
+            <RichArea label={t("access.loginMessage")} value={extra.loginMessage} onChange={v => setE({ loginMessage: v })} />
           )}
         </BlockStack>
       );
 
       case "form_schedule": return (
         <BlockStack gap="400">
-          <Text as="h3" variant="headingSm" fontWeight="semibold">Form schedule</Text>
-          <DTField label="Start date" type="date" value={extra.scheduleStartDate} onChange={v => setE({ scheduleStartDate: v })} />
-          <DTField label="End date"   type="date" value={extra.scheduleEndDate}   onChange={v => setE({ scheduleEndDate: v })} />
-          <DTField label="Start time" type="time" value={extra.scheduleStartTime} onChange={v => setE({ scheduleStartTime: v })} />
-          <DTField label="End time"   type="time" value={extra.scheduleEndTime}   onChange={v => setE({ scheduleEndTime: v })} />
-          <TextField label="Number of allowed submissions" type="number"
+          <Text as="h3" variant="headingSm" fontWeight="semibold">{t("schedule.heading")}</Text>
+          <DTField label={t("schedule.startDate")} type="date" value={extra.scheduleStartDate} onChange={v => setE({ scheduleStartDate: v })} />
+          <DTField label={t("schedule.endDate")}   type="date" value={extra.scheduleEndDate}   onChange={v => setE({ scheduleEndDate: v })} />
+          <DTField label={t("schedule.startTime")} type="time" value={extra.scheduleStartTime} onChange={v => setE({ scheduleStartTime: v })} />
+          <DTField label={t("schedule.endTime")}   type="time" value={extra.scheduleEndTime}   onChange={v => setE({ scheduleEndTime: v })} />
+          <TextField label={t("schedule.maxSubmissions")} type="number"
             value={extra.scheduleMaxSubmissions} onChange={v => setE({ scheduleMaxSubmissions: v })}
-            placeholder="Ex. 100" helpText="Leave empty for unlimited" autoComplete="off" />
+            placeholder={t("schedule.maxSubmissionsPlaceholder")} helpText={t("schedule.maxSubmissionsHelp")} autoComplete="off" />
           <Divider />
-          <Text as="h3" variant="headingSm" fontWeight="semibold">Messages</Text>
-          <RichArea label="Before start date message" value={extra.beforeStartMessage} onChange={v => setE({ beforeStartMessage: v })} />
-          <RichArea label="After end date message"    value={extra.afterEndMessage}    onChange={v => setE({ afterEndMessage: v })} />
-          <RichArea label="Submission closed message" value={extra.submissionClosedMessage} onChange={v => setE({ submissionClosedMessage: v })} />
+          <Text as="h3" variant="headingSm" fontWeight="semibold">{t("schedule.messagesHeading")}</Text>
+          <RichArea label={t("schedule.beforeStart")} value={extra.beforeStartMessage} onChange={v => setE({ beforeStartMessage: v })} />
+          <RichArea label={t("schedule.afterEnd")}    value={extra.afterEndMessage}    onChange={v => setE({ afterEndMessage: v })} />
+          <RichArea label={t("schedule.closed")} value={extra.submissionClosedMessage} onChange={v => setE({ submissionClosedMessage: v })} />
         </BlockStack>
       );
 
       case "customize_form_messages": return (
         <BlockStack gap="400">
-          <TextField label="Submit button text"     value={extra.submitButtonText}    onChange={v => setE({ submitButtonText: v })}    autoComplete="off" />
-          <TextField label="Success message"        value={settings.successMessage}   onChange={v => setSettings(s => ({...s, successMessage: v}))} autoComplete="off" />
-          <TextField label="Error message"          value={extra.errorMessage}        onChange={v => setE({ errorMessage: v })}        autoComplete="off" multiline={2} />
-          <TextField label="Required field message" value={extra.requiredFieldMessage} onChange={v => setE({ requiredFieldMessage: v })} autoComplete="off" />
+          <TextField label={t("messages.submitButtonText")}     value={extra.submitButtonText}    onChange={v => setE({ submitButtonText: v })}    autoComplete="off" />
+          <TextField label={t("messages.successMessage")}        value={settings.successMessage}   onChange={v => setSettings(s => ({...s, successMessage: v}))} autoComplete="off" />
+          <TextField label={t("messages.errorMessage")}          value={extra.errorMessage}        onChange={v => setE({ errorMessage: v })}        autoComplete="off" multiline={2} />
+          <TextField label={t("messages.requiredFieldMessage")} value={extra.requiredFieldMessage} onChange={v => setE({ requiredFieldMessage: v })} autoComplete="off" />
         </BlockStack>
       );
 
       case "customize_form_scrolling": return (
         <BlockStack gap="400">
-          <Select label="Scroll behavior after submission"
+          <Select label={t("scrolling.behavior")}
             options={[
-              { label: "Scroll to top of form",    value: "scroll_to_top" },
-              { label: "Scroll to success message", value: "scroll_to_message" },
-              { label: "No scrolling",              value: "none" },
+              { label: t("scrolling.toTop"),     value: "scroll_to_top" },
+              { label: t("scrolling.toMessage"), value: "scroll_to_message" },
+              { label: t("scrolling.none"),      value: "none" },
             ]}
             value={extra.scrollBehavior} onChange={v => setE({ scrollBehavior: v })} />
           {extra.scrollBehavior !== "none" && (
-            <TextField label="Scroll offset (px)" type="number" value={extra.scrollOffset}
+            <TextField label={t("scrolling.offset")} type="number" value={extra.scrollOffset}
               onChange={v => setE({ scrollOffset: v })}
-              helpText="Increase if you have a sticky header (e.g. 80)" autoComplete="off" />
+              helpText={t("scrolling.offsetHelp")} autoComplete="off" />
           )}
         </BlockStack>
       );
 
       case "after_submission_action": return (
         <BlockStack gap="400">
-          <Select label="Action after user submits form"
+          <Select label={t("afterSubmission.action")}
             options={[
-              { label: "Allow only one entry at a time",             value: "one_entry" },
-              { label: "Clear the form and allow another submission", value: "clear_and_allow" },
-              { label: "Redirect to other page",                     value: "redirect" },
-              { label: "Hide form and show thank you message",       value: "hide_and_show_message" },
-              { label: "Show and download responses",                value: "show_and_download" },
+              { label: t("afterSubmission.oneEntry"),        value: "one_entry" },
+              { label: t("afterSubmission.clearAndAllow"),   value: "clear_and_allow" },
+              { label: t("afterSubmission.redirect"),        value: "redirect" },
+              { label: t("afterSubmission.hideAndShow"),     value: "hide_and_show_message" },
+              { label: t("afterSubmission.showAndDownload"), value: "show_and_download" },
             ]}
             value={extra.afterSubmissionAction} onChange={v => setE({ afterSubmissionAction: v })} />
           {extra.afterSubmissionAction === "redirect" && (
-            <TextField label="Redirect URL" value={extra.redirectUrl} onChange={v => setE({ redirectUrl: v })}
-              placeholder="https://your-store.com/thank-you" autoComplete="off" />
+            <TextField label={t("afterSubmission.redirectUrl")} value={extra.redirectUrl} onChange={v => setE({ redirectUrl: v })}
+              placeholder={t("afterSubmission.redirectUrlPlaceholder")} autoComplete="off" />
           )}
           {(extra.afterSubmissionAction === "hide_and_show_message" || extra.afterSubmissionAction === "one_entry") && (
             <BlockStack gap="300">
-              <TextField label="Thank you message timer in sec (max upto 30s)" type="number"
+              <TextField label={t("afterSubmission.timer")} type="number"
                 value={extra.thankYouTimerSec}
                 onChange={v => setE({ thankYouTimerSec: String(Math.min(30, Number(v))) })}
                 autoComplete="off" />
-              <RichArea label="Thank you message" value={extra.thankYouMessage} onChange={v => setE({ thankYouMessage: v })} />
+              <RichArea label={t("afterSubmission.thankYouMessage")} value={extra.thankYouMessage} onChange={v => setE({ thankYouMessage: v })} />
             </BlockStack>
           )}
         </BlockStack>
@@ -568,11 +582,10 @@ export default function EditForm() {
         <BlockStack gap="400">
           <Banner tone="info">
             <Text as="p" variant="bodySm">
-              This JavaScript runs in the browser after a successful submission.
-              Access data via the <code>formData</code> variable.
+              <Trans i18nKey="forms:script.banner" components={{ code: <code /> }} />
             </Text>
           </Banner>
-          <TextField label="JavaScript" value={extra.afterSubmitScript}
+          <TextField label={t("script.label")} value={extra.afterSubmitScript}
             onChange={v => setE({ afterSubmitScript: v })} multiline={10}
             placeholder={"// Example:\ngtag('event', 'form_submit', { form_id: formData.id });"}
             autoComplete="off" monospaced />
@@ -582,53 +595,53 @@ export default function EditForm() {
       case "auto_responder_email": return (
         <BlockStack gap="400">
           <Divider />
-          <Text as="h3" variant="headingSm" fontWeight="semibold">Email details</Text>
-          <TextField label="From name for auto response" value={extra.autoResponderFromName}
-            onChange={v => setE({ autoResponderFromName: v })} placeholder="From name" autoComplete="off" />
-          <TextField label="Email for auto response" type="email" value={extra.autoResponderFromEmail}
-            onChange={v => setE({ autoResponderFromEmail: v })} placeholder="noreply@yourstore.com"
-            helpText="To use your domain, add SMTP settings first." autoComplete="email" />
-          <TextField label="Auto responder subject" value={extra.autoResponderSubject}
-            onChange={v => setE({ autoResponderSubject: v })} placeholder="Thank you for your submission" autoComplete="off" />
+          <Text as="h3" variant="headingSm" fontWeight="semibold">{t("autoResponder.emailDetails")}</Text>
+          <TextField label={t("autoResponder.fromName")} value={extra.autoResponderFromName}
+            onChange={v => setE({ autoResponderFromName: v })} placeholder={t("autoResponder.fromNamePlaceholder")} autoComplete="off" />
+          <TextField label={t("autoResponder.fromEmail")} type="email" value={extra.autoResponderFromEmail}
+            onChange={v => setE({ autoResponderFromEmail: v })} placeholder={t("autoResponder.fromEmailPlaceholder")}
+            helpText={t("autoResponder.fromEmailHelp")} autoComplete="email" />
+          <TextField label={t("autoResponder.subject")} value={extra.autoResponderSubject}
+            onChange={v => setE({ autoResponderSubject: v })} placeholder={t("autoResponder.subjectPlaceholder")} autoComplete="off" />
           <Divider />
           <Text as="h3" variant="headingSm" fontWeight="semibold">Body</Text>
-          <RichArea label="Auto responder message" value={extra.autoResponderMessage} onChange={v => setE({ autoResponderMessage: v })} />
+          <RichArea label={t("autoResponder.message")} value={extra.autoResponderMessage} onChange={v => setE({ autoResponderMessage: v })} />
           <Checkbox
-            label={<InlineStack gap="200" blockAlign="center"><span>Include user's response in auto-responder email?</span><Badge tone="success" size="small">Pro</Badge></InlineStack>}
+            label={<InlineStack gap="200" blockAlign="center"><span>{t("autoResponder.includeResponse")}</span><Badge tone="success" size="small">Pro</Badge></InlineStack>}
             checked={extra.autoResponderIncludeResponse}
             onChange={v => setE({ autoResponderIncludeResponse: v })} />
           <Divider />
-          <Text as="h3" variant="headingSm" fontWeight="semibold">Footer</Text>
-          <RichArea label="Auto responder footer message" value={extra.autoResponderFooter} onChange={v => setE({ autoResponderFooter: v })} />
+          <Text as="h3" variant="headingSm" fontWeight="semibold">{t("autoResponder.footerHeading")}</Text>
+          <RichArea label={t("autoResponder.footerMessage")} value={extra.autoResponderFooter} onChange={v => setE({ autoResponderFooter: v })} />
         </BlockStack>
       );
 
       case "admin_email": return (
         <BlockStack gap="400">
-          <Text as="h3" variant="headingSm" fontWeight="semibold">Subject</Text>
-          <TextField label="Email subject" value={extra.adminEmailSubject}
-            onChange={v => setE({ adminEmailSubject: v })} placeholder="New form submission received." autoComplete="off" />
-          <Checkbox label="Include date/time in email subject?"
+          <Text as="h3" variant="headingSm" fontWeight="semibold">{t("adminEmail.subjectHeading")}</Text>
+          <TextField label={t("adminEmail.subject")} value={extra.adminEmailSubject}
+            onChange={v => setE({ adminEmailSubject: v })} placeholder={t("adminEmail.subjectPlaceholder")} autoComplete="off" />
+          <Checkbox label={t("adminEmail.includeDateTime")}
             checked={extra.adminEmailIncludeDateTime}
             onChange={v => setE({ adminEmailIncludeDateTime: v })} />
           {extra.adminEmailIncludeDateTime && (
             <Box paddingInlineStart="600">
-              <Checkbox label="Use shop's timezone for date/time?"
+              <Checkbox label={t("adminEmail.useShopTimezone")}
                 checked={extra.adminEmailUseShopTimezone}
                 onChange={v => setE({ adminEmailUseShopTimezone: v })} />
             </Box>
           )}
           <Divider />
           <Text as="h3" variant="headingSm" fontWeight="semibold">Body</Text>
-          <RichArea label="Email message" value={extra.adminEmailMessage} onChange={v => setE({ adminEmailMessage: v })} />
-          <Checkbox label="Include user's response in email?"
+          <RichArea label={t("adminEmail.message")} value={extra.adminEmailMessage} onChange={v => setE({ adminEmailMessage: v })} />
+          <Checkbox label={t("adminEmail.includeResponse")}
             checked={extra.adminEmailIncludeResponse}
             onChange={v => setE({ adminEmailIncludeResponse: v })} />
           {extra.adminEmailIncludeResponse && (
             <Box paddingInlineStart="600">
               <BlockStack gap="200">
-                <Checkbox label="Hide hidden fields from the email" checked={extra.adminEmailHideHidden} onChange={v => setE({ adminEmailHideHidden: v })} />
-                <Checkbox label="Hide empty fields from the email"  checked={extra.adminEmailHideEmpty}  onChange={v => setE({ adminEmailHideEmpty: v })} />
+                <Checkbox label={t("adminEmail.hideHidden")} checked={extra.adminEmailHideHidden} onChange={v => setE({ adminEmailHideHidden: v })} />
+                <Checkbox label={t("adminEmail.hideEmpty")}  checked={extra.adminEmailHideEmpty}  onChange={v => setE({ adminEmailHideEmpty: v })} />
               </BlockStack>
             </Box>
           )}
@@ -637,18 +650,18 @@ export default function EditForm() {
 
       case "email_export": return (
         <BlockStack gap="400">
-          <Checkbox label="Enable scheduled email export"
+          <Checkbox label={t("emailExport.enable")}
             checked={extra.emailExportEnabled}
             onChange={v => setE({ emailExportEnabled: v })} />
           {extra.emailExportEnabled && (
             <BlockStack gap="300">
-              <TextField label="Export to email" type="email" value={extra.emailExportTo}
-                onChange={v => setE({ emailExportTo: v })} placeholder="reports@yourstore.com" autoComplete="email" />
-              <Select label="Export frequency"
+              <TextField label={t("emailExport.exportTo")} type="email" value={extra.emailExportTo}
+                onChange={v => setE({ emailExportTo: v })} placeholder={t("emailExport.exportToPlaceholder")} autoComplete="email" />
+              <Select label={t("emailExport.frequency")}
                 options={[
-                  { label: "Daily",   value: "daily" },
-                  { label: "Weekly",  value: "weekly" },
-                  { label: "Monthly", value: "monthly" },
+                  { label: t("emailExport.daily"),   value: "daily" },
+                  { label: t("emailExport.weekly"),  value: "weekly" },
+                  { label: t("emailExport.monthly"), value: "monthly" },
                 ]}
                 value={extra.emailExportFrequency} onChange={v => setE({ emailExportFrequency: v })} />
             </BlockStack>
@@ -660,10 +673,10 @@ export default function EditForm() {
       case "form_load_as_popup": return (
         <BlockStack gap="400">
           <Checkbox
-            label="Enable popup mode"
+            label={t("popup.enable")}
             checked={extra.popupEnabled}
             onChange={v => setE({ popupEnabled: v })}
-            helpText="When enabled, the form opens in a popup overlay instead of inline on the page"
+            helpText={t("popup.enableHelp")}
           />
 
           {extra.popupEnabled && (
@@ -671,11 +684,11 @@ export default function EditForm() {
               <Divider />
 
               <Select
-                label="Popup trigger"
+                label={t("popup.trigger")}
                 options={[
-                  { label: "Button click",  value: "button" },
-                  { label: "Time delay",    value: "delay" },
-                  { label: "Exit intent",   value: "exit_intent" },
+                  { label: t("popup.triggerButton"), value: "button" },
+                  { label: t("popup.triggerDelay"),  value: "delay" },
+                  { label: t("popup.triggerExit"),   value: "exit_intent" },
                 ]}
                 value={extra.popupTrigger}
                 onChange={v => setE({ popupTrigger: v as any })}
@@ -684,26 +697,26 @@ export default function EditForm() {
               {extra.popupTrigger === "button" && (
                 <BlockStack gap="300">
                   <TextField
-                    label="Button text"
+                    label={t("popup.buttonText")}
                     value={extra.popupButtonText}
                     onChange={v => setE({ popupButtonText: v })}
-                    placeholder="Open Form"
+                    placeholder={t("popup.buttonTextPlaceholder")}
                     autoComplete="off"
                   />
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                     <ColorInput
-                      label="Button background"
+                      label={t("popup.buttonBg")}
                       value={extra.popupButtonBg}
                       onChange={v => setE({ popupButtonBg: v })}
                     />
                     <ColorInput
-                      label="Button text color"
+                      label={t("popup.buttonTextColor")}
                       value={extra.popupButtonColor}
                       onChange={v => setE({ popupButtonColor: v })}
                     />
                   </div>
                   <div>
-                    <Text as="p" variant="bodySm" tone="subdued">Button preview</Text>
+                    <Text as="p" variant="bodySm" tone="subdued">{t("popup.buttonPreview")}</Text>
                     <div style={{ marginTop: 8 }}>
                       <button style={{
                         padding: "10px 24px",
@@ -713,7 +726,7 @@ export default function EditForm() {
                         fontSize: 14, fontWeight: 600,
                         cursor: "pointer", fontFamily: "inherit",
                       }}>
-                        {extra.popupButtonText || "Open Form"}
+                        {extra.popupButtonText || t("popup.buttonTextPlaceholder")}
                       </button>
                     </div>
                   </div>
@@ -722,12 +735,12 @@ export default function EditForm() {
 
               {extra.popupTrigger === "delay" && (
                 <TextField
-                  label="Delay before popup opens (seconds)"
+                  label={t("popup.delay")}
                   type="number"
                   value={extra.popupDelay}
                   onChange={v => setE({ popupDelay: v })}
                   placeholder="3"
-                  helpText="Popup will automatically open after this many seconds"
+                  helpText={t("popup.delayHelp")}
                   autoComplete="off"
                 />
               )}
@@ -742,24 +755,24 @@ export default function EditForm() {
               )}
 
               <Divider />
-              <Text as="h3" variant="headingSm" fontWeight="semibold">Overlay settings</Text>
+              <Text as="h3" variant="headingSm" fontWeight="semibold">{t("popup.overlayHeading")}</Text>
 
               <ColorInput
-                label="Overlay background color"
+                label={t("popup.overlayBg")}
                 value={extra.popupOverlayBg || "#000000"}
                 onChange={v => setE({ popupOverlayBg: v })}
               />
 
               <TextField
-                label="Overlay opacity"
+                label={t("popup.overlayOpacity")}
                 type="number"
                 value={extra.popupOverlayOpacity ?? "0.5"}
                 onChange={v => setE({ popupOverlayOpacity: v })}
-                helpText="0 = transparent, 1 = fully opaque (e.g. 0.5)"
+                helpText={t("popup.overlayOpacityHelp")}
                 autoComplete="off"
               />
               <TextField
-                label="Popup max width (px)"
+                label={t("popup.maxWidth")}
                 type="number"
                 value={extra.popupWidth}
                 onChange={v => setE({ popupWidth: v })}
@@ -767,15 +780,15 @@ export default function EditForm() {
                 autoComplete="off"
               />
               <Checkbox
-                label="Close popup when clicking overlay"
+                label={t("popup.closeOnOverlay")}
                 checked={extra.popupCloseOnOverlay}
                 onChange={v => setE({ popupCloseOnOverlay: v })}
               />
               <Checkbox
-                label="Show popup only once per visitor"
+                label={t("popup.showOnce")}
                 checked={extra.popupShowOnce ?? false}
                 onChange={v => setE({ popupShowOnce: v })}
-                helpText="Uses browser storage — popup won't show again after the visitor has seen it once"
+                helpText={t("popup.showOnceHelp")}
               />
             </BlockStack>
           )}
@@ -794,7 +807,7 @@ export default function EditForm() {
       <BlockStack gap="400">
         <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
           {PILLS.map(p => (
-            <Pill key={p.key} label={p.label} plan={p.plan}
+            <Pill key={p.key} label={t(`pills.${p.key}`)} plan={p.plan}
               active={activePill === p.key}
               onClick={() => setActivePill(p.key)} />
           ))}
@@ -830,16 +843,16 @@ export default function EditForm() {
     return (
       <BlockStack gap="500">
         <BlockStack gap="300">
-          <Text as="h3" variant="headingSm" fontWeight="semibold">Form banner</Text>
+          <Text as="h3" variant="headingSm" fontWeight="semibold">{t("heading.bannerHeading")}</Text>
           <input ref={bannerInputRef} type="file" accept="image/*" onChange={handleBannerUpload} style={{ display: "none" }} />
           {bannerPreview ? (
             <div style={{ borderRadius: 8, overflow: "hidden", border: "1px solid #E5E7EB" }}>
               <div style={{ position: "relative" }}>
                 <img src={bannerPreview} alt="Banner" style={{ width: "100%", height: 160, objectFit: "cover", display: "block" }} />
-                <button onClick={handleRemoveBanner} style={{ position:"absolute",top:8,right:8,background:"rgba(0,0,0,0.6)",color:"#fff",border:"none",borderRadius:6,padding:"4px 10px",cursor:"pointer",fontSize:12 }}>✕ Remove</button>
+                <button onClick={handleRemoveBanner} style={{ position:"absolute",top:8,right:8,background:"rgba(0,0,0,0.6)",color:"#fff",border:"none",borderRadius:6,padding:"4px 10px",cursor:"pointer",fontSize:12 }}>{t("heading.removeImage")}</button>
               </div>
               <div style={{ padding: "8px 12px", background: "#F9FAFB", borderTop: "1px solid #E5E7EB" }}>
-                <button onClick={() => bannerInputRef.current?.click()} style={{ background:"none",border:"none",cursor:"pointer",color:"#5C6AC4",fontSize:13,fontWeight:500,padding:0,fontFamily:"inherit" }}>🔄 Replace image</button>
+                <button onClick={() => bannerInputRef.current?.click()} style={{ background:"none",border:"none",cursor:"pointer",color:"#5C6AC4",fontSize:13,fontWeight:500,padding:0,fontFamily:"inherit" }}>{t("heading.replaceImage")}</button>
                 {bannerFile && <Text as="p" variant="bodySm" tone="subdued">{bannerFile.name} ({(bannerFile.size/1024).toFixed(1)} KB)</Text>}
               </div>
             </div>
@@ -849,29 +862,29 @@ export default function EditForm() {
               onMouseEnter={e=>{e.currentTarget.style.borderColor="#5C6AC4";e.currentTarget.style.background="#EEF0FB"}}
               onMouseLeave={e=>{e.currentTarget.style.borderColor="#D1D5DB";e.currentTarget.style.background="#F9FAFB"}}>
               <span style={{ fontSize: 32 }}>🖼️</span>
-              <Text as="p" variant="bodySm" fontWeight="semibold">Click to upload banner image</Text>
-              <Text as="p" variant="bodySm" tone="subdued">PNG, JPG, GIF, WebP supported</Text>
-              <div style={{ marginTop:4,padding:"6px 16px",background:"#5C6AC4",color:"#fff",borderRadius:6,fontSize:13,fontWeight:500 }}>Browse files</div>
+              <Text as="p" variant="bodySm" fontWeight="semibold">{t("heading.uploadPrompt")}</Text>
+              <Text as="p" variant="bodySm" tone="subdued">{t("heading.uploadFormats")}</Text>
+              <div style={{ marginTop:4,padding:"6px 16px",background:"#5C6AC4",color:"#fff",borderRadius:6,fontSize:13,fontWeight:500 }}>{t("heading.browseFiles")}</div>
             </div>
           )}
         </BlockStack>
         <Divider />
         <BlockStack gap="300">
-          <Text as="h3" variant="headingSm" fontWeight="semibold">Form title</Text>
-          <TextField label="Title" value={formName} onChange={setFormName} autoComplete="off" multiline={2} />
+          <Text as="h3" variant="headingSm" fontWeight="semibold">{t("heading.titleHeading")}</Text>
+          <TextField label={t("heading.title")} value={formName} onChange={setFormName} autoComplete="off" multiline={2} />
         </BlockStack>
         <Divider />
         <BlockStack gap="300">
-          <Text as="h3" variant="headingSm" fontWeight="semibold">Description</Text>
-          <TextField label="Description" value={d.formDescription} onChange={v=>setD({formDescription:v})} placeholder="Add a description..." autoComplete="off" multiline={4} />
+          <Text as="h3" variant="headingSm" fontWeight="semibold">{t("heading.descriptionHeading")}</Text>
+          <TextField label={t("heading.description")} value={d.formDescription} onChange={v=>setD({formDescription:v})} placeholder={t("heading.descriptionPlaceholder")} autoComplete="off" multiline={4} />
         </BlockStack>
         <Divider />
         <BlockStack gap="300">
-          <Text as="h3" variant="headingSm" fontWeight="semibold">Position and size</Text>
-          <TextField label="Image height" value={d.formBannerHeight} onChange={v=>setD({formBannerHeight:v})} autoComplete="off" suffix="px" />
-          <TextField label="Image width"  value={d.formBannerWidth}  onChange={v=>setD({formBannerWidth:v})}  autoComplete="off" />
-          <RadioGroup label="Image alignment" value={d.formBannerAlignment}
-            options={[{label:"Left",value:"left"},{label:"Center",value:"center"},{label:"Right",value:"right"}]}
+          <Text as="h3" variant="headingSm" fontWeight="semibold">{t("heading.positionHeading")}</Text>
+          <TextField label={t("heading.imageHeight")} value={d.formBannerHeight} onChange={v=>setD({formBannerHeight:v})} autoComplete="off" suffix="px" />
+          <TextField label={t("heading.imageWidth")}  value={d.formBannerWidth}  onChange={v=>setD({formBannerWidth:v})}  autoComplete="off" />
+          <RadioGroup label={t("heading.imageAlignment")} value={d.formBannerAlignment}
+            options={[{label:t("alignment.left"),value:"left"},{label:t("alignment.center"),value:"center"},{label:t("alignment.right"),value:"right"}]}
             onChange={v=>setD({formBannerAlignment:v as any})} />
         </BlockStack>
       </BlockStack>
@@ -883,7 +896,7 @@ export default function EditForm() {
       <BlockStack gap="400">
         {fields.length === 0 && (
           <div style={{padding:"40px 20px",textAlign:"center",color:"#9CA3AF",fontSize:13,border:"2px dashed #E5E7EB",borderRadius:8}}>
-            No fields yet. Click "Add element" below.
+            {t("elements.empty")}
           </div>
         )}
         {fields.map((field, idx) => {
@@ -899,22 +912,22 @@ export default function EditForm() {
                     <button onClick={e=>{e.stopPropagation();moveField(field.id,"down")}} disabled={idx===fields.length-1} style={{...iconBtn,padding:"1px 5px",fontSize:10,border:"none"}}>▼</button>
                   </div>
                   <span style={{width:24,height:24,borderRadius:4,background:"#EEF0FB",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:"#5C6AC4"}}>{ft?.icon ?? "?"}</span>
-                  <Text as="span" variant="bodyMd" fontWeight="semibold">{ft?.label ?? field.type} ({field.label})</Text>
+                  <Text as="span" variant="bodyMd" fontWeight="semibold">{ft ? t(`fieldTypes.${ft.type}`) : field.type} ({field.label})</Text>
                 </div>
                 <button onClick={e=>{e.stopPropagation();deleteField(field.id)}} style={{background:"none",border:"none",cursor:"pointer",fontSize:16,color:"#9CA3AF",padding:"4px 8px"}}>🗑</button>
               </div>
               {isExp && (
                 <div style={{padding:"16px 20px",display:"flex",flexDirection:"column",gap:20}}>
                   <BlockStack gap="300">
-                    <Text as="h4" variant="headingSm" fontWeight="semibold">Details</Text>
-                    <TextField label="Field label" value={field.label} onChange={v=>updateField(field.id,{label:v})} autoComplete="off" />
+                    <Text as="h4" variant="headingSm" fontWeight="semibold">{t("elements.detailsHeading")}</Text>
+                    <TextField label={t("elements.fieldLabel")} value={field.label} onChange={v=>updateField(field.id,{label:v})} autoComplete="off" />
                     {field.type !== "checkbox" && field.type !== "file" && (
-                      <TextField label="Placeholder" value={field.placeholder ?? ""} onChange={v=>updateField(field.id,{placeholder:v})} autoComplete="off" />
+                      <TextField label={t("elements.placeholder")} value={field.placeholder ?? ""} onChange={v=>updateField(field.id,{placeholder:v})} autoComplete="off" />
                     )}
                   </BlockStack>
                   {(field.type === "select" || field.type === "checkbox") && (
                     <BlockStack gap="200">
-                      <Text as="p" variant="bodySm" fontWeight="semibold">Options</Text>
+                      <Text as="p" variant="bodySm" fontWeight="semibold">{t("elements.options")}</Text>
                       {(field.options ?? []).map((opt, oi) => (
                         <InlineStack key={oi} gap="200" blockAlign="center">
                           <div style={{flex:1}}><TextField label="" labelHidden value={opt}
@@ -924,32 +937,32 @@ export default function EditForm() {
                         </InlineStack>
                       ))}
                       <InlineStack gap="200" blockAlign="end">
-                        <div style={{flex:1}}><TextField label="" labelHidden placeholder="New option…"
+                        <div style={{flex:1}}><TextField label="" labelHidden placeholder={t("elements.newOption")}
                           value={optionInputs[field.id] ?? ""}
                           onChange={v=>setOptionInputs(p=>({...p,[field.id]:v}))} autoComplete="off" /></div>
-                        <Button size="slim" onClick={()=>addOption(field.id)}>Add</Button>
+                        <Button size="slim" onClick={()=>addOption(field.id)}>{t("elements.addOption")}</Button>
                       </InlineStack>
                     </BlockStack>
                   )}
                   {field.type === "email" && (
                     <><Divider />
-                    <Checkbox label="Send submission email to user" checked={field.sendSubmissionEmail ?? false}
-                      onChange={v=>updateField(field.id,{sendSubmissionEmail:v})} helpText="Send a copy to this email" /></>
+                    <Checkbox label={t("elements.sendSubmissionEmail")} checked={field.sendSubmissionEmail ?? false}
+                      onChange={v=>updateField(field.id,{sendSubmissionEmail:v})} helpText={t("elements.sendSubmissionEmailHelp")} /></>
                   )}
                   <Divider />
                   <BlockStack gap="300">
-                    <Text as="h4" variant="headingSm" fontWeight="semibold">Field layout settings</Text>
+                    <Text as="h4" variant="headingSm" fontWeight="semibold">{t("elements.layoutHeading")}</Text>
                     <div style={{display:"flex",gap:24,flexWrap:"wrap"}}>
-                      <Checkbox label="Half width" checked={field.halfWidth ?? false} onChange={v=>updateField(field.id,{halfWidth:v})} />
-                      <Checkbox label="Required"   checked={field.required}           onChange={v=>updateField(field.id,{required:v})} />
+                      <Checkbox label={t("elements.halfWidth")} checked={field.halfWidth ?? false} onChange={v=>updateField(field.id,{halfWidth:v})} />
+                      <Checkbox label={t("elements.required")}   checked={field.required}           onChange={v=>updateField(field.id,{required:v})} />
                     </div>
-                    <Checkbox label="Field in center" checked={field.fieldInCenter ?? false} onChange={v=>updateField(field.id,{fieldInCenter:v})} />
+                    <Checkbox label={t("elements.fieldInCenter")} checked={field.fieldInCenter ?? false} onChange={v=>updateField(field.id,{fieldInCenter:v})} />
                   </BlockStack>
                   {field.type === "email" && (
                     <><Divider />
                     <BlockStack gap="200">
-                      <Text as="h4" variant="headingSm" fontWeight="semibold">Validation</Text>
-                      <Checkbox label="Add email validation field" checked={field.emailValidation ?? false} onChange={v=>updateField(field.id,{emailValidation:v})} />
+                      <Text as="h4" variant="headingSm" fontWeight="semibold">{t("elements.validationHeading")}</Text>
+                      <Checkbox label={t("elements.emailValidation")} checked={field.emailValidation ?? false} onChange={v=>updateField(field.id,{emailValidation:v})} />
                     </BlockStack></>
                   )}
                 </div>
@@ -958,7 +971,7 @@ export default function EditForm() {
           );
         })}
         <div style={{position:"relative"}}>
-          <Button variant="plain" onClick={()=>setShowAddElement(!showAddElement)}>+ Add element</Button>
+          <Button variant="plain" onClick={()=>setShowAddElement(!showAddElement)}>{t("elements.addElement")}</Button>
           {showAddElement && (
             <div style={{position:"absolute",top:"100%",left:0,zIndex:10,marginTop:4,background:"#fff",border:"1px solid #D1D5DB",borderRadius:8,boxShadow:"0 4px 12px rgba(0,0,0,0.1)",padding:8,minWidth:220}}>
               {FIELD_TYPES.map(ft => (
@@ -967,7 +980,7 @@ export default function EditForm() {
                   onMouseEnter={e=>(e.currentTarget.style.background="#F3F4F6")}
                   onMouseLeave={e=>(e.currentTarget.style.background="none")}>
                   <span style={{width:24,height:24,borderRadius:4,background:"#EEF0FB",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:"#5C6AC4"}}>{ft.icon}</span>
-                  {ft.label}
+                  {t(`fieldTypes.${ft.type}`)}
                 </button>
               ))}
             </div>
@@ -981,26 +994,26 @@ export default function EditForm() {
     return (
       <BlockStack gap="500">
         <BlockStack gap="300">
-          <Text as="h3" variant="headingSm" fontWeight="bold">Background</Text>
-          <RadioGroup label="Background type" value={d.bgType}
-            options={[{label:"Transparent",value:"transparent"},{label:"Color",value:"color"},{label:"Gradient",value:"gradient"}]}
+          <Text as="h3" variant="headingSm" fontWeight="bold">{t("formTab.backgroundHeading")}</Text>
+          <RadioGroup label={t("formTab.bgType")} value={d.bgType}
+            options={[{label:t("formTab.transparent"),value:"transparent"},{label:t("formTab.color"),value:"color"},{label:t("formTab.gradient"),value:"gradient"}]}
             onChange={v=>setD({bgType:v as any})} />
-          {(d.bgType==="color"||d.bgType==="gradient") && <ColorInput label="Background color" value={d.bgColor} onChange={v=>setD({bgColor:v})} />}
-          {d.bgType==="gradient" && <ColorInput label="Gradient end color" value={d.bgColor2} onChange={v=>setD({bgColor2:v})} />}
-          <Select label="Background shadow" options={[{label:"None",value:"none"},{label:"Small",value:"0 1px 3px rgba(0,0,0,0.12)"},{label:"Medium",value:"0 4px 12px rgba(0,0,0,0.15)"},{label:"Large",value:"0 8px 24px rgba(0,0,0,0.2)"}]} value={d.bgShadow} onChange={v=>setD({bgShadow:v})} />
+          {(d.bgType==="color"||d.bgType==="gradient") && <ColorInput label={t("formTab.bgColor")} value={d.bgColor} onChange={v=>setD({bgColor:v})} />}
+          {d.bgType==="gradient" && <ColorInput label={t("formTab.gradientEnd")} value={d.bgColor2} onChange={v=>setD({bgColor2:v})} />}
+          <Select label={t("formTab.bgShadow")} options={[{label:t("formTab.shadowNone"),value:"none"},{label:t("formTab.shadowSmall"),value:"0 1px 3px rgba(0,0,0,0.12)"},{label:t("formTab.shadowMedium"),value:"0 4px 12px rgba(0,0,0,0.15)"},{label:t("formTab.shadowLarge"),value:"0 8px 24px rgba(0,0,0,0.2)"}]} value={d.bgShadow} onChange={v=>setD({bgShadow:v})} />
         </BlockStack>
         <Divider />
         <BlockStack gap="300">
-          <Text as="h3" variant="headingSm" fontWeight="bold">Position</Text>
-          <TextField label="Form width"   value={d.formWidth}   onChange={v=>setD({formWidth:v})}   autoComplete="off" helpText="e.g. 100% or 600px" />
-          <TextField label="Form padding" value={d.formPadding} onChange={v=>setD({formPadding:v})} autoComplete="off" />
+          <Text as="h3" variant="headingSm" fontWeight="bold">{t("formTab.positionHeading")}</Text>
+          <TextField label={t("formTab.formWidth")}   value={d.formWidth}   onChange={v=>setD({formWidth:v})}   autoComplete="off" helpText={t("formTab.formWidthHelp")} />
+          <TextField label={t("formTab.formPadding")} value={d.formPadding} onChange={v=>setD({formPadding:v})} autoComplete="off" />
         </BlockStack>
         <Divider />
         <BlockStack gap="300">
-          <Text as="h3" variant="headingSm" fontWeight="bold">Border</Text>
-          <ColorInput label="Form border color"  value={d.borderColor}  onChange={v=>setD({borderColor:v})} />
-          <TextField  label="Form border radius" value={d.borderRadius} onChange={v=>setD({borderRadius:v})} autoComplete="off" prefix="↺" />
-          <TextField  label="Form border size"   value={d.borderSize}   onChange={v=>setD({borderSize:v})}   autoComplete="off" prefix="↺" />
+          <Text as="h3" variant="headingSm" fontWeight="bold">{t("formTab.borderHeading")}</Text>
+          <ColorInput label={t("formTab.borderColor")}  value={d.borderColor}  onChange={v=>setD({borderColor:v})} />
+          <TextField  label={t("formTab.borderRadius")} value={d.borderRadius} onChange={v=>setD({borderRadius:v})} autoComplete="off" prefix="↺" />
+          <TextField  label={t("formTab.borderSize")}   value={d.borderSize}   onChange={v=>setD({borderSize:v})}   autoComplete="off" prefix="↺" />
         </BlockStack>
       </BlockStack>
     );
@@ -1010,24 +1023,24 @@ export default function EditForm() {
     return (
       <BlockStack gap="500">
         <BlockStack gap="300">
-          <Text as="h3" variant="headingSm" fontWeight="bold">Input field</Text>
-          <ColorInput label="Input background color"      value={d.inputBg}               onChange={v=>setD({inputBg:v})} />
-          <ColorInput label="Input border color"          value={d.inputBorderColor}      onChange={v=>setD({inputBorderColor:v})} />
-          <ColorInput label="Input border color on focus" value={d.inputBorderFocusColor} onChange={v=>setD({inputBorderFocusColor:v})} />
-          <TextField  label="Input border radius"         value={d.inputBorderRadius}     onChange={v=>setD({inputBorderRadius:v})} autoComplete="off" />
+          <Text as="h3" variant="headingSm" fontWeight="bold">{t("inputTab.inputHeading")}</Text>
+          <ColorInput label={t("inputTab.inputBg")}      value={d.inputBg}               onChange={v=>setD({inputBg:v})} />
+          <ColorInput label={t("inputTab.inputBorderColor")} value={d.inputBorderColor}      onChange={v=>setD({inputBorderColor:v})} />
+          <ColorInput label={t("inputTab.inputBorderFocus")} value={d.inputBorderFocusColor} onChange={v=>setD({inputBorderFocusColor:v})} />
+          <TextField  label={t("inputTab.inputBorderRadius")}         value={d.inputBorderRadius}     onChange={v=>setD({inputBorderRadius:v})} autoComplete="off" />
         </BlockStack>
         <Divider />
         <BlockStack gap="300">
-          <Text as="h3" variant="headingSm" fontWeight="bold">Input field font</Text>
-          <TextField  label="Input font size"         value={d.inputFontSize}         onChange={v=>setD({inputFontSize:v})}         autoComplete="off" prefix="A" />
-          <ColorInput label="Input font color"        value={d.inputFontColor}        onChange={v=>setD({inputFontColor:v})} />
-          <ColorInput label="Input placeholder color" value={d.inputPlaceholderColor} onChange={v=>setD({inputPlaceholderColor:v})} />
+          <Text as="h3" variant="headingSm" fontWeight="bold">{t("inputTab.fontHeading")}</Text>
+          <TextField  label={t("inputTab.fontSize")}         value={d.inputFontSize}         onChange={v=>setD({inputFontSize:v})}         autoComplete="off" prefix="A" />
+          <ColorInput label={t("inputTab.fontColor")}        value={d.inputFontColor}        onChange={v=>setD({inputFontColor:v})} />
+          <ColorInput label={t("inputTab.placeholderColor")} value={d.inputPlaceholderColor} onChange={v=>setD({inputPlaceholderColor:v})} />
         </BlockStack>
         <Divider />
         <BlockStack gap="300">
-          <Text as="h3" variant="headingSm" fontWeight="bold">Label</Text>
-          <TextField  label="Label font size"  value={d.labelFontSize} onChange={v=>setD({labelFontSize:v})} autoComplete="off" prefix="A" />
-          <ColorInput label="Label font color" value={d.labelColor}    onChange={v=>setD({labelColor:v})} />
+          <Text as="h3" variant="headingSm" fontWeight="bold">{t("inputTab.labelHeading")}</Text>
+          <TextField  label={t("inputTab.labelFontSize")}  value={d.labelFontSize} onChange={v=>setD({labelFontSize:v})} autoComplete="off" prefix="A" />
+          <ColorInput label={t("inputTab.labelColor")} value={d.labelColor}    onChange={v=>setD({labelColor:v})} />
         </BlockStack>
       </BlockStack>
     );
@@ -1037,25 +1050,25 @@ export default function EditForm() {
     return (
       <BlockStack gap="500">
         <BlockStack gap="300">
-          <Text as="h3" variant="headingSm" fontWeight="bold">Button position and style</Text>
-          <RadioGroup label="Button alignment" value={d.buttonAlignment}
-            options={[{label:"Full width",value:"full"},{label:"Left",value:"left"},{label:"Center",value:"center"},{label:"Right",value:"right"}]}
+          <Text as="h3" variant="headingSm" fontWeight="bold">{t("buttonTab.positionHeading")}</Text>
+          <RadioGroup label={t("buttonTab.alignment")} value={d.buttonAlignment}
+            options={[{label:t("buttonTab.alignFull"),value:"full"},{label:t("buttonTab.alignLeft"),value:"left"},{label:t("buttonTab.alignCenter"),value:"center"},{label:t("buttonTab.alignRight"),value:"right"}]}
             onChange={v=>setD({buttonAlignment:v as any})} />
-          <ColorInput label="Button background color" value={d.buttonBg} onChange={v=>setD({buttonBg:v})} />
+          <ColorInput label={t("buttonTab.bg")} value={d.buttonBg} onChange={v=>setD({buttonBg:v})} />
         </BlockStack>
         <Divider />
         <BlockStack gap="300">
-          <Text as="h3" variant="headingSm" fontWeight="bold">Button text</Text>
-          <TextField  label="Submit button text" value={d.buttonText}      onChange={v=>setD({buttonText:v})}      autoComplete="off" />
-          <ColorInput label="Button text color"  value={d.buttonTextColor} onChange={v=>setD({buttonTextColor:v})} />
-          <TextField  label="Button font size"   value={d.buttonFontSize}  onChange={v=>setD({buttonFontSize:v})}  autoComplete="off" prefix="A" />
+          <Text as="h3" variant="headingSm" fontWeight="bold">{t("buttonTab.textHeading")}</Text>
+          <TextField  label={t("buttonTab.text")} value={d.buttonText}      onChange={v=>setD({buttonText:v})}      autoComplete="off" />
+          <ColorInput label={t("buttonTab.textColor")}  value={d.buttonTextColor} onChange={v=>setD({buttonTextColor:v})} />
+          <TextField  label={t("buttonTab.fontSize")}   value={d.buttonFontSize}  onChange={v=>setD({buttonFontSize:v})}  autoComplete="off" prefix="A" />
         </BlockStack>
         <Divider />
         <BlockStack gap="300">
-          <Text as="h3" variant="headingSm" fontWeight="bold">Border style</Text>
-          <ColorInput label="Button border color" value={d.buttonBorderColor}  onChange={v=>setD({buttonBorderColor:v})} />
-          <TextField  label="Border radius"       value={d.buttonBorderRadius} onChange={v=>setD({buttonBorderRadius:v})} autoComplete="off" prefix="↺" />
-          <TextField  label="Border width"        value={d.buttonBorderWidth}  onChange={v=>setD({buttonBorderWidth:v})} autoComplete="off" prefix="↺" />
+          <Text as="h3" variant="headingSm" fontWeight="bold">{t("buttonTab.borderHeading")}</Text>
+          <ColorInput label={t("buttonTab.borderColor")} value={d.buttonBorderColor}  onChange={v=>setD({buttonBorderColor:v})} />
+          <TextField  label={t("buttonTab.borderRadius")}       value={d.buttonBorderRadius} onChange={v=>setD({buttonBorderRadius:v})} autoComplete="off" prefix="↺" />
+          <TextField  label={t("buttonTab.borderWidth")}        value={d.buttonBorderWidth}  onChange={v=>setD({buttonBorderWidth:v})} autoComplete="off" prefix="↺" />
         </BlockStack>
       </BlockStack>
     );
@@ -1064,11 +1077,11 @@ export default function EditForm() {
   function renderLayoutTab() {
     return (
       <BlockStack gap="400">
-        <Text as="h3" variant="headingSm" fontWeight="bold">Layout settings</Text>
-        <Select label="Select label style" options={[
-          {label:"Block labels",    value:"block"},
-          {label:"Inline labels",   value:"inline"},
-          {label:"Floating labels", value:"floating"},
+        <Text as="h3" variant="headingSm" fontWeight="bold">{t("layoutTab.heading")}</Text>
+        <Select label={t("layoutTab.labelStyle")} options={[
+          {label:t("layoutTab.block"),    value:"block"},
+          {label:t("layoutTab.inline"),   value:"inline"},
+          {label:t("layoutTab.floating"), value:"floating"},
         ]} value={d.labelStyle} onChange={v=>setD({labelStyle:v as any})} />
       </BlockStack>
     );
@@ -1081,7 +1094,7 @@ export default function EditForm() {
         <Box paddingBlockStart="200">
           {activeDesignTab === 0 && renderHeadingTab()}
           {activeDesignTab === 1 && renderElementsTab()}
-          {activeDesignTab === 2 && <Banner tone="info"><p>Captcha integration coming soon.</p></Banner>}
+          {activeDesignTab === 2 && <Banner tone="info"><p>{t("comingSoon.captcha")}</p></Banner>}
           {activeDesignTab === 3 && renderFormTab()}
           {activeDesignTab === 4 && renderInputTab()}
           {activeDesignTab === 5 && renderButtonTab()}
@@ -1103,10 +1116,10 @@ export default function EditForm() {
      ══════════════════════════════════════════════════════════════ */
   return (
     <Page
-      title={`Edit: ${form.formName}`}
-      backAction={{ content: "Forms", url: "/app/formsly" }}
-      primaryAction={{ content: saving ? "Saving…" : "Save & publish", onAction: () => handleSave(true), loading: saving }}
-      secondaryActions={[{ content: "Save as draft", onAction: () => handleSave(false) }]}
+      title={t("editWithName", { name: form.formName })}
+      backAction={{ content: t("backToForms"), url: "/app/formsly" }}
+      primaryAction={{ content: saving ? t("saving") : t("savePublish"), onAction: () => handleSave(true), loading: saving }}
+      secondaryActions={[{ content: t("saveDraft"), onAction: () => handleSave(false) }]}
     >
       {error && (
         <Box paddingBlockEnd="400">
@@ -1125,7 +1138,7 @@ export default function EditForm() {
               {activeTab === 1 && renderDesignPanel()}
               {activeTab === 2 && (
                 <BlockStack gap="400">
-                  <Banner tone="info"><p>Integrations coming soon.</p></Banner>
+                  <Banner tone="info"><p>{t("comingSoon.integrations")}</p></Banner>
                 </BlockStack>
               )}
             </Box>
@@ -1137,8 +1150,8 @@ export default function EditForm() {
           <Card>
             <BlockStack gap="300">
               <InlineStack align="space-between">
-                <Text as="h2" variant="headingMd">Form preview</Text>
-                <Text as="p" variant="bodySm" tone="subdued">Preview only.</Text>
+                <Text as="h2" variant="headingMd">{t("preview.heading")}</Text>
+                <Text as="p" variant="bodySm" tone="subdued">{t("preview.previewOnly")}</Text>
               </InlineStack>
               <Divider />
               <div style={{
@@ -1156,7 +1169,7 @@ export default function EditForm() {
                   </div>
                 )}
                 <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 4, marginTop: 0 }}>
-                  {formName || "Form Title"}
+                  {formName || t("preview.formTitle")}
                 </h2>
                 {d.formDescription && (
                   <p style={{ fontSize: 13, color: "#6B7280", marginTop: 0, marginBottom: 16 }}>
@@ -1165,7 +1178,7 @@ export default function EditForm() {
                 )}
                 {fields.length === 0 ? (
                   <div style={{ textAlign: "center", padding: "40px 0", color: "#9CA3AF", fontSize: 13 }}>
-                    Add fields from the left panel
+                    {t("preview.addFields")}
                   </div>
                 ) : (
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 16 }}>

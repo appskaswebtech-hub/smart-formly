@@ -1,0 +1,28 @@
+{
+  "title": "Preise",
+  "banner": "Klicke auf <bold>Plan wählen</bold>, um die Abrechnung direkt über Shopify zu aktivieren.",
+  "choosePlan": "Plan wählen",
+  "perMonth": "/Mon.",
+  "trial_one": "{{count}} Tag kostenlos testen",
+  "trial_other": "{{count}} Tage kostenlos testen",
+  "showAllFeatures": "Alle Funktionen anzeigen",
+  "hideAllFeatures": "Alle Funktionen ausblenden",
+  "plansAvailable_one": "{{count}} Plan verfügbar",
+  "plansAvailable_other": "{{count}} Pläne verfügbar",
+  "highlights": {
+    "designCustomization": "Vollständige Designanpassung",
+    "exportSubmissions": "Formulareinsendungen exportieren",
+    "multipleRecipients": "Mehrere Empfänger für Formulareinsendungen",
+    "multipleNotifications": "Mehrere Admin-Benachrichtigungen"
+  },
+  "features": {
+    "bingUet": "Bing UET-Pixel-ID",
+    "advancedJs": "Erweitertes JS",
+    "advancedCss": "Erweitertes CSS",
+    "apiAvailable": "API verfügbar",
+    "customizeMessage": "Formularnachricht anpassen",
+    "hiddenField": "Verstecktes Feld",
+    "restrictSubmissions": "Formulareinsendungen pro Benutzer begrenzen",
+    "utmTracking": "UTM-Tracking"
+  }
+}

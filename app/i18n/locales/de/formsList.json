@@ -1,0 +1,27 @@
+{
+  "title": "Meine Formulare",
+  "newForm": "+ Neues Formular",
+  "tabs": {
+    "all": "Alle {{count}}",
+    "active": "Aktiv {{count}}",
+    "inactive": "Inaktiv {{count}}"
+  },
+  "search": "Formulare nach Name oder ID suchen…",
+  "noMatch": "Keine Formulare entsprechen deinem aktuellen Filter",
+  "noMatchFor": "Keine Formulare entsprechen deinem aktuellen Filter für \"<bold>{{query}}</bold>\"",
+  "columns": {
+    "title": "Titel",
+    "id": "Formular-ID",
+    "status": "Status",
+    "submissions": "Einsendungen",
+    "created": "Erstellt am",
+    "actions": "Aktionen"
+  },
+  "viewSubmissions": "Einsendungen",
+  "showing_one": "{{count}} Eintrag wird angezeigt",
+  "showing_other": "{{count}} Einträge werden angezeigt",
+  "toast": {
+    "created": "Formular erfolgreich erstellt!",
+    "updated": "Formular erfolgreich aktualisiert!"
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "all": {
+    "title": "Alle Einsendungen",
+    "backToForms": "Formulare",
+    "recent": "Neueste Einsendungen",
+    "emptyHeading": "Noch keine Einsendungen",
+    "emptyBody": "Einsendungen erscheinen hier, sobald Kunden deine Formulare ausfüllen.",
+    "columns": {
+      "form": "Formular",
+      "preview": "Vorschau",
+      "submitted": "Eingesendet",
+      "actions": "Aktionen"
+    },
+    "viewDetails": "Details ansehen",
+    "allInForm": "Alle im Formular",
+    "showing_one": "{{count}} neueste Einsendung wird angezeigt",
+    "showing_other": "{{count}} neueste Einsendungen werden angezeigt",
+    "unknownForm": "Unbekanntes Formular"
+  },
+  "modal": {
+    "title": "Einsendung — {{form}}",
+    "deleteThis": "Diese Einsendung löschen",
+    "form": "Formular",
+    "submitted": "Eingesendet",
+    "id": "ID",
+    "submittedData": "Eingesendete Daten",
+    "confirmTitle": "Einsendung löschen?",
+    "confirmBody": "Diese Aktion kann nicht rückgängig gemacht werden. Die Einsendung wird dauerhaft gelöscht."
+  },
+  "byForm": {
+    "title": "Einsendungen: {{name}}",
+    "subtitle_one": "{{count}} Einsendung",
+    "subtitle_other": "{{count}} Einsendungen",
+    "backToForms": "Zurück zu den Formularen",
+    "deleteAll": "Alle Einsendungen löschen",
+    "totalSubmissions": "Einsendungen gesamt",
+    "formStatus": "Formularstatus",
+    "formFields": "Formularfelder",
+    "heading": "Alle Einsendungen",
+    "editForm": "Formular bearbeiten",
+    "emptyHeading": "Noch keine Einsendungen",
+    "emptyBody": "Einsendungen erscheinen hier, sobald Kunden dein Formular ausfüllen. Stelle sicher, dass das Formular in deinem Shop eingebunden und auf „Aktiv“ gesetzt ist.",
+    "columns": {
+      "id": "ID",
+      "preview": "Datenvorschau",
+      "submitted": "Eingesendet",
+      "actions": "Aktionen"
+    },
+    "view": "Ansehen",
+    "confirmDeleteOne": "Möchtest du diese Einsendung wirklich löschen?",
+    "confirmDeleteAll": "ALLE Einsendungen für dieses Formular löschen? Das kann nicht rückgängig gemacht werden.",
+    "detailTitle": "Details der Einsendung",
+    "idLabel": "ID:",
+    "submittedLabel": "Eingesendet:",
+    "formData": "Formulardaten",
+    "deletedOne": "Einsendung gelöscht",
+    "deletedAll": "Alle Einsendungen gelöscht"
+  }
+}

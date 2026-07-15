@@ -1,0 +1,27 @@
+{
+  "title": "I miei moduli",
+  "newForm": "+ Nuovo modulo",
+  "tabs": {
+    "all": "Tutti {{count}}",
+    "active": "Attivi {{count}}",
+    "inactive": "Inattivi {{count}}"
+  },
+  "search": "Cerca moduli per nome o ID…",
+  "noMatch": "Nessun modulo corrisponde al filtro attuale",
+  "noMatchFor": "Nessun modulo corrisponde al filtro attuale per \"<bold>{{query}}</bold>\"",
+  "columns": {
+    "title": "Titolo",
+    "id": "ID modulo",
+    "status": "Stato",
+    "submissions": "Invii",
+    "created": "Data di creazione",
+    "actions": "Azioni"
+  },
+  "viewSubmissions": "Invii",
+  "showing_one": "{{count}} record mostrato",
+  "showing_other": "{{count}} record mostrati",
+  "toast": {
+    "created": "Modulo creato con successo!",
+    "updated": "Modulo aggiornato con successo!"
+  }
+}
