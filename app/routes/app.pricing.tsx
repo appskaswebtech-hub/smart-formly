@@ -1,4 +1,4 @@
-import type { HeadersFunction, LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/node";
+import type { HeadersFunction, LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { useRouteError, useFetcher } from "@remix-run/react";
 import {
@@ -9,73 +9,21 @@ import { CheckIcon, XIcon } from "@shopify/polaris-icons";
 import { boundary } from "@shopify/shopify-app-remix/server";
 import { Trans, useTranslation } from "react-i18next";
 import { authenticate } from "../shopify.server";
+import { HIGHLIGHT_KEYS, PLANS } from "../billing/plans";
 import { useState } from "react";
 
 export const handle = { i18n: ["pricing", "common"] };
 
-// ─── Billing plan name map ────────────────────────────────────────────────────
-// NOT translatable — these are keys into the `billing` config in shopify.server.ts
-// and Shopify's billing API. Translating them breaks checkout.
-const PLAN_NAME_MAP: Record<string, string> = {
-  base:    "Base Monthly",
-  pro:     "Pro Monthly",
-  proplus: "ProPlus Monthly",
-};
-
 // ─── Loader ───────────────────────────────────────────────────────────────────
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  await authenticate.admin(request);  
+  await authenticate.admin(request);
   return json({});
 };
 
-
-export const action = async ({ request }: ActionFunctionArgs) => {
-  const { billing } = await authenticate.admin(request);
-  const formData = await request.formData();
-  const planName = formData.get("planName") as string;
-
-  // const url = new URL(request.url);
-  // const returnUrl = `${url.origin}/app/pricing`;
-
-  const returnUrl = "https://smartformly.kaswebtechsolutions.com/app/pricing";
-
-  console.log("=== BILLING DEBUG ===");
-  console.log("planName:", planName);
-  console.log("returnUrl:", returnUrl);
-
-  try {
-    await billing.request({
-  plan: planName as "Base Monthly" | "Pro Monthly" | "ProPlus Monthly",
-  isTest: true,
-  returnUrl,
-});
-  } catch (err: any) {
-    console.error("=== BILLING ERROR ===");
-    console.error("message:", err?.message);
-    console.error("cause:", err?.cause);
-    console.error("response:", err?.response);
-    console.error("full:", JSON.stringify(err, null, 2));
-    throw err;
-  }
-
-  return json({ ok: true });
-};
+// Plan selection posts to the /api/billing resource route, which is shared with
+// the BillingLock paywall — see app/billing/plans.ts for the plan catalog.
 
 // ─── Static data ──────────────────────────────────────────────────────────────
-// `name` is a product tier, not prose — left untranslated on purpose.
-// `highlights` / FEATURES hold translation keys resolved at render time.
-const HIGHLIGHT_KEYS = [
-  "designCustomization",
-  "exportSubmissions",
-  "multipleRecipients",
-  "multipleNotifications",
-];
-
-const PLANS = [
-  { id: "base",    name: "Base", price: 9.99,  trialDays: 7, highlights: HIGHLIGHT_KEYS },
-  { id: "pro",     name: "Pro",  price: 17.99, trialDays: 7, highlights: HIGHLIGHT_KEYS },
-  { id: "proplus", name: "Pro+", price: 25.99, trialDays: 7, highlights: HIGHLIGHT_KEYS },
-];
 
 const FEATURES: { key: string; values: [boolean, boolean, boolean] }[] = [
   { key: "bingUet",             values: [false, true, true] },
@@ -107,17 +55,34 @@ function ChoosePlanButton({
   size?: "slim" | "medium";
   fullWidth?: boolean;
 }) {
-  const fetcher = useFetcher();
+  const fetcher = useFetcher<{ ok: boolean; messages: string[] }>();
   const loading = fetcher.state !== "idle";
-  const { t } = useTranslation("pricing");
+  const { t } = useTranslation(["pricing", "common"]);
+
+  const plan = PLANS.find((p) => p.id === planId);
+  if (!plan) return null;
+
+  // A refusal from Shopify is a normal outcome — show it rather than letting the
+  // action throw and hit the error boundary.
+  const failed = fetcher.data && fetcher.data.ok === false;
 
   return (
-    <fetcher.Form method="post">
-      <input type="hidden" name="planName" value={PLAN_NAME_MAP[planId]} />
-      <Button variant="primary" fullWidth={fullWidth} size={size} submit loading={loading}>
-        {t("choosePlan")}
-      </Button>
-    </fetcher.Form>
+    <BlockStack gap="200">
+      {failed && (
+        <Banner tone="critical" title={t("common:errors.generic")}>
+          {/* Shopify's userErrors — diagnostic API strings, not app copy. */}
+          {(fetcher.data?.messages ?? []).map((msg) => (
+            <Text key={msg} as="p" variant="bodySm">{msg}</Text>
+          ))}
+        </Banner>
+      )}
+      {/* Shopify's hosted page is the real selector, so no plan is sent. */}
+      <fetcher.Form method="post" action="/api/billing">
+        <Button variant="primary" fullWidth={fullWidth} size={size} submit loading={loading}>
+          {t("pricing:choosePlan")}
+        </Button>
+      </fetcher.Form>
+    </BlockStack>
   );
 }
 
@@ -166,7 +131,7 @@ export default function PricingPage() {
                     <Divider />
 
                     <BlockStack gap="200">
-                      {plan.highlights.map((key) => (
+                      {HIGHLIGHT_KEYS.map((key) => (
                         <InlineStack key={key} gap="200" blockAlign="start" wrap={false}>
                           <Box>
                             <Icon source={CheckIcon} tone="success" />

@@ -2,12 +2,20 @@ import "@shopify/shopify-app-remix/adapters/node";
 import {
   ApiVersion,
   AppDistribution,
-  BillingInterval,
   shopifyApp,
 } from "@shopify/shopify-app-remix/server";
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
 import prisma from "./db.server";
 
+/**
+ * No `billing` config on purpose.
+ *
+ * This app is enrolled in Shopify App Pricing (formerly Managed Pricing), which
+ * forbids the Billing API — appSubscriptionCreate answers "Managed Pricing Apps
+ * cannot use the Billing API (to create charges)". Plans, amounts, trials and
+ * test charges are all defined in the Partner Dashboard listing instead; see
+ * app/routes/api.billing.ts, which just redirects to Shopify's hosted plan page.
+ */
 const shopify = shopifyApp({
   apiKey:          process.env.SHOPIFY_API_KEY,
   apiSecretKey:    process.env.SHOPIFY_API_SECRET || "",
@@ -17,36 +25,6 @@ const shopify = shopifyApp({
   authPathPrefix:  "/auth",
   sessionStorage:  new PrismaSessionStorage(prisma),
   distribution:    AppDistribution.AppStore,
-
-  billing: {
-    "Base Monthly": {
-      lineItems: [
-        {
-          amount:       9.9,
-          currencyCode: "USD",
-          interval:     BillingInterval.Every30Days,
-        },
-      ],
-    },
-    "Pro Monthly": {
-      lineItems: [
-        {
-          amount:       17.9,
-          currencyCode: "USD",
-          interval:     BillingInterval.Every30Days,
-        },
-      ],
-    },
-    "ProPlus Monthly": {
-      lineItems: [
-        {
-          amount:       25.9,
-          currencyCode: "USD",
-          interval:     BillingInterval.Every30Days,
-        },
-      ],
-    },
-  },
 
   hooks: {
     afterAuth: async ({ session, admin }) => {

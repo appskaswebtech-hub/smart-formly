@@ -6,15 +6,35 @@ import { NavMenu } from "@shopify/app-bridge-react";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 import { useTranslation } from "react-i18next";
 import { authenticate } from "../shopify.server";
+import BillingLock from "../components/BillingLock";
 import { getPolarisTranslations } from "../i18n/polaris";
 import type { loader as rootLoader } from "../root";
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
-export const handle = { i18n: ["common", "nav"] };
+// `pricing` is here for BillingLock, which renders from this layout.
+export const handle = { i18n: ["common", "nav", "pricing"] };
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
+
+  // Read subscriptions straight from the installation rather than via
+  // billing.check: that filters by plan names from our own config, but under
+  // Shopify App Pricing the plan names live in the Partner Dashboard and would
+  // never match — the paywall would stay locked forever after a real purchase.
+  // Any ACTIVE subscription means the merchant has paid.
+  const subRes = await admin.graphql(`#graphql
+    query BillingStatus {
+      currentAppInstallation {
+        activeSubscriptions { id name status }
+      }
+    }
+  `);
+  const subscriptions =
+    (await subRes.json())?.data?.currentAppInstallation?.activeSubscriptions ?? [];
+  const hasActivePayment = subscriptions.some(
+    (sub: { status: string }) => sub.status === "ACTIVE",
+  );
 
   // Keep the app_url metafield fresh on every app load.
   // App-data metafield (AppInstallation owner) — no extra scopes required.
@@ -59,11 +79,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     }
   }
 
-  return { apiKey: process.env.SHOPIFY_API_KEY || "" };
+  return { apiKey: process.env.SHOPIFY_API_KEY || "", hasActivePayment };
 };
 
 export default function App() {
-  const { apiKey } = useLoaderData<typeof loader>();
+  const { apiKey, hasActivePayment } = useLoaderData<typeof loader>();
   const { t } = useTranslation("nav");
 
   // Read the locale from root rather than re-resolving it here: root is the
@@ -82,7 +102,31 @@ export default function App() {
         <a href="/app/pricing">{t("pricing")}</a>
         <a href="/app/helpandsupport">{t("helpAndSupport")}</a>
       </NavMenu>
-      <Outlet />
+
+      {hasActivePayment ? (
+        <Outlet />
+      ) : (
+        <>
+          {/*
+            Clamped to the viewport and inert. The admin sizes this iframe to its
+            content and scrolls the outer window, so an un-clamped page would let
+            the merchant simply scroll past a fixed overlay to reach the app.
+          */}
+          <div
+            aria-hidden="true"
+            style={{
+              height: "100vh",
+              overflow: "hidden",
+              pointerEvents: "none",
+              userSelect: "none",
+              filter: "blur(1.5px)",
+            }}
+          >
+            <Outlet />
+          </div>
+          <BillingLock />
+        </>
+      )}
     </AppProvider>
   );
 }

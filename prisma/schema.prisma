@@ -1,66 +1,65 @@
-                                                                                                                                                                                                                        generator client {
-                                                                                                                                                                                                                          provider = "prisma-client-js"
-                                                                                                                                                                                                                        }
+generator client {
+  provider = "prisma-client-js"
+}
 
-                                                                                                                                                                                                                        datasource db {
-                                                                                                                                                                                                                          provider = "sqlite"
-                                                                                                                                                                                                                          url      = env("DATABASE_URL")
-                                                                                                                                                                                                                        }
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
 
-                                                                                                                                                                                                                        model Session {
-                                                                                                                                                                                                                          id            String   @id
-                                                                                                                                                                                                                          shop          String
-                                                                                                                                                                                                                          state         String
-                                                                                                                                                                                                                          isOnline      Boolean  @default(false)
-                                                                                                                                                                                                                          scope         String?
-                                                                                                                                                                                                                          expires       DateTime?
-                                                                                                                                                                                                                          accessToken   String
-                                                                                                                                                                                                                          userId        BigInt?
-                                                                                                                                                                                                                          firstName     String?
-                                                                                                                                                                                                                          lastName      String?
-                                                                                                                                                                                                                          email         String?
-                                                                                                                                                                                                                          accountOwner  Boolean  @default(false)
-                                                                                                                                                                                                                          locale        String?
-                                                                                                                                                                                                                          collaborator  Boolean? @default(false)
-                                                                                                                                                                                                                          emailVerified Boolean? @default(false)
+model Session {
+  id            String    @id
+  shop          String
+  state         String
+  isOnline      Boolean   @default(false)
+  scope         String?
+  expires       DateTime?
+  accessToken   String
+  userId        BigInt?
+  firstName     String?
+  lastName      String?
+  email         String?
+  accountOwner  Boolean   @default(false)
+  locale        String?
+  collaborator  Boolean?  @default(false)
+  emailVerified Boolean?  @default(false)
 
-                                                                                                                                                                                                                          // 🔥 NEW FIELDS (IMPORTANT)
-                                                                                                                                                                                                                          refreshToken         String?
-                                                                                                                                                                                                                          refreshTokenExpires  DateTime?
-                                                                                                                                                                                                                        }
+  refreshToken        String?
+  refreshTokenExpires DateTime?
+}
 
-                                                                                                                                                                                                                        model ShopSettings {
-                                                                                                                                                                                                                          shopDomain String   @id
-                                                                                                                                                                                                                          // null = no explicit choice yet; fall back to locale detection
-                                                                                                                                                                                                                          locale     String?
-                                                                                                                                                                                                                          createdAt  DateTime @default(now())
-                                                                                                                                                                                                                          updatedAt  DateTime @updatedAt
-                                                                                                                                                                                                                        }
+model ShopSettings {
+  shopDomain String   @id
+  // null = no explicit choice yet; fall back to locale detection
+  locale     String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
 
-                                                                                                                                                                                                                        model FormConfig {
-                                                                                                                                                                                                                          id          String   @id @default(uuid())
-                                                                                                                                                                                                                          shopDomain  String
-                                                                                                                                                                                                                          formName    String
-                                                                                                                                                                                                                          slug        String   @default("")
-                                                                                                                                                                                                                          fields      String   @default("[]")
-                                                                                                                                                                                                                          settings    String   @default("{}")
-                                                                                                                                                                                                                          design      String   @default("{}")   // ✅ ADD THIS
-                                                                                                                                                                                                                          isActive    Boolean  @default(false)
-                                                                                                                                                                                                                          createdAt   DateTime @default(now())
-                                                                                                                                                                                                                          updatedAt   DateTime @updatedAt
-                                                                                                                                                                                                                          submissions FormSubmission[]
-                                                                                                                                                                                                                        }
+model FormConfig {
+  id          String           @id @default(uuid())
+  shopDomain  String
+  formName    String
+  slug        String           @default("")
+  fields      String           @default("[]")
+  settings    String           @default("{}")
+  design      String           @default("{}")
+  isActive    Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  submissions FormSubmission[]
+}
 
-                                                                                                                                                                                                                        model FormSubmission {
-                                                                                                                                                                                                                          id        String   @id @default(uuid())
-                                                                                                                                                                                                                          formId    String
-                                                                                                                                                                                                                          shopDomain      String
-                                                                                                                                                                                                                          ticketNumber  Int?
-                                                                                                                                                                                                                          data      String   // JSON stringified submission data
-                                                                                                                                                                                                                          createdAt DateTime @default(now())
+model FormSubmission {
+  id           String   @id @default(uuid())
+  formId       String
+  shopDomain   String
+  ticketNumber Int?
+  data         String // JSON stringified submission data
+  createdAt    DateTime @default(now())
 
-                                                                                                                                                                                                                          form      FormConfig @relation(fields: [formId], references: [id], onDelete: Cascade)
+  form FormConfig @relation(fields: [formId], references: [id], onDelete: Cascade)
 
-                                                                                                                                                                                                                          @@index([formId])
-                                                                                                                                                                                                                          @@index([shopDomain])
-                                                                                                                                                                                                                        }
+  @@index([formId])
+  @@index([shopDomain])
+}
