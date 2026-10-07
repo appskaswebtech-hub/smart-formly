@@ -63,6 +63,9 @@
     .smartformly-field input[type="email"],
     .smartformly-field input[type="tel"],
     .smartformly-field input[type="phone"],
+    .smartformly-field input[type="number"],
+    .smartformly-field input[type="date"],
+    .smartformly-field input[type="time"],
     .smartformly-field textarea,
     .smartformly-field select {
       width:100%; padding:8px 10px;
@@ -211,6 +214,10 @@
       submit:        {{ 'smartformly.form.submit'         | t | json }},
       submitting:    {{ 'smartformly.form.submitting'     | t | json }},
       requiredField: {{ 'smartformly.form.required_field' | t | json }},
+      numberRange:   {{ 'smartformly.form.invalid_number_range' | t | json }},
+      numberMin:     {{ 'smartformly.form.invalid_number_min'   | t | json }},
+      numberMax:     {{ 'smartformly.form.invalid_number_max'   | t | json }},
+      pastDate:      {{ 'smartformly.form.past_date'            | t | json }},
       loginRequired: {{ 'smartformly.form.login_required' | t | json }},
       genericError:  {{ 'smartformly.form.generic_error'  | t | json }},
       success:       {{ 'smartformly.form.success'        | t | json }},
@@ -254,6 +261,24 @@
         .replace(/</g,'&lt;')
         .replace(/>/g,'&gt;')
         .replace(/"/g,'&quot;');
+    }
+
+    /* Local (not UTC) yyyy-mm-dd — the format <input type="date"> uses. */
+    function todayISO() {
+      var n = new Date();
+      return n.getFullYear() + '-' +
+             String(n.getMonth() + 1).padStart(2, '0') + '-' +
+             String(n.getDate()).padStart(2, '0');
+    }
+
+    /* <input type="date"> always hands back yyyy-mm-dd. This only changes how
+       the value is recorded for the merchant, never what the picker shows. */
+    function formatDate(iso, fmt) {
+      var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+      if (!m) return iso || '';
+      if (fmt === 'us') return m[2] + '/' + m[3] + '/' + m[1];
+      if (fmt === 'uk') return m[3] + '/' + m[2] + '/' + m[1];
+      return iso;
     }
 
     /* ════════════════════════════════════════════
@@ -596,6 +621,18 @@
           case 'file':
             html += '<input type="file" ' + nameAttr + dataReq + '>';
             break;
+          case 'number':
+            html += '<input type="number" ' + nameAttr + dataReq +
+                    (f.min ? ' min="' + escHtml(f.min) + '"' : '') +
+                    (f.max ? ' max="' + escHtml(f.max) + '"' : '') +
+                    ' step="1" inputmode="numeric" placeholder="' + escHtml(f.placeholder||'') + '">';
+            break;
+          case 'date':
+            /* min= makes the native calendar grey out earlier days; the JS
+               check below covers typed-in dates. */
+            html += '<input type="date" ' + nameAttr + dataReq +
+                    (f.disablePastDates ? ' min="' + todayISO() + '"' : '') + '>';
+            break;
           default:
             html += '<input type="' + (f.type||'text') + '" ' + nameAttr + dataReq + ' placeholder="' + escHtml(f.placeholder||'') + '">';
         }
@@ -644,28 +681,65 @@
       var invalid = [];
 
       globalFields.forEach(function(f) {
-        if (!f.required) return;
-
         var fieldWrapper = form.querySelector('[data-field-label="' + f.label + '"]');
         var isInvalid    = false;
+        var customMsg    = '';
 
-        if (f.type === 'checkbox') {
-          var checked = form.querySelectorAll('input[name="' + f.label + '"]:checked');
-          if (checked.length === 0) isInvalid = true;
-        } else if (f.type === 'select') {
-          var sel = form.querySelector('select[name="' + f.label + '"]');
-          if (!sel || !sel.value) isInvalid = true;
-        } else if (f.type === 'file') {
-          var fi = form.querySelector('input[type="file"][name="' + f.label + '"]');
-          if (!fi || !fi.files || fi.files.length === 0) isInvalid = true;
-        } else {
-          var el = form.querySelector('[name="' + f.label + '"]');
-          if (!el || !el.value.trim()) isInvalid = true;
+        if (f.required) {
+          if (f.type === 'checkbox') {
+            var checked = form.querySelectorAll('input[name="' + f.label + '"]:checked');
+            if (checked.length === 0) isInvalid = true;
+          } else if (f.type === 'select') {
+            var sel = form.querySelector('select[name="' + f.label + '"]');
+            if (!sel || !sel.value) isInvalid = true;
+          } else if (f.type === 'file') {
+            var fi = form.querySelector('input[type="file"][name="' + f.label + '"]');
+            if (!fi || !fi.files || fi.files.length === 0) isInvalid = true;
+          } else {
+            var el = form.querySelector('[name="' + f.label + '"]');
+            if (!el || !el.value.trim()) isInvalid = true;
+          }
+        }
+
+        /* Range and past-date checks apply to any filled-in value, whether or
+           not the field is required — the browser's own validation is off
+           (the form is novalidate) and typed values bypass the picker. */
+        if (!isInvalid && (f.type === 'number' || f.type === 'date')) {
+          var input = form.querySelector('[name="' + f.label + '"]');
+          var val   = input ? String(input.value).trim() : '';
+
+          if (val && f.type === 'number') {
+            var num = Number(val);
+            var min = (f.min === '' || f.min == null) ? null : Number(f.min);
+            var max = (f.max === '' || f.max == null) ? null : Number(f.max);
+
+            if (!isFinite(num) ||
+                (min !== null && num < min) ||
+                (max !== null && num > max)) {
+              isInvalid = true;
+              if (min !== null && max !== null) {
+                customMsg = T.numberRange.replace('{min}', min).replace('{max}', max);
+              } else if (min !== null) {
+                customMsg = T.numberMin.replace('{min}', min);
+              } else if (max !== null) {
+                customMsg = T.numberMax.replace('{max}', max);
+              }
+            }
+          } else if (val && f.type === 'date' && f.disablePastDates && val < todayISO()) {
+            isInvalid = true;
+            customMsg = T.pastDate;
+          }
         }
 
         if (isInvalid) {
           invalid.push(f.label);
-          if (fieldWrapper) fieldWrapper.classList.add('sf-field-error');
+          if (fieldWrapper) {
+            fieldWrapper.classList.add('sf-field-error');
+            var msgEl = fieldWrapper.querySelector('.sf-field-error-msg');
+            if (msgEl) {
+              msgEl.textContent = customMsg || globalExtra.requiredFieldMessage || T.requiredField;
+            }
+          }
         }
       });
 
@@ -700,6 +774,11 @@
           data[f.label] = Array.from(checked).map(function(c) { return c.value; });
         } else if (f.type === 'file') {
           data[f.label] = '[file]';
+        } else if (f.type === 'date') {
+          /* validateForm() above reads the raw yyyy-mm-dd, so reformatting
+             here leaves the past-date check untouched. */
+          var dEl = form.querySelector('[name="' + f.label + '"]');
+          data[f.label] = dEl ? formatDate(dEl.value, f.dateFormat) : '';
         } else {
           var el = form.querySelector('[name="' + f.label + '"]');
           data[f.label] = el ? el.value : '';

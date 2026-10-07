@@ -47,7 +47,10 @@
     "textarea": "Paragraph text",
     "select": "Dropdown",
     "checkbox": "Checkbox",
-    "file": "File upload"
+    "file": "File upload",
+    "number": "Quantity",
+    "date": "Date",
+    "time": "Time"
   },
   "details": {
     "heading": "Form details",
@@ -195,6 +198,13 @@
     "detailsHeading": "Details",
     "fieldLabel": "Field label",
     "placeholder": "Placeholder",
+    "minValue": "Minimum",
+    "maxValue": "Maximum",
+    "noLimit": "No limit",
+    "disablePastDates": "Don't allow dates before today",
+    "dateFormat": "Date format",
+    "dateFormatUs": "US (MM/DD/YYYY)",
+    "dateFormatUk": "UK (DD/MM/YYYY)",
     "options": "Options",
     "newOption": "New option…",
     "addOption": "Add",

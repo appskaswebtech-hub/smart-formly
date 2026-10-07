@@ -47,7 +47,10 @@
     "textarea": "Testo del paragrafo",
     "select": "Menu a discesa",
     "checkbox": "Casella di controllo",
-    "file": "Caricamento file"
+    "file": "Caricamento file",
+    "number": "Quantità",
+    "date": "Data",
+    "time": "Ora"
   },
   "details": {
     "heading": "Dettagli del modulo",
@@ -195,6 +198,13 @@
     "detailsHeading": "Dettagli",
     "fieldLabel": "Etichetta del campo",
     "placeholder": "Segnaposto",
+    "minValue": "Minimo",
+    "maxValue": "Massimo",
+    "noLimit": "Nessun limite",
+    "disablePastDates": "Non consentire date precedenti a oggi",
+    "dateFormat": "Formato data",
+    "dateFormatUs": "US (MM/DD/YYYY)",
+    "dateFormatUk": "UK (DD/MM/YYYY)",
     "options": "Opzioni",
     "newOption": "Nuova opzione…",
     "addOption": "Aggiungi",

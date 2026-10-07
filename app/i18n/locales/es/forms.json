@@ -47,7 +47,10 @@
     "textarea": "Texto de párrafo",
     "select": "Desplegable",
     "checkbox": "Casilla de verificación",
-    "file": "Carga de archivo"
+    "file": "Carga de archivo",
+    "number": "Cantidad",
+    "date": "Fecha",
+    "time": "Hora"
   },
   "details": {
     "heading": "Detalles del formulario",
@@ -195,6 +198,13 @@
     "detailsHeading": "Detalles",
     "fieldLabel": "Etiqueta del campo",
     "placeholder": "Marcador de posición",
+    "minValue": "Mínimo",
+    "maxValue": "Máximo",
+    "noLimit": "Sin límite",
+    "disablePastDates": "No permitir fechas anteriores a hoy",
+    "dateFormat": "Formato de fecha",
+    "dateFormatUs": "US (MM/DD/YYYY)",
+    "dateFormatUk": "UK (DD/MM/YYYY)",
     "options": "Opciones",
     "newOption": "Nueva opción…",
     "addOption": "Añadir",

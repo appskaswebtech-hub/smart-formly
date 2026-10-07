@@ -233,7 +233,16 @@ const FIELD_TYPES = [
   { type: "select",   icon: "▾" },
   { type: "checkbox", icon: "☑" },
   { type: "file",     icon: "⬆" },
+  { type: "number",   icon: "#" },
+  { type: "date",     icon: "📅" },
+  { type: "time",     icon: "🕐" },
 ] as const;
+
+// Local (not UTC) yyyy-mm-dd, to match what <input type="date"> expects.
+function todayISO() {
+  const n = new Date();
+  return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, "0")}-${String(n.getDate()).padStart(2, "0")}`;
+}
 
 const PILLS = [
   { key: "form_details" },
@@ -345,6 +354,10 @@ export default function EditForm() {
       id: uuidv4(), type, label, placeholder: "", required: false,
       halfWidth: false, fieldInCenter: false, sendSubmissionEmail: false, emailValidation: false,
       options: type === "select" || type === "checkbox" ? ["Option 1", "Option 2"] : undefined,
+      // Quantities start at 1 with no upper bound until the merchant sets one.
+      min: type === "number" ? "1" : undefined,
+      max: undefined,
+      dateFormat: type === "date" ? "us" : undefined,
     };
     setFields(prev => [...prev, nf]);
     setExpandedFieldId(nf.id);
@@ -422,6 +435,8 @@ export default function EditForm() {
       case "select":   return <select style={pInput}><option>{t("preview.pleaseSelect")}</option>{(field.options??[]).map(o=><option key={o}>{o}</option>)}</select>;
       case "checkbox": return <div style={{display:"flex",flexDirection:"column",gap:4}}>{(field.options??[]).map(o=><label key={o} style={{display:"flex",gap:8,alignItems:"center",fontSize:14}}><input type="checkbox"/>{o}</label>)}</div>;
       case "file":     return <input type="file" style={{fontSize:13}} />;
+      case "number":   return <input type="number" placeholder={field.placeholder} min={field.min || undefined} max={field.max || undefined} style={pInput} />;
+      case "date":     return <input type="date" min={field.disablePastDates ? todayISO() : undefined} style={pInput} />;
       default:         return <input type={field.type} placeholder={field.placeholder} style={pInput} />;
     }
   }
@@ -921,8 +936,29 @@ export default function EditForm() {
                   <BlockStack gap="300">
                     <Text as="h4" variant="headingSm" fontWeight="semibold">{t("elements.detailsHeading")}</Text>
                     <TextField label={t("elements.fieldLabel")} value={field.label} onChange={v=>updateField(field.id,{label:v})} autoComplete="off" />
-                    {field.type !== "checkbox" && field.type !== "file" && (
+                    {field.type !== "checkbox" && field.type !== "file" && field.type !== "date" && field.type !== "time" && (
                       <TextField label={t("elements.placeholder")} value={field.placeholder ?? ""} onChange={v=>updateField(field.id,{placeholder:v})} autoComplete="off" />
+                    )}
+                    {field.type === "number" && (
+                      <InlineStack gap="300" wrap={false}>
+                        <div style={{flex:1}}><TextField label={t("elements.minValue")} type="number" value={field.min ?? ""}
+                          onChange={v=>updateField(field.id,{min:v})} autoComplete="off" /></div>
+                        <div style={{flex:1}}><TextField label={t("elements.maxValue")} type="number" value={field.max ?? ""}
+                          onChange={v=>updateField(field.id,{max:v})} placeholder={t("elements.noLimit")} autoComplete="off" /></div>
+                      </InlineStack>
+                    )}
+                    {field.type === "date" && (
+                      <>
+                        <Select label={t("elements.dateFormat")}
+                          options={[
+                            { label: t("elements.dateFormatUs"), value: "us" },
+                            { label: t("elements.dateFormatUk"), value: "uk" },
+                          ]}
+                          value={field.dateFormat ?? "us"}
+                          onChange={v=>updateField(field.id,{dateFormat:v as "us" | "uk"})} />
+                        <Checkbox label={t("elements.disablePastDates")} checked={field.disablePastDates ?? false}
+                          onChange={v=>updateField(field.id,{disablePastDates:v})} />
+                      </>
                     )}
                   </BlockStack>
                   {(field.type === "select" || field.type === "checkbox") && (

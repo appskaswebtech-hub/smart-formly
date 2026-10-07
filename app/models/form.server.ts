@@ -289,7 +289,11 @@ import db from "../db.server";
 
 export type FormField = {
   id: string;
-  type: "text" | "email" | "phone" | "textarea" | "select" | "checkbox" | "file";
+  type:
+    | "text" | "email" | "phone" | "textarea" | "select" | "checkbox" | "file"
+    | "number"   // quantity — numeric input with optional min/max
+    | "date"     // calendar picker
+    | "time";
   label: string;
   placeholder?: string;
   required: boolean;
@@ -298,6 +302,15 @@ export type FormField = {
   fieldInCenter?: boolean;
   sendSubmissionEmail?: boolean;
   emailValidation?: boolean;
+  /* Quantity bounds. Kept as strings because they come straight from text
+     inputs; an empty string means "no bound". */
+  min?: string;
+  max?: string;
+  /* Date fields only — blocks anything before today. */
+  disablePastDates?: boolean;
+  /* Date fields only — how the picked date is recorded. Missing means ISO,
+     which is what fields created before this setting existed produce. */
+  dateFormat?: "us" | "uk";
 };
 
 export type FormSettings = {
