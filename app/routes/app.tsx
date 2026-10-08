@@ -120,11 +120,11 @@ export default function App() {
       ) : (
         <NavMenu>
           <a href="/app" rel="home">{t("dashboard")}</a>
+          <a href="/app/pricing">{t("pricing")}</a>
           <a href="/app/formsly">{t("myForms")}</a>
           <a href="/app/formsnew">{t("createForm")}</a>
           <a href="/app/submissions">{t("submissions")}</a>
           <a href="/app/settings">{t("settings")}</a>
-          <a href="/app/pricing">{t("pricing")}</a>
           <a href="/app/helpandsupport">{t("helpAndSupport")}</a>
         </NavMenu>
       )}
