@@ -9,6 +9,7 @@
       "invalid_number_min": "Inserisci {min} o più.",
       "invalid_number_max": "Inserisci {max} o meno.",
       "past_date": "Scegli la data di oggi o successiva.",
+      "file_too_large": "I file devono pesare in totale meno di {max} MB.",
       "login_required": "Accedi per utilizzare questo modulo.",
       "generic_error": "Qualcosa è andato storto. Riprova.",
       "success": "Grazie! Il tuo modulo è stato inviato.",

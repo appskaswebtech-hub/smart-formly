@@ -9,6 +9,7 @@
       "invalid_number_min": "Introduce {min} o más.",
       "invalid_number_max": "Introduce {max} o menos.",
       "past_date": "Elige la fecha de hoy o posterior.",
+      "file_too_large": "Los archivos deben sumar menos de {max} MB en total.",
       "login_required": "Inicia sesión para acceder a este formulario.",
       "generic_error": "Algo salió mal. Inténtalo de nuevo.",
       "success": "¡Gracias! Tu formulario se ha enviado.",

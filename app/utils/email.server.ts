@@ -9,6 +9,12 @@ export type EmailField = {
   required?: boolean;
 };
 
+export type MailAttachment = {
+  filename:     string;
+  content:      Buffer;
+  contentType?: string;
+};
+
 export type MailResult =
   | { status: "sent";    messageId: string }
   | { status: "skipped"; reason: "no-transport" | "no-recipient" };
@@ -192,12 +198,16 @@ export async function sendFormSubmissionEmail({
   submissionData,
   ticketNumber,
   adminEmailSettings,
+  attachments,
 }: {
   recipientEmail:      string;
   formName:            string;
   fields:              EmailField[];
   submissionData:      Record<string, any>;
   ticketNumber?:       number | null;
+  /* Files the shopper uploaded, attached as-is so the merchant can download
+     them from the email. */
+  attachments?:        MailAttachment[];
   adminEmailSettings?: {
     adminEmailSubject?:          string;
     adminEmailIncludeDateTime?:  boolean;
@@ -301,6 +311,13 @@ export async function sendFormSubmissionEmail({
     to,
     subject: headerSafe(subject),
     html,
+    attachments: attachments?.length
+      ? attachments.map((a) => ({
+          filename:    headerSafe(a.filename) || "attachment",
+          content:     a.content,
+          contentType: a.contentType,
+        }))
+      : undefined,
   });
 
   return { status: "sent", messageId: info.messageId };

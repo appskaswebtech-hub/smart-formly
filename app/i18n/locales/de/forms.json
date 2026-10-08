@@ -202,6 +202,7 @@
     "maxValue": "Maximum",
     "noLimit": "Kein Limit",
     "disablePastDates": "Daten vor heute nicht zulassen",
+    "allowMultipleFiles": "Mehrere Dateien zulassen",
     "dateFormat": "Datumsformat",
     "dateFormatUs": "US (MM/DD/YYYY)",
     "dateFormatUk": "UK (DD/MM/YYYY)",

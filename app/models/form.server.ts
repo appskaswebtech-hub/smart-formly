@@ -311,6 +311,8 @@ export type FormField = {
   /* Date fields only — how the picked date is recorded. Missing means ISO,
      which is what fields created before this setting existed produce. */
   dateFormat?: "us" | "uk";
+  /* File fields only — let the shopper pick more than one file. */
+  allowMultiple?: boolean;
 };
 
 export type FormSettings = {

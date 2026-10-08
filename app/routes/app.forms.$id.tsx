@@ -434,7 +434,7 @@ export default function EditForm() {
       case "textarea": return <textarea placeholder={field.placeholder} style={pInput} rows={3} />;
       case "select":   return <select style={pInput}><option>{t("preview.pleaseSelect")}</option>{(field.options??[]).map(o=><option key={o}>{o}</option>)}</select>;
       case "checkbox": return <div style={{display:"flex",flexDirection:"column",gap:4}}>{(field.options??[]).map(o=><label key={o} style={{display:"flex",gap:8,alignItems:"center",fontSize:14}}><input type="checkbox"/>{o}</label>)}</div>;
-      case "file":     return <input type="file" style={{fontSize:13}} />;
+      case "file":     return <input type="file" multiple={field.allowMultiple ?? false} style={{fontSize:13}} />;
       case "number":   return <input type="number" placeholder={field.placeholder} min={field.min || undefined} max={field.max || undefined} style={pInput} />;
       case "date":     return <input type="date" min={field.disablePastDates ? todayISO() : undefined} style={pInput} />;
       default:         return <input type={field.type} placeholder={field.placeholder} style={pInput} />;
@@ -959,6 +959,11 @@ export default function EditForm() {
                         <Checkbox label={t("elements.disablePastDates")} checked={field.disablePastDates ?? false}
                           onChange={v=>updateField(field.id,{disablePastDates:v})} />
                       </>
+                    )}
+                    {field.type === "file" && (
+                      <Checkbox label={t("elements.allowMultipleFiles")}
+                        checked={field.allowMultiple ?? false}
+                        onChange={v=>updateField(field.id,{allowMultiple:v})} />
                     )}
                   </BlockStack>
                   {(field.type === "select" || field.type === "checkbox") && (

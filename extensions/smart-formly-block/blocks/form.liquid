@@ -218,6 +218,7 @@
       numberMin:     {{ 'smartformly.form.invalid_number_min'   | t | json }},
       numberMax:     {{ 'smartformly.form.invalid_number_max'   | t | json }},
       pastDate:      {{ 'smartformly.form.past_date'            | t | json }},
+      fileTooLarge:  {{ 'smartformly.form.file_too_large'       | t | json }},
       loginRequired: {{ 'smartformly.form.login_required' | t | json }},
       genericError:  {{ 'smartformly.form.generic_error'  | t | json }},
       success:       {{ 'smartformly.form.success'        | t | json }},
@@ -279,6 +280,58 @@
       if (fmt === 'us') return m[2] + '/' + m[3] + '/' + m[1];
       if (fmt === 'uk') return m[3] + '/' + m[2] + '/' + m[1];
       return iso;
+    }
+
+    /* Uploads travel inside the JSON body as base64 and are attached to the
+       merchant's email. Base64 adds ~1/3, so this ceiling keeps a submission
+       under the 25 MB most mail servers accept. */
+    var SF_MAX_UPLOAD_BYTES = 18 * 1024 * 1024;
+    var SF_MAX_UPLOAD_MB    = 18;
+
+    function fileInputs(form) {
+      return Array.prototype.slice.call(form.querySelectorAll('input[type="file"]'));
+    }
+
+    function totalUploadBytes(form) {
+      return fileInputs(form).reduce(function (sum, input) {
+        return sum + Array.prototype.slice.call(input.files || []).reduce(
+          function (s, file) { return s + file.size; }, 0);
+      }, 0);
+    }
+
+    /* FileReader hands back "data:<mime>;base64,<payload>" — the API wants the
+       payload on its own. */
+    function readFileAsBase64(file) {
+      return new Promise(function (resolve, reject) {
+        var reader = new FileReader();
+        reader.onload  = function () { resolve(String(reader.result).split(',')[1] || ''); };
+        reader.onerror = function () { reject(reader.error); };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function collectFiles(form) {
+      var jobs = [];
+      fileInputs(form).forEach(function (input) {
+        Array.prototype.slice.call(input.files || []).forEach(function (file) {
+          jobs.push(readFileAsBase64(file).then(function (b64) {
+            return {
+              fieldLabel:  input.getAttribute('name') || '',
+              filename:    file.name,
+              contentType: file.type || 'application/octet-stream',
+              size:        file.size,
+              data:        b64,
+            };
+          }));
+        });
+      });
+      return Promise.all(jobs);
+    }
+
+    function fileNamesFor(form, label) {
+      var input = form.querySelector('input[type="file"][name="' + label + '"]');
+      if (!input || !input.files || input.files.length === 0) return '';
+      return Array.prototype.slice.call(input.files).map(function (f) { return f.name; }).join(', ');
     }
 
     /* ════════════════════════════════════════════
@@ -619,7 +672,8 @@
             html += '</div>';
             break;
           case 'file':
-            html += '<input type="file" ' + nameAttr + dataReq + '>';
+            html += '<input type="file" ' + nameAttr + dataReq +
+                    (f.allowMultiple ? ' multiple' : '') + '>';
             break;
           case 'number':
             html += '<input type="number" ' + nameAttr + dataReq +
@@ -731,6 +785,13 @@
           }
         }
 
+        /* Upload size is checked per field but measured across the whole form,
+           since every file shares one email. */
+        if (!isInvalid && f.type === 'file' && totalUploadBytes(form) > SF_MAX_UPLOAD_BYTES) {
+          isInvalid = true;
+          customMsg = T.fileTooLarge.replace('{max}', SF_MAX_UPLOAD_MB);
+        }
+
         if (isInvalid) {
           invalid.push(f.label);
           if (fieldWrapper) {
@@ -773,7 +834,9 @@
           var checked = form.querySelectorAll('input[name="' + f.label + '"]:checked');
           data[f.label] = Array.from(checked).map(function(c) { return c.value; });
         } else if (f.type === 'file') {
-          data[f.label] = '[file]';
+          /* The names are what the merchant reads; the bytes ride along in
+             __sfFiles below. */
+          data[f.label] = fileNamesFor(form, f.label);
         } else if (f.type === 'date') {
           /* validateForm() above reads the raw yyyy-mm-dd, so reformatting
              here leaves the past-date check untouched. */
@@ -786,12 +849,16 @@
       });
 
       try {
+        /* Read the uploads only once validation has passed, so a rejected
+           submission never pays the encoding cost. */
+        var sfFiles = await collectFiles(form);
+
         /* ?locale= lets the API localize the strings it renders itself (the
            success message), which the T table above can't reach. */
         var res    = await fetch(appUrl + '/api/submit/' + formId + '?locale=' + encodeURIComponent(SF_LOCALE), {
           method:  'POST',
           headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify(data),
+          body:    JSON.stringify(Object.assign({}, data, { __sfFiles: sfFiles })),
         });
         var result = await res.json();
 

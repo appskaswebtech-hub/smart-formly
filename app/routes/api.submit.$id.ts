@@ -5,6 +5,7 @@ import {
   sendFormSubmissionEmail,
   sendAutoResponderEmail,
   findSubmitterEmail,
+  type MailAttachment,
 } from "../utils/email.server";
 import { getStorefrontStrings } from "../i18n/storefront.server";
 
@@ -13,6 +14,38 @@ import { getStorefrontStrings } from "../i18n/storefront.server";
 //   "Access-Control-Allow-Methods": "POST, OPTIONS",
 //   "Access-Control-Allow-Headers": "Content-Type",
 // };
+
+/* Uploads arrive base64-encoded inside the JSON body and are forwarded to the
+   merchant as email attachments — nothing is stored. Base64 costs about a
+   third extra, so this ceiling keeps the message under the 25 MB most mail
+   servers accept. */
+const MAX_UPLOAD_BYTES = 18 * 1024 * 1024;
+
+/* Reserved body key carrying the uploads. It is stripped before the rest of
+   the body is treated as form answers. */
+const FILES_KEY = "__sfFiles";
+
+function decodeAttachments(raw: unknown): MailAttachment[] {
+  if (!Array.isArray(raw)) return [];
+
+  const out: MailAttachment[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    const { filename, data, contentType } = item as Record<string, any>;
+    if (typeof filename !== "string" || !filename) continue;
+    if (typeof data !== "string" || !data) continue;
+
+    const content = Buffer.from(data, "base64");
+    if (content.length === 0) continue;
+
+    out.push({
+      filename,
+      content,
+      contentType: typeof contentType === "string" ? contentType : undefined,
+    });
+  }
+  return out;
+}
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin":  "*",
@@ -105,6 +138,20 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
       return json({ error: "Invalid JSON body" }, { status: 400, headers: CORS_HEADERS });
     }
 
+    // Uploads are not form answers: take them out before validating or storing,
+    // or they would be saved into the submission as a giant base64 blob.
+    const attachments = decodeAttachments(submissionData[FILES_KEY]);
+    delete submissionData[FILES_KEY];
+
+    // The browser checks this too, but that check is trivially bypassed.
+    const uploadBytes = attachments.reduce((sum, a) => sum + a.content.length, 0);
+    if (uploadBytes > MAX_UPLOAD_BYTES) {
+      return json(
+        { error: `Uploads must total less than ${Math.floor(MAX_UPLOAD_BYTES / (1024 * 1024))} MB.` },
+        { status: 413, headers: CORS_HEADERS },
+      );
+    }
+
     const fields = JSON.parse(form.fields) as Array<{
       id: string; label: string; type: string; required: boolean;
     }>;
@@ -172,6 +219,7 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
             adminEmailHideHidden:      extra.adminEmailHideHidden,
             adminEmailHideEmpty:       extra.adminEmailHideEmpty,
           },
+          attachments,
         });
         if (result.status === "sent") {
           console.log("[SF:MAIL] Admin email sent:", result.messageId);
