@@ -9,10 +9,17 @@ export type EmailField = {
   required?: boolean;
 };
 
-export type MailAttachment = {
-  filename:     string;
-  content:      Buffer;
-  contentType?: string;
+/**
+ * An uploaded file offered as a download link rather than an attachment.
+ *
+ * Linking instead of attaching keeps the message small, sidesteps the ~25 MB
+ * limit most mail servers impose, and means a large upload can never be the
+ * reason a notification fails to arrive.
+ */
+export type MailFileLink = {
+  filename: string;
+  size:     number;
+  url:      string;
 };
 
 export type MailResult =
@@ -49,6 +56,12 @@ function formatValue(value: unknown): string {
 // Strip line breaks from anything that ends up in a mail header.
 function headerSafe(value: unknown): string {
   return String(value ?? "").replace(/[\r\n]+/g, " ").trim();
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 // ── Transporter ──────────────────────────────────────────────────────────────
@@ -198,16 +211,15 @@ export async function sendFormSubmissionEmail({
   submissionData,
   ticketNumber,
   adminEmailSettings,
-  attachments,
+  fileLinks,
 }: {
   recipientEmail:      string;
   formName:            string;
   fields:              EmailField[];
   submissionData:      Record<string, any>;
   ticketNumber?:       number | null;
-  /* Files the shopper uploaded, attached as-is so the merchant can download
-     them from the email. */
-  attachments?:        MailAttachment[];
+  /* Files the shopper uploaded, rendered as download links. */
+  fileLinks?:          MailFileLink[];
   adminEmailSettings?: {
     adminEmailSubject?:          string;
     adminEmailIncludeDateTime?:  boolean;
@@ -278,6 +290,33 @@ export async function sendFormSubmissionEmail({
     </table>
   `;
 
+  // ── Uploaded files ─────────────────────────────────────────────────────────
+  // Linked rather than attached: the message stays small, and a large upload
+  // can never be the reason the notification fails to arrive.
+  const fileLinksBlock = fileLinks?.length
+    ? `
+      <div style="margin-top:24px;padding:16px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px">
+        <div style="font-size:13px;font-weight:600;color:#374151;margin-bottom:10px">
+          ${fileLinks.length === 1 ? "Uploaded file" : "Uploaded files"}
+        </div>
+        ${fileLinks
+          .map(
+            (file) => `
+          <div style="margin-bottom:8px">
+            <a href="${escapeHtml(file.url)}"
+               style="color:#5C6AC4;font-size:14px;font-weight:500;text-decoration:underline">
+              ${escapeHtml(file.filename)}
+            </a>
+            <span style="color:#9CA3AF;font-size:12px"> (${formatBytes(file.size)})</span>
+          </div>`,
+          )
+          .join("")}
+        <div style="font-size:11.5px;color:#9CA3AF;margin-top:10px">
+          Download links expire in 90 days.
+        </div>
+      </div>`
+    : "";
+
   const html = `
     <div style="font-family:sans-serif;max-width:600px;margin:0 auto">
 
@@ -298,6 +337,8 @@ export async function sendFormSubmissionEmail({
         ${customMessage}
         ${submissionTable}
 
+        ${fileLinksBlock}
+
         <p style="margin-top:24px;font-size:12px;color:#9CA3AF">
           Sent by SmartFormly · You're receiving this because you enabled email notifications for this form.
         </p>
@@ -311,13 +352,6 @@ export async function sendFormSubmissionEmail({
     to,
     subject: headerSafe(subject),
     html,
-    attachments: attachments?.length
-      ? attachments.map((a) => ({
-          filename:    headerSafe(a.filename) || "attachment",
-          content:     a.content,
-          contentType: a.contentType,
-        }))
-      : undefined,
   });
 
   return { status: "sent", messageId: info.messageId };

@@ -116,20 +116,73 @@
 
 import db from "../db.server";
 
+/** A file uploaded with a submission, ready to be stored. */
+export type SubmissionUpload = {
+  fieldLabel: string;
+  filename: string;
+  contentType: string;
+  content: Buffer;
+};
+
 // ── Create a new submission ─────────────────────────────────────────────────
 export async function createSubmission(
   formId: string,
   shopDomain: string,
   data: Record<string, any>,
-  ticketNumber?: number | null
+  ticketNumber?: number | null,
+  uploads: SubmissionUpload[] = []
 ) {
+  // Nested create so the files land in the same transaction as the submission:
+  // a half-saved submission with missing files would be worse than none.
   return db.formSubmission.create({
     data: {
       formId,
       shopDomain,
       data: JSON.stringify(data),
       ticketNumber: ticketNumber ?? null,
+      attachments: uploads.length
+        ? {
+            create: uploads.map((u) => ({
+              shopDomain,
+              fieldLabel: u.fieldLabel,
+              filename: u.filename,
+              contentType: u.contentType,
+              size: u.content.length,
+              // Prisma's Bytes maps to Uint8Array; Buffer is one, but Node's
+              // generic ArrayBufferLike doesn't satisfy the narrower type.
+              data: new Uint8Array(u.content),
+            })),
+          }
+        : undefined,
     },
+    include: { attachments: { select: { id: true, filename: true, size: true } } },
+  });
+}
+
+// ── Read one attachment, scoped to the shop that owns it ────────────────────
+export async function getAttachment(id: string, shopDomain: string) {
+  return db.formAttachment.findFirst({ where: { id, shopDomain } });
+}
+
+/**
+ * Read one attachment by id alone.
+ *
+ * Only for requests carrying a valid signed link, where the signature is the
+ * authorisation and there is no session to scope by. Never call this from a
+ * path a merchant can reach without a signature.
+ */
+export async function getAttachmentById(id: string) {
+  return db.formAttachment.findUnique({ where: { id } });
+}
+
+// ── Attachment metadata for a set of submissions (never the bytes) ──────────
+export async function getAttachmentsFor(submissionIds: string[], shopDomain: string) {
+  if (submissionIds.length === 0) return [];
+  return db.formAttachment.findMany({
+    where: { submissionId: { in: submissionIds }, shopDomain },
+    // Deliberately excludes `data`: listing submissions must never pull file
+    // bytes into memory.
+    select: { id: true, submissionId: true, fieldLabel: true, filename: true, size: true },
   });
 }
 

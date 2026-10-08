@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -41,9 +41,13 @@ model FormConfig {
   shopDomain  String
   formName    String
   slug        String           @default("")
-  fields      String           @default("[]")
-  settings    String           @default("{}")
-  design      String           @default("{}")
+  // LongText, not the default VARCHAR(191): these hold serialised JSON, and
+  // `design` carries the banner image as a base64 data URL, so it can run to
+  // megabytes. Dropping these attributes brings back
+  // "The provided value for the column is too long for the column's type".
+  fields      String           @default("[]") @db.LongText
+  settings    String           @default("{}") @db.LongText
+  design      String           @default("{}") @db.LongText
   isActive    Boolean          @default(false)
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
@@ -55,11 +59,39 @@ model FormSubmission {
   formId       String
   shopDomain   String
   ticketNumber Int?
-  data         String // JSON stringified submission data
+  data         String   @db.LongText // JSON stringified submission data
   createdAt    DateTime @default(now())
 
-  form FormConfig @relation(fields: [formId], references: [id], onDelete: Cascade)
+  form        FormConfig       @relation(fields: [formId], references: [id], onDelete: Cascade)
+  attachments FormAttachment[]
 
   @@index([formId])
+  @@index([shopDomain])
+}
+
+/// Files uploaded through a form's File upload field.
+///
+/// Stored rather than only emailed so the upload survives a mail failure and
+/// the merchant can download it again from the Submissions page.
+///
+/// `data` is Bytes, which Prisma maps to LONGBLOB on MySQL — no size attribute
+/// needed, and it avoids the ~33% that base64 would add.
+model FormAttachment {
+  id           String   @id @default(uuid())
+  submissionId String
+  shopDomain   String
+  // Wider than the VARCHAR(191) default: both come from outside our control —
+  // fieldLabel is whatever the merchant titled the field, filename is whatever
+  // the shopper uploaded — and overflowing either fails the whole submission.
+  fieldLabel   String   @db.VarChar(512)
+  filename     String   @db.VarChar(512)
+  contentType  String
+  size         Int
+  data         Bytes
+  createdAt    DateTime @default(now())
+
+  submission FormSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  @@index([submissionId])
   @@index([shopDomain])
 }

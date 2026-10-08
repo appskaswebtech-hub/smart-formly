@@ -5,8 +5,9 @@ import {
   sendFormSubmissionEmail,
   sendAutoResponderEmail,
   findSubmitterEmail,
-  type MailAttachment,
+  type MailFileLink,
 } from "../utils/email.server";
+import { attachmentDownloadUrl } from "../utils/attachment-url.server";
 import { getStorefrontStrings } from "../i18n/storefront.server";
 
 // const CORS_HEADERS = {
@@ -15,23 +16,31 @@ import { getStorefrontStrings } from "../i18n/storefront.server";
 //   "Access-Control-Allow-Headers": "Content-Type",
 // };
 
-/* Uploads arrive base64-encoded inside the JSON body and are forwarded to the
-   merchant as email attachments — nothing is stored. Base64 costs about a
-   third extra, so this ceiling keeps the message under the 25 MB most mail
-   servers accept. */
+/* Uploads arrive base64-encoded inside the JSON body. They are saved with the
+   submission and attached to the merchant's email. Base64 costs about a third
+   extra, so this ceiling keeps the message under the 25 MB most mail servers
+   accept. */
 const MAX_UPLOAD_BYTES = 18 * 1024 * 1024;
 
 /* Reserved body key carrying the uploads. It is stripped before the rest of
    the body is treated as form answers. */
 const FILES_KEY = "__sfFiles";
 
-function decodeAttachments(raw: unknown): MailAttachment[] {
+/** A decoded upload, ready to store. */
+type DecodedUpload = {
+  fieldLabel:   string;
+  filename:     string;
+  content:      Buffer;
+  contentType?: string;
+};
+
+function decodeAttachments(raw: unknown): DecodedUpload[] {
   if (!Array.isArray(raw)) return [];
 
-  const out: MailAttachment[] = [];
+  const out: DecodedUpload[] = [];
   for (const item of raw) {
     if (!item || typeof item !== "object") continue;
-    const { filename, data, contentType } = item as Record<string, any>;
+    const { filename, data, contentType, fieldLabel } = item as Record<string, any>;
     if (typeof filename !== "string" || !filename) continue;
     if (typeof data !== "string" || !data) continue;
 
@@ -42,6 +51,7 @@ function decodeAttachments(raw: unknown): MailAttachment[] {
       filename,
       content,
       contentType: typeof contentType === "string" ? contentType : undefined,
+      fieldLabel: typeof fieldLabel === "string" ? fieldLabel : "",
     });
   }
   return out;
@@ -145,6 +155,14 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
 
     // The browser checks this too, but that check is trivially bypassed.
     const uploadBytes = attachments.reduce((sum, a) => sum + a.content.length, 0);
+
+    // Logged on every submission so a missing attachment can be traced to the
+    // storefront, the request, or the mail step — rather than guessed at.
+    console.log(
+      `[SF:UPLOAD] ${attachments.length} file(s), ${uploadBytes} bytes` +
+      (attachments.length ? ` — ${attachments.map((a) => a.filename).join(", ")}` : ""),
+    );
+
     if (uploadBytes > MAX_UPLOAD_BYTES) {
       return json(
         { error: `Uploads must total less than ${Math.floor(MAX_UPLOAD_BYTES / (1024 * 1024))} MB.` },
@@ -198,8 +216,37 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
       ticketNumber = existingCount + 1;
     }
 
-    // ── Save submission ───────────────────────────────────────────
-    const submission = await createSubmission(formId, form.shopDomain, submissionData, ticketNumber);
+    // ── Save submission (with its uploads) ────────────────────────
+    // Stored before the email so a mail failure can't lose the file; the
+    // merchant can still download it from the Submissions page.
+    const submission = await createSubmission(
+      formId,
+      form.shopDomain,
+      submissionData,
+      ticketNumber,
+      attachments.map((a) => ({
+        fieldLabel:  a.fieldLabel,
+        filename:    a.filename,
+        contentType: a.contentType ?? "application/octet-stream",
+        content:     a.content,
+      })),
+    );
+
+    // Signed, expiring links to the stored files. Emailing links rather than
+    // the bytes keeps the message small and immune to mail-server size limits.
+    const fileLinks: MailFileLink[] = submission.attachments
+      .map((file) => {
+        const url = attachmentDownloadUrl(file.id);
+        return url ? { filename: file.filename, size: file.size, url } : null;
+      })
+      .filter((link): link is MailFileLink => link !== null);
+
+    if (attachments.length) {
+      console.log(
+        `[SF:UPLOAD] stored ${submission.attachments.length} file(s) on ${submission.id}, ` +
+        `${fileLinks.length} link(s) built`,
+      );
+    }
 
     // ── Send admin notification email ─────────────────────────────
     if (settings.notifyOnSubmit && settings.recipientEmail) {
@@ -219,7 +266,7 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
             adminEmailHideHidden:      extra.adminEmailHideHidden,
             adminEmailHideEmpty:       extra.adminEmailHideEmpty,
           },
-          attachments,
+          fileLinks,
         });
         if (result.status === "sent") {
           console.log("[SF:MAIL] Admin email sent:", result.messageId);

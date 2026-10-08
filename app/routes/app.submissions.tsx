@@ -27,6 +27,8 @@ import { authenticate } from "../shopify.server";
 import i18next from "../i18n/i18next.server";
 import { resolveLocale } from "../i18n/resolve.server";
 import db from "../db.server";
+import { getAttachmentsFor } from "../models/submission.server";
+import { signedAttachmentPath } from "../utils/attachment-url.server";
 
 export const handle = { i18n: ["submissions", "common"] };
 
@@ -48,6 +50,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     take: 50,
   });
 
+  // Metadata only — getAttachmentsFor never selects the file bytes, so listing
+  // submissions stays cheap no matter how large the uploads are.
+  const attachments = await getAttachmentsFor(
+    submissions.map((s) => s.id),
+    session.shop,
+  );
+
   return json({
     submissions: submissions.map((s) => ({
       id: s.id,
@@ -55,6 +64,16 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       formName: formMap[s.formId] ?? t("all.unknownForm"),
       data: JSON.parse(s.data) as Record<string, any>,
       createdAt: s.createdAt,
+      attachments: attachments
+        .filter((a) => a.submissionId === s.id)
+        // Signed: the download opens in a new tab with no embedded-app session,
+        // so an unsigned link would hit the login screen instead of the file.
+        .map((a) => ({
+          id: a.id,
+          filename: a.filename,
+          size: a.size,
+          url: signedAttachmentPath(a.id),
+        })),
     })),
   });
 };
@@ -87,6 +106,7 @@ type Submission = {
   formName: string;
   data: Record<string, any>;
   createdAt: string;
+  attachments: { id: string; filename: string; size: number; url: string | null }[];
 };
 
 // ── Component ─────────────────────────────────────────────────────────────
@@ -295,6 +315,49 @@ export default function AllSubmissions() {
                   </Box>
                 ))}
               </BlockStack>
+
+              {viewingSubmission.attachments.length > 0 && (
+                <BlockStack gap="300">
+                  <Text as="h3" variant="headingSm">
+                    {t("modal.attachments", { defaultValue: "Attachments" })}
+                  </Text>
+                  <BlockStack gap="200">
+                    {viewingSubmission.attachments.map((file) => (
+                      <Box
+                        key={file.id}
+                        padding="300"
+                        background="bg-surface-secondary"
+                        borderRadius="200"
+                      >
+                        <InlineStack align="space-between" blockAlign="center" gap="300">
+                          <BlockStack gap="050">
+                            <Text as="p" variant="bodyMd">{file.filename}</Text>
+                            <Text as="p" variant="bodySm" tone="subdued">
+                              {(file.size / 1024).toFixed(1)} KB
+                            </Text>
+                          </BlockStack>
+                          {/*
+                            A plain link, not a fetcher: the response is a file
+                            download, which Remix navigation cannot handle. The
+                            URL is signed because this opens in a new tab, where
+                            there is no embedded-app session to authenticate with.
+                          */}
+                          <a
+                            href={file.url ?? `/api/attachments/${file.id}`}
+                            download={file.filename}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            <Button size="slim">
+                              {t("modal.download", { defaultValue: "Download" })}
+                            </Button>
+                          </a>
+                        </InlineStack>
+                      </Box>
+                    ))}
+                  </BlockStack>
+                </BlockStack>
+              )}
 
             </BlockStack>
           </Modal.Section>
