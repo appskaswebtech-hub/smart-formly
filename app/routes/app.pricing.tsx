@@ -20,8 +20,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   return json({});
 };
 
-// Plan selection posts to the /api/billing resource route, which is shared with
-// the BillingLock paywall — see app/billing/plans.ts for the plan catalog.
+// Only subscribed merchants reach this page: app/routes/app.tsx redirects
+// everyone else out to Shopify's hosted plan page before anything renders. So
+// this is the "change plan" screen, not the paywall.
+//
+// Choose Plan posts to the /api/billing resource route, which hands off to that
+// same Shopify page — App Pricing forbids charging from inside the app. See
+// app/billing/plans.ts for the plan catalog.
 
 // ─── Static data ──────────────────────────────────────────────────────────────
 

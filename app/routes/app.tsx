@@ -6,17 +6,20 @@ import { NavMenu } from "@shopify/app-bridge-react";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 import { useTranslation } from "react-i18next";
 import { authenticate } from "../shopify.server";
-import BillingLock from "../components/BillingLock";
+import {
+  billingBypassed,
+  isUnlockedPath,
+  planSelectionUrl,
+} from "../billing/plan-page.server";
 import { getPolarisTranslations } from "../i18n/polaris";
 import type { loader as rootLoader } from "../root";
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
-// `pricing` is here for BillingLock, which renders from this layout.
-export const handle = { i18n: ["common", "nav", "pricing"] };
+export const handle = { i18n: ["common", "nav"] };
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { admin } = await authenticate.admin(request);
+  const { admin, redirect } = await authenticate.admin(request);
 
   // Read subscriptions straight from the installation rather than via
   // billing.check: that filters by plan names from our own config, but under
@@ -79,11 +82,23 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     }
   }
 
-  return { apiKey: process.env.SHOPIFY_API_KEY || "", hasActivePayment };
+  // Without a subscription the app is closed: send the merchant to Shopify's
+  // plan page instead of rendering anything. target "_top" is required because
+  // that page lives outside the app's iframe.
+  const locked = !hasActivePayment && !billingBypassed();
+
+  if (locked && !isUnlockedPath(new URL(request.url).pathname)) {
+    const planPage = await planSelectionUrl(admin);
+    // No handle resolved: render the app rather than strand the merchant on a
+    // blank screen with nowhere to go. planSelectionUrl has already logged it.
+    if (planPage) return redirect(planPage, { target: "_top" });
+  }
+
+  return { apiKey: process.env.SHOPIFY_API_KEY || "", locked };
 };
 
 export default function App() {
-  const { apiKey, hasActivePayment } = useLoaderData<typeof loader>();
+  const { apiKey, locked } = useLoaderData<typeof loader>();
   const { t } = useTranslation("nav");
 
   // Read the locale from root rather than re-resolving it here: root is the
@@ -93,40 +108,28 @@ export default function App() {
 
   return (
     <AppProvider isEmbeddedApp apiKey={apiKey} i18n={getPolarisTranslations(locale)}>
-      <NavMenu>
-        <a href="/app" rel="home">{t("dashboard")}</a>
-        <a href="/app/formsly">{t("myForms")}</a>
-        <a href="/app/formsnew">{t("createForm")}</a>
-        <a href="/app/submissions">{t("submissions")}</a>
-        <a href="/app/settings">{t("settings")}</a>
-        <a href="/app/pricing">{t("pricing")}</a>
-        <a href="/app/helpandsupport">{t("helpAndSupport")}</a>
-      </NavMenu>
-
-      {hasActivePayment ? (
-        <Outlet />
+      {/*
+        While locked, every other tab would only bounce the merchant back out to
+        Shopify's plan page, so none are offered. App Bridge requires a first
+        rel="home" link, which Help & Support takes over for the duration.
+      */}
+      {locked ? (
+        <NavMenu>
+          <a href="/app/helpandsupport" rel="home">{t("helpAndSupport")}</a>
+        </NavMenu>
       ) : (
-        <>
-          {/*
-            Clamped to the viewport and inert. The admin sizes this iframe to its
-            content and scrolls the outer window, so an un-clamped page would let
-            the merchant simply scroll past a fixed overlay to reach the app.
-          */}
-          <div
-            aria-hidden="true"
-            style={{
-              height: "100vh",
-              overflow: "hidden",
-              pointerEvents: "none",
-              userSelect: "none",
-              filter: "blur(1.5px)",
-            }}
-          >
-            <Outlet />
-          </div>
-          <BillingLock />
-        </>
+        <NavMenu>
+          <a href="/app" rel="home">{t("dashboard")}</a>
+          <a href="/app/formsly">{t("myForms")}</a>
+          <a href="/app/formsnew">{t("createForm")}</a>
+          <a href="/app/submissions">{t("submissions")}</a>
+          <a href="/app/settings">{t("settings")}</a>
+          <a href="/app/pricing">{t("pricing")}</a>
+          <a href="/app/helpandsupport">{t("helpAndSupport")}</a>
+        </NavMenu>
       )}
+
+      <Outlet />
     </AppProvider>
   );
 }

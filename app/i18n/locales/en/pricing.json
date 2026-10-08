@@ -24,13 +24,5 @@
     "hiddenField": "Hidden field",
     "restrictSubmissions": "Restrict form submissions per one user",
     "utmTracking": "UTM tracking"
-  },
-  "lock": {
-    "badge": "Get started",
-    "title": "Choose a plan to continue",
-    "subtitle": "A subscription is required to use SmartFormly.",
-    "mostPopular": "Most popular",
-    "startWith": "Start with {{plan}} →",
-    "footer": "Cancel anytime from your Shopify admin · Billed in USD · Secure payment via Shopify"
   }
 }

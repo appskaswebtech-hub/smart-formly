@@ -24,13 +24,5 @@
     "hiddenField": "Verstecktes Feld",
     "restrictSubmissions": "Formulareinsendungen pro Benutzer begrenzen",
     "utmTracking": "UTM-Tracking"
-  },
-  "lock": {
-    "badge": "Loslegen",
-    "title": "Wähle einen Plan, um fortzufahren",
-    "subtitle": "Für die Nutzung von SmartFormly ist ein Abonnement erforderlich.",
-    "mostPopular": "Am beliebtesten",
-    "startWith": "Mit {{plan}} starten →",
-    "footer": "Jederzeit im Shopify-Adminbereich kündbar · Abrechnung in USD · Sichere Zahlung über Shopify"
   }
 }

@@ -24,13 +24,5 @@
     "hiddenField": "Campo oculto",
     "restrictSubmissions": "Limitar los envíos por usuario",
     "utmTracking": "Seguimiento UTM"
-  },
-  "lock": {
-    "badge": "Comenzar",
-    "title": "Elige un plan para continuar",
-    "subtitle": "Se requiere una suscripción para usar SmartFormly.",
-    "mostPopular": "Más popular",
-    "startWith": "Empezar con {{plan}} →",
-    "footer": "Cancela cuando quieras desde tu panel de Shopify · Facturado en USD · Pago seguro con Shopify"
   }
 }
