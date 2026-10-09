@@ -219,6 +219,9 @@
       numberMax:     {{ 'smartformly.form.invalid_number_max'   | t | json }},
       pastDate:      {{ 'smartformly.form.past_date'            | t | json }},
       fileTooLarge:  {{ 'smartformly.form.file_too_large'       | t | json }},
+      invalidEmail:  {{ 'smartformly.form.invalid_email'        | t | json }},
+      emailNoDomain: {{ 'smartformly.form.email_domain_invalid' | t | json }},
+      emailTypo:     {{ 'smartformly.form.email_typo'           | t | json }},
       loginRequired: {{ 'smartformly.form.login_required' | t | json }},
       genericError:  {{ 'smartformly.form.generic_error'  | t | json }},
       success:       {{ 'smartformly.form.success'        | t | json }},
@@ -682,10 +685,11 @@
                     ' step="1" inputmode="numeric" placeholder="' + escHtml(f.placeholder||'') + '">';
             break;
           case 'date':
-            /* min= makes the native calendar grey out earlier days; the JS
-               check below covers typed-in dates. */
+            /* min= greys out earlier days in the native calendar; the JS check
+               below covers dates typed in directly. Past dates are never
+               selectable on any date field. */
             html += '<input type="date" ' + nameAttr + dataReq +
-                    (f.disablePastDates ? ' min="' + todayISO() + '"' : '') + '>';
+                    ' min="' + todayISO() + '">';
             break;
           default:
             html += '<input type="' + (f.type||'text') + '" ' + nameAttr + dataReq + ' placeholder="' + escHtml(f.placeholder||'') + '">';
@@ -718,10 +722,94 @@
 
       container.innerHTML = html;
 
-      container.querySelector('form').addEventListener('submit', function(e) {
+      var formEl = container.querySelector('form');
+
+      formEl.addEventListener('submit', function(e) {
         e.preventDefault();
         submitForm(e.target, container);
       });
+
+      /* Checked on blur so a typo is corrected in place, rather than being
+         discovered only after the shopper presses submit. */
+      emailFields().forEach(function (f) {
+        var input = formEl.querySelector('[name="' + f.label + '"]');
+        if (!input) return;
+        input.addEventListener('blur', async function () {
+          if (!input.value.trim()) return;
+          setFieldError(formEl, f.label, await emailProblemFor(f, input.value));
+        });
+      });
+    }
+
+    /* Remote email checks, keyed by address so tabbing in and out of a field
+       does not re-ask. Values: true (ok) or a message to show. */
+    var emailCheckCache = {};
+
+    function setFieldError(form, label, message) {
+      var wrapper = form.querySelector('[data-field-label="' + label + '"]');
+      if (!wrapper) return;
+      if (message) {
+        wrapper.classList.add('sf-field-error');
+        var el = wrapper.querySelector('.sf-field-error-msg');
+        if (el) el.textContent = message;
+      } else {
+        wrapper.classList.remove('sf-field-error');
+      }
+    }
+
+    /* Asks the app whether the address is usable. Returns null when fine, or a
+       message to display. Never blocks on a network problem: if the check
+       cannot run we let the submission through rather than trapping a shopper
+       behind a validator that is itself broken. */
+    async function checkEmailAddress(value) {
+      var email = String(value || '').trim();
+      if (!email) return null;
+      if (Object.prototype.hasOwnProperty.call(emailCheckCache, email)) {
+        return emailCheckCache[email];
+      }
+
+      var message = null;
+      try {
+        var res = await fetch(appUrl + '/api/validate-email', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ email: email }),
+        });
+        var result = await res.json();
+        if (!result.valid) {
+          if (result.reason === 'typo' && result.suggestion) {
+            message = T.emailTypo.replace('{suggestion}', email.split('@')[0] + '@' + result.suggestion);
+          } else if (result.reason === 'domain') {
+            message = T.emailNoDomain;
+          } else {
+            message = T.invalidEmail;
+          }
+        }
+      } catch (err) {
+        return null;
+      }
+
+      emailCheckCache[email] = message;
+      return message;
+    }
+
+    /* Format is checked locally on every email field, always. A malformed
+       address is never wanted, and doing it here means it still works when the
+       remote check is unreachable. */
+    var SF_EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    function emailFields() {
+      return globalFields.filter(function (f) { return f.type === 'email'; });
+    }
+
+    /* Returns a message when the value is not a usable address, else null.
+       The remote domain check only runs where the merchant enabled it. */
+    async function emailProblemFor(field, value) {
+      var email = String(value || '').trim();
+      if (!email) return null;
+      if (!SF_EMAIL_RE.test(email)) return T.invalidEmail;
+      if (field.emailValidation !== true) return null;
+      return await checkEmailAddress(email);
     }
 
     /* ════════════════════════════════════════════
@@ -779,7 +867,7 @@
                 customMsg = T.numberMax.replace('{max}', max);
               }
             }
-          } else if (val && f.type === 'date' && f.disablePastDates && val < todayISO()) {
+          } else if (val && f.type === 'date' && val < todayISO()) {
             isInvalid = true;
             customMsg = T.pastDate;
           }
@@ -813,6 +901,19 @@
     async function submitForm(form, container) {
       var btn   = form.querySelector('button[type="submit"]');
       var errEl = document.getElementById('sf-error-' + formId);
+
+      /* Re-checked here because blur can be skipped entirely — autofill, or
+         pressing enter straight from another field. */
+      for (const emailField of emailFields()) {
+        var emailInput = form.querySelector('[name="' + emailField.label + '"]');
+        if (!emailInput || !emailInput.value.trim()) continue;
+        var emailProblem = await emailProblemFor(emailField, emailInput.value);
+        setFieldError(form, emailField.label, emailProblem);
+        if (emailProblem) {
+          smoothScrollTo(form.querySelector('.sf-field-error'), 20);
+          return;
+        }
+      }
 
       var invalidFields = validateForm(form);
       if (invalidFields.length > 0) {

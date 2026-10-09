@@ -306,8 +306,6 @@ export type FormField = {
      inputs; an empty string means "no bound". */
   min?: string;
   max?: string;
-  /* Date fields only — blocks anything before today. */
-  disablePastDates?: boolean;
   /* Date fields only — how the picked date is recorded. Missing means ISO,
      which is what fields created before this setting existed produce. */
   dateFormat?: "us" | "uk";

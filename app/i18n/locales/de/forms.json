@@ -201,7 +201,6 @@
     "minValue": "Minimum",
     "maxValue": "Maximum",
     "noLimit": "Kein Limit",
-    "disablePastDates": "Daten vor heute nicht zulassen",
     "allowMultipleFiles": "Mehrere Dateien zulassen",
     "dateFormat": "Datumsformat",
     "dateFormatUs": "US (MM/DD/YYYY)",
@@ -216,7 +215,7 @@
     "required": "Pflichtfeld",
     "fieldInCenter": "Feld zentrieren",
     "validationHeading": "Validierung",
-    "emailValidation": "E-Mail-Validierungsfeld hinzufügen",
+    "emailValidation": "Prüfen, ob die E-Mail-Adresse echt ist",
     "addElement": "+ Element hinzufügen"
   },
   "formTab": {

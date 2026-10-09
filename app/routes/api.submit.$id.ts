@@ -26,6 +26,9 @@ const MAX_UPLOAD_BYTES = 18 * 1024 * 1024;
    the body is treated as form answers. */
 const FILES_KEY = "__sfFiles";
 
+/** Mirrors the storefront's check so both ends agree on what counts as valid. */
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 /** A decoded upload, ready to store. */
 type DecodedUpload = {
   fieldLabel:   string;
@@ -195,13 +198,24 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
     // ── Validate required fields ──────────────────────────────────
     const errors: string[] = [];
     for (const field of fields) {
+      const value = submissionData[field.id] ?? submissionData[field.label];
+
       if (field.required) {
-        const value = submissionData[field.id] ?? submissionData[field.label];
         if (
           value === undefined || value === null || value === "" ||
           (Array.isArray(value) && value.length === 0)
         ) {
           errors.push(`${field.label} is required`);
+          continue;
+        }
+      }
+
+      // Checked here as well as in the storefront: the theme extension can be
+      // a stale deployed version, and the endpoint is public, so the browser's
+      // checks are a convenience rather than a guarantee.
+      if (field.type === "email" && typeof value === "string" && value.trim()) {
+        if (!EMAIL_RE.test(value.trim())) {
+          errors.push(`${field.label} must be a valid email address`);
         }
       }
     }

@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -41,13 +41,13 @@ model FormConfig {
   shopDomain  String
   formName    String
   slug        String           @default("")
-  // LongText, not the default VARCHAR(191): these hold serialised JSON, and
-  // `design` carries the banner image as a base64 data URL, so it can run to
-  // megabytes. Dropping these attributes brings back
-  // "The provided value for the column is too long for the column's type".
-  fields      String           @default("[]") @db.LongText
-  settings    String           @default("{}") @db.LongText
-  design      String           @default("{}") @db.LongText
+  // These hold serialised JSON and have no length limit on SQLite. On MySQL
+  // they would default to VARCHAR(191), so scripts/build-mysql-schema.mjs adds
+  // @db.LongText to them for the server build. `design` is the worst case: it
+  // carries the banner image as a base64 data URL, so it can run to megabytes.
+  fields      String           @default("[]")
+  settings    String           @default("{}")
+  design      String           @default("{}")
   isActive    Boolean          @default(false)
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
@@ -59,7 +59,7 @@ model FormSubmission {
   formId       String
   shopDomain   String
   ticketNumber Int?
-  data         String   @db.LongText // JSON stringified submission data
+  data         String   // JSON stringified submission data
   createdAt    DateTime @default(now())
 
   form        FormConfig       @relation(fields: [formId], references: [id], onDelete: Cascade)
@@ -80,11 +80,11 @@ model FormAttachment {
   id           String   @id @default(uuid())
   submissionId String
   shopDomain   String
-  // Wider than the VARCHAR(191) default: both come from outside our control —
-  // fieldLabel is whatever the merchant titled the field, filename is whatever
-  // the shopper uploaded — and overflowing either fails the whole submission.
-  fieldLabel   String   @db.VarChar(512)
-  filename     String   @db.VarChar(512)
+  // Both come from outside our control — fieldLabel is whatever the merchant
+  // titled the field, filename is whatever the shopper uploaded — so the MySQL
+  // build widens these to VARCHAR(512); 191 would truncate real values.
+  fieldLabel   String  
+  filename     String  
   contentType  String
   size         Int
   data         Bytes

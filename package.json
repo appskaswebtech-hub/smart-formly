@@ -10,14 +10,15 @@
     "config:use": "shopify app config use",
     "env": "shopify app env",
     "start": "remix-serve ./build/server/index.js",
-    "docker-start": "npm run setup && npm run start",
+    "docker-start": "npm run setup:mysql && npm run start",
     "setup": "prisma db push && prisma generate",
     "lint": "eslint --cache --cache-location ./node_modules/.cache/eslint .",
     "shopify": "shopify",
     "prisma": "prisma",
     "graphql-codegen": "graphql-codegen",
     "vite": "vite",
-    "db:reset": "prisma db push --force-reset"
+    "setup:mysql": "node scripts/build-mysql-schema.mjs && prisma db push --schema prisma/schema.mysql.prisma && prisma generate --schema prisma/schema.mysql.prisma",
+    "db:reset:mysql": "node scripts/build-mysql-schema.mjs && prisma db push --force-reset --schema prisma/schema.mysql.prisma"
   },
   "type": "module",
   "engines": {
