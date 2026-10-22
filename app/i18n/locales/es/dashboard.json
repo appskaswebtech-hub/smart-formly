@@ -8,7 +8,10 @@
   "stats": {
     "formsCreated": "Formularios creados",
     "formSubmissions": "Envíos de formularios",
-    "activeForms": "Formularios activos"
+    "activeForms": "Formularios activos",
+    "formsCreatedHint": "Total de formularios creados",
+    "formSubmissionsHint": "Total de envíos recibidos",
+    "activeFormsHint": "Activos ahora en tu tienda"
   },
   "quickActions": {
     "createForm": {
@@ -38,5 +41,12 @@
       "actions": "Acciones"
     },
     "viewSubmissions": "Envíos"
+  },
+  "hero": {
+    "title": "Convierte preguntas",
+    "accent": "en oportunidades",
+    "sub": "Crea formularios atractivos, recopila información valiosa y haz crecer tu tienda de Shopify.",
+    "createFirst": "Crea tu primer formulario",
+    "openThemeEditor": "Abrir editor de temas"
   }
 }

@@ -8,7 +8,10 @@
   "stats": {
     "formsCreated": "Forms created",
     "formSubmissions": "Form submissions",
-    "activeForms": "Active forms"
+    "activeForms": "Active forms",
+    "formsCreatedHint": "Total forms you have created",
+    "formSubmissionsHint": "Total submissions received",
+    "activeFormsHint": "Currently active on your store"
   },
   "quickActions": {
     "createForm": {
@@ -38,5 +41,12 @@
       "actions": "Actions"
     },
     "viewSubmissions": "Submissions"
+  },
+  "hero": {
+    "title": "Turn questions",
+    "accent": "into opportunities",
+    "sub": "Create beautiful forms, collect valuable information and grow your Shopify store.",
+    "createFirst": "Create Your First Form",
+    "openThemeEditor": "Open Theme Editor"
   }
 }

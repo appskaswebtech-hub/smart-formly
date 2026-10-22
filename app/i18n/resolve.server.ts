@@ -13,10 +13,13 @@ import { readLocaleCookie } from "./locale-cookie.server";
  * the language dropdown would be silently reverted on the next reload.
  *
  * The cookie exists because ShopSettings is only reachable when `?shop=` is on
- * the URL. Shopify stamps that onto document loads, but client-side navigations
- * (navigate("/app/formsnew")) carry no search params — and Remix still
- * revalidates the root loader on those. Without the cookie we would fall
- * through to Accept-Language and flip the whole app back to English mid-session.
+ * the URL, which client-side navigations do not carry. It is a best-effort
+ * fallback only: it is a third-party cookie in the admin iframe, so browsers
+ * drop it by default. Root therefore stops revalidating on client-side
+ * navigations (see `shouldRevalidate` in app/root.tsx) rather than relying on
+ * this function being able to resolve without `?shop=` — when it cannot, it
+ * falls through to Accept-Language, which is the browser's language and has
+ * nothing to do with the merchant's choice.
  *
  * Reads `?shop=` without authenticating. That is deliberate — Shopify always
  * sends `shop` to embedded apps, the value only selects a display language and

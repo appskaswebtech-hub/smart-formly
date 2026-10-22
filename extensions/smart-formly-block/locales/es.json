@@ -17,7 +17,12 @@
       "generic_error": "Algo salió mal. Inténtalo de nuevo.",
       "success": "¡Gracias! Tu formulario se ha enviado.",
       "ticket": "Ticket n.º {number}",
-      "closing_in": "Este mensaje se cerrará en {seconds} s"
+      "closing_in": "Este mensaje se cerrará en {seconds} s",
+      "remove_file": "Quitar {name}",
+      "choose_file": "Elegir archivo",
+      "choose_files": "Elegir archivos",
+      "file_over_size": "Cada archivo debe pesar menos de {max} MB: {names} no se añadió.",
+      "too_many_files": "Puedes adjuntar como máximo {max} archivo(s)."
     },
     "editor": {
       "no_form_id_title": "Formulario de SmartFormly",

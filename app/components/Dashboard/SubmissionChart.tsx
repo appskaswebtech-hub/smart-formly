@@ -62,8 +62,8 @@ export function SubmissionChart({ trend = [] }: Props) {
           >
             <defs>
               <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%"   stopColor="#5C6AC4" stopOpacity="0.25" />
-                <stop offset="100%" stopColor="#5C6AC4" stopOpacity="0"    />
+                <stop offset="0%"   stopColor="#0B6B45" stopOpacity="0.25" />
+                <stop offset="100%" stopColor="#0B6B45" stopOpacity="0"    />
               </linearGradient>
             </defs>
 
@@ -90,7 +90,7 @@ export function SubmissionChart({ trend = [] }: Props) {
               <path
                 d={linePath}
                 fill="none"
-                stroke="#5C6AC4"
+                stroke="#0B6B45"
                 strokeWidth="2.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -100,7 +100,7 @@ export function SubmissionChart({ trend = [] }: Props) {
             {/* Data points */}
             {pts.map((p, i) => (
               p.count > 0 && (
-                <circle key={i} cx={p.x} cy={p.y} r="4" fill="#5C6AC4" />
+                <circle key={i} cx={p.x} cy={p.y} r="4" fill="#0B6B45" />
               )
             ))}
 

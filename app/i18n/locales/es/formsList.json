@@ -23,5 +23,11 @@
   "toast": {
     "created": "¡Formulario creado correctamente!",
     "updated": "¡Formulario actualizado correctamente!"
+  },
+  "hero": {
+    "eyebrow": "Mis formularios",
+    "title": "Gestiona todos",
+    "accent": "tus formularios",
+    "sub": "Crea, edita, consulta envíos y más. Diseña formularios atractivos para hacer crecer tu tienda."
   }
 }

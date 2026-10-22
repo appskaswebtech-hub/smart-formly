@@ -55,5 +55,11 @@
     "formData": "Form Data",
     "deletedOne": "Submission deleted",
     "deletedAll": "All submissions deleted"
+  },
+  "hero": {
+    "eyebrow": "Submissions",
+    "title": "All",
+    "accent": "Submissions",
+    "sub": "View and manage all form submissions in one place. Search, filter and export data easily."
   }
 }

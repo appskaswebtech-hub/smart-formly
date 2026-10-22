@@ -17,7 +17,12 @@
       "generic_error": "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
       "success": "Danke! Dein Formular wurde übermittelt.",
       "ticket": "Ticket-Nr. {number}",
-      "closing_in": "Diese Nachricht wird in {seconds} s geschlossen"
+      "closing_in": "Diese Nachricht wird in {seconds} s geschlossen",
+      "remove_file": "{name} entfernen",
+      "choose_file": "Datei auswählen",
+      "choose_files": "Dateien auswählen",
+      "file_over_size": "Jede Datei muss kleiner als {max} MB sein — {names} wurde nicht hinzugefügt.",
+      "too_many_files": "Du kannst höchstens {max} Datei(en) anhängen."
     },
     "editor": {
       "no_form_id_title": "SmartFormly-Formular",

@@ -4,6 +4,7 @@ import { boundary } from "@shopify/shopify-app-remix/server";
 import { AppProvider } from "@shopify/shopify-app-remix/react";
 import { NavMenu } from "@shopify/app-bridge-react";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
+import adminStyles from "../styles/admin.css?url";
 import { useTranslation } from "react-i18next";
 import { authenticate } from "../shopify.server";
 import {
@@ -11,10 +12,15 @@ import {
   isUnlockedPath,
   planSelectionUrl,
 } from "../billing/plan-page.server";
+import { planTier, TOP_TIER } from "../billing/features";
 import { getPolarisTranslations } from "../i18n/polaris";
 import type { loader as rootLoader } from "../root";
 
-export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
+// admin.css after Polaris so its breakpoint rules win where they overlap.
+export const links = () => [
+  { rel: "stylesheet", href: polarisStyles },
+  { rel: "stylesheet", href: adminStyles },
+];
 
 export const handle = { i18n: ["common", "nav"] };
 
@@ -33,11 +39,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       }
     }
   `);
-  const subscriptions =
+  const subscriptions: { id: string; name: string; status: string }[] =
     (await subRes.json())?.data?.currentAppInstallation?.activeSubscriptions ?? [];
-  const hasActivePayment = subscriptions.some(
-    (sub: { status: string }) => sub.status === "ACTIVE",
-  );
+  const activeSub = subscriptions.find((sub) => sub.status === "ACTIVE") ?? null;
+  const hasActivePayment = activeSub !== null;
 
   // Keep the app_url metafield fresh on every app load.
   // App-data metafield (AppInstallation owner) — no extra scopes required.
@@ -94,7 +99,18 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     if (planPage) return redirect(planPage, { target: "_top" });
   }
 
-  return { apiKey: process.env.SHOPIFY_API_KEY || "", locked };
+  // Published here so both builder pages can gate Quick Settings without each
+  // repeating the subscription query. With the dev bypass there is no
+  // subscription to read, so grant the top tier — otherwise local work on a
+  // fresh dev store would hit a paywall the bypass exists to avoid.
+  const tier = billingBypassed() ? TOP_TIER : planTier(activeSub?.name ?? null);
+
+  return {
+    apiKey: process.env.SHOPIFY_API_KEY || "",
+    locked,
+    planName: activeSub?.name ?? null,
+    tier,
+  };
 };
 
 export default function App() {

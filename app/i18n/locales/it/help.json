@@ -1,10 +1,6 @@
 {
   "title": "Aiuto e supporto",
   "backHome": "Home",
-  "banners": {
-    "chat": "Finestra di composizione email aperta! Inviaci la tua domanda e ti risponderemo a breve.",
-    "email": "Finestra di composizione email aperta! Ti risponderemo entro poche ore."
-  },
   "setupBanner": {
     "title": "Attiva SmartFormly sul tuo negozio",
     "action": "Apri il pannello App Embeds →",
@@ -27,7 +23,8 @@
     "docs": "Documentazione",
     "docsSub": "Guide complete e riferimento",
     "feature": "Richiesta di funzionalità",
-    "featureSub": "Proponi nuove funzionalità"
+    "featureSub": "Proponi nuove funzionalità",
+    "featurePrefill": "Richiesta di funzionalità: "
   },
   "contact": {
     "heading": "Hai ancora bisogno di aiuto?",
@@ -213,5 +210,11 @@
         }
       }
     }
+  },
+  "hero": {
+    "eyebrow": "Aiuto e supporto",
+    "title": "Aiuto per",
+    "accent": "ogni passo",
+    "sub": "Trova risposte e supporto quando ti servono. Guide, aiuto alla configurazione e suggerimenti."
   }
 }

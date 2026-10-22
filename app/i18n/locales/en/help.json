@@ -1,10 +1,6 @@
 {
   "title": "Help & Support",
   "backHome": "Home",
-  "banners": {
-    "chat": "Email compose opened! Send us your question and we'll get back to you shortly.",
-    "email": "Email compose opened! We'll get back to you within a few hours."
-  },
   "setupBanner": {
     "title": "Enable SmartFormly on your storefront",
     "action": "Open App Embeds Panel →",
@@ -27,7 +23,8 @@
     "docs": "Documentation",
     "docsSub": "Full guides and reference",
     "feature": "Feature Request",
-    "featureSub": "Suggest new features"
+    "featureSub": "Suggest new features",
+    "featurePrefill": "Feature request: "
   },
   "contact": {
     "heading": "Still need help?",
@@ -213,5 +210,11 @@
         }
       }
     }
+  },
+  "hero": {
+    "eyebrow": "Help & support",
+    "title": "Help for",
+    "accent": "Every Step",
+    "sub": "Find answers and get support when you need it. Guides, setup help and tips for using SmartFormly."
   }
 }

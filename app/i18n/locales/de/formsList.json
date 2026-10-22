@@ -23,5 +23,11 @@
   "toast": {
     "created": "Formular erfolgreich erstellt!",
     "updated": "Formular erfolgreich aktualisiert!"
+  },
+  "hero": {
+    "eyebrow": "Meine Formulare",
+    "title": "Verwalte alle",
+    "accent": "deine Formulare",
+    "sub": "Erstellen, bearbeiten, Einsendungen ansehen und mehr. Baue ansprechende Formulare für dein Wachstum."
   }
 }

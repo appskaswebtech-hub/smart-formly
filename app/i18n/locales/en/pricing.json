@@ -9,20 +9,31 @@
   "hideAllFeatures": "Hide all features",
   "plansAvailable_one": "{{count}} plan available",
   "plansAvailable_other": "{{count}} plans available",
-  "highlights": {
-    "designCustomization": "Full design customization",
-    "exportSubmissions": "Export form submissions",
-    "multipleRecipients": "Multiple recipients for form submissions",
-    "multipleNotifications": "Multiple admin notifications"
+  "hero": {
+    "eyebrow": "Billing & plans",
+    "title": "Simple & Flexible",
+    "accent": "Billing for Your Growth",
+    "sub": "Choose a plan, upgrade or switch anytime. Get the features you need to build better forms."
   },
-  "features": {
-    "bingUet": "Bing UET pixel ID",
-    "advancedJs": "Advanced JS",
-    "advancedCss": "Advanced CSS",
-    "apiAvailable": "API available",
-    "customizeMessage": "Customize form message",
-    "hiddenField": "Hidden field",
-    "restrictSubmissions": "Restrict form submissions per one user",
-    "utmTracking": "UTM tracking"
-  }
+  "mostPopular": "Most Popular",
+  "planTagline": {
+    "base": "Perfect for getting started.",
+    "pro": "Great for growing businesses.",
+    "proplus": "For advanced users and teams.",
+    "free": "Try everything with one form."
+  },
+  "needMoreDetails": {
+    "title": "Need more details?",
+    "body": "Compare all features and find the right plan for your needs."
+  },
+  "currentPlan": "Current plan",
+  "manageOrCancel": "Manage your subscription",
+  "manageOrCancelHelp": "Switch plans or cancel on Shopify's billing page.",
+  "manageOrCancelCta": "Manage or cancel plan",
+  "everythingIn": "Everything in {{plan}}, plus:",
+  "formsIncluded_one": "{{count}} form",
+  "formsIncluded_other": "{{count}} forms",
+  "formsUnlimited": "Unlimited forms",
+  "allFeatures": "All features included",
+  "formsRow": "Forms included"
 }

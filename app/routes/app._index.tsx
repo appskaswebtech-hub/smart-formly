@@ -10,8 +10,12 @@ import { getSubmissionTrend } from "../models/submission.server";
 import {
   Page, Layout, Card, Text, BlockStack, Box,
   Button, Badge, DataTable, EmptyState,
-  InlineStack, InlineGrid, Banner,
+  InlineStack,
 } from "@shopify/polaris";
+
+import Hero from "../components/ui/Hero";
+import { IconChip } from "../components/ui/Icon";
+import { C, RADIUS, primaryButton, secondaryButton } from "../components/ui/theme";
 
 export const handle = { i18n: ["dashboard", "common"] };
 
@@ -172,85 +176,83 @@ export default function Dashboard() {
     <Page title={t("title")}>
       <Layout>
 
-        {/* ── App Embed Banner ── */}
         <Layout.Section>
-          <Banner
-            title={t("banner.title")}
-            tone="info"
-            action={{
-              content: t("banner.action"),
-              onAction: () => window.open(appEmbedUrl, "_blank"),
-            }}
-          >
-            <Text as="p" tone="subdued">
-              {t("banner.body")}
-            </Text>
-          </Banner>
+          <Hero
+            art="forms"
+            title={t("hero.title")}
+            titleAccent={t("hero.accent")}
+            subtitle={t("hero.sub")}
+            actions={
+              <>
+                <button style={primaryButton} onClick={() => navigate("/app/formsnew")}>
+                  <span style={{ fontSize: 16, lineHeight: 1 }}>+</span>
+                  {t("hero.createFirst")}
+                </button>
+                <button style={secondaryButton} onClick={() => window.open(appEmbedUrl, "_blank")}>
+                  {t("hero.openThemeEditor")}
+                  <span aria-hidden="true" style={{ fontSize: 12 }}>↗</span>
+                </button>
+              </>
+            }
+          />
         </Layout.Section>
 
-        {/* ── Stats ── */}
+        {/* ── Stats ──
+            Each tile carries its own tint so the three read as distinct at a
+            glance; the icon chip repeats the tint one step stronger. */}
         <Layout.Section>
-          <InlineGrid columns={3} gap="400">
+          <div className="sf-grid-3">
             {[
-              { key: "formsCreated",    label: t("stats.formsCreated"),    value: stats.totalForms       },
-              { key: "formSubmissions", label: t("stats.formSubmissions"), value: stats.totalSubmissions },
-              { key: "activeForms",     label: t("stats.activeForms"),     value: stats.activeForms      },
+              { key: "formsCreated",    glyph: "document" as const, value: stats.totalForms,
+                tile: "#F2FAF6", chip: C.soft,    ink: C.deep,
+                label: t("stats.formsCreated"),    hint: t("stats.formsCreatedHint") },
+              { key: "formSubmissions", glyph: "inbox" as const,    value: stats.totalSubmissions,
+                tile: "#F3F7FD", chip: "#DCE9FB", ink: "#1D4ED8",
+                label: t("stats.formSubmissions"), hint: t("stats.formSubmissionsHint") },
+              { key: "activeForms",     glyph: "book" as const,     value: stats.activeForms,
+                tile: "#FDF9EF", chip: "#FBEFD2", ink: "#B45309",
+                label: t("stats.activeForms"),     hint: t("stats.activeFormsHint") },
             ].map((s) => (
-              <Card key={s.key}>
-                <BlockStack gap="200">
-                  <Text as="p" variant="bodySm" tone="subdued">{s.label}</Text>
-                  <Text as="p" variant="heading2xl" fontWeight="bold">{s.value}</Text>
-                </BlockStack>
-              </Card>
+              <div
+                key={s.key}
+                style={{
+                  display: "flex",
+                  gap: 14,
+                  alignItems: "flex-start",
+                  padding: "18px 20px",
+                  background: s.tile,
+                  border: `1px solid ${C.line}`,
+                  borderRadius: RADIUS.card,
+                }}
+              >
+                <IconChip name={s.glyph} tint={s.chip} color={s.ink} />
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 13, color: C.muted, fontWeight: 500 }}>{s.label}</div>
+                  <div style={{ fontSize: 30, fontWeight: 700, color: C.ink, lineHeight: 1.15, margin: "2px 0 3px" }}>
+                    {s.value}
+                  </div>
+                  <div style={{ fontSize: 12, color: C.faint }}>{s.hint}</div>
+                </div>
+              </div>
             ))}
-          </InlineGrid>
+          </div>
         </Layout.Section>
 
-        {/* ── Quick Actions ── */}
+        {/* ── Learn more ──
+            Create-a-form and Enable-on-storefront lived here too, but both
+            repeated a hero button, so only this card remains. */}
         <Layout.Section>
-          <InlineGrid columns={3} gap="400">
-
-            <Card>
-              <BlockStack gap="300">
-                <Text as="h3" variant="headingMd">{t("quickActions.createForm.title")}</Text>
-                <Text as="p" tone="subdued">
-                  {t("quickActions.createForm.body")}
-                </Text>
-                <Button variant="primary" onClick={() => navigate("/app/formsnew")}>
-                  {t("quickActions.createForm.cta")}
-                </Button>
-              </BlockStack>
-            </Card>
-
-            <Card>
-              <BlockStack gap="300">
-                <Text as="h3" variant="headingMd">{t("quickActions.enableStorefront.title")}</Text>
-                <Text as="p" tone="subdued">
-                  {t("quickActions.enableStorefront.body")}
-                </Text>
-                <Button
-                  variant="primary"
-                  tone="success"
-                  onClick={() => window.open(appEmbedUrl, "_blank")}
-                >
-                  {t("quickActions.enableStorefront.cta")}
-                </Button>
-              </BlockStack>
-            </Card>
-
-            <Card>
-              <BlockStack gap="300">
-                <Text as="h3" variant="headingMd">{t("quickActions.learnMore.title")}</Text>
-                <Text as="p" tone="subdued">
-                  {t("quickActions.learnMore.body")}
-                </Text>
-                <Button onClick={() => navigate("/app/helpandsupport")}>
-                  {t("quickActions.learnMore.cta")}
-                </Button>
-              </BlockStack>
-            </Card>
-
-          </InlineGrid>
+          <Card>
+            <BlockStack gap="300">
+              <Text as="h3" variant="headingMd">{t("quickActions.learnMore.title")}</Text>
+              <Text as="p" tone="subdued">
+                {t("quickActions.learnMore.body")}
+              </Text>
+              <Button onClick={() => navigate("/app/helpandsupport")}>
+                {t("quickActions.learnMore.cta")}
+              </Button>
+            </BlockStack>
+          </Card>
         </Layout.Section>
 
         {/* ── Forms Table ── */}

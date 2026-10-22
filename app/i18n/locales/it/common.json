@@ -40,5 +40,19 @@
       "action": "Crea il tuo primo modulo",
       "body": "Crea un modulo per iniziare a raccogliere invii dal tuo negozio."
     }
+  },
+  "support": {
+    "title": "Ti serve aiuto?",
+    "body": "Scrivici: ti aiutiamo a creare il tuo modulo gratuitamente e in modo rapido.",
+    "copied": "Indirizzo email copiato!",
+    "copyFailed": "Impossibile copiare l'indirizzo",
+    "emailLabel": "La tua email",
+    "emailPlaceholder": "tu@esempio.com",
+    "messageLabel": "Come possiamo aiutarti?",
+    "messagePlaceholder": "A cosa serve il modulo, quali campi ti servono, dove deve apparire...",
+    "send": "Invia messaggio",
+    "sending": "Invio in corso...",
+    "sent": "Messaggio inviato: ti risponderemo via email.",
+    "error": "Impossibile inviare il messaggio. Riprova o copia il nostro indirizzo qui sotto."
   }
 }

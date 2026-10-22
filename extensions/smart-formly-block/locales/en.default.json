@@ -17,7 +17,12 @@
       "generic_error": "Something went wrong. Please try again.",
       "success": "Thank you! Your form has been submitted.",
       "ticket": "Ticket #{number}",
-      "closing_in": "This message will close in {seconds}s"
+      "closing_in": "This message will close in {seconds}s",
+      "remove_file": "Remove {name}",
+      "choose_file": "Choose file",
+      "choose_files": "Choose files",
+      "file_over_size": "Each file must be under {max} MB — {names} was not added.",
+      "too_many_files": "You can attach at most {max} file(s)."
     },
     "editor": {
       "no_form_id_title": "SmartFormly Form",

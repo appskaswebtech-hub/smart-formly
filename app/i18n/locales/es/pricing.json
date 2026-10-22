@@ -9,20 +9,31 @@
   "hideAllFeatures": "Ocultar todas las funciones",
   "plansAvailable_one": "{{count}} plan disponible",
   "plansAvailable_other": "{{count}} planes disponibles",
-  "highlights": {
-    "designCustomization": "Personalización completa del diseño",
-    "exportSubmissions": "Exportar los envíos de formularios",
-    "multipleRecipients": "Varios destinatarios para los envíos de formularios",
-    "multipleNotifications": "Varias notificaciones de administrador"
+  "hero": {
+    "eyebrow": "Facturación y planes",
+    "title": "Facturación simple y flexible",
+    "accent": "para tu crecimiento",
+    "sub": "Elige un plan, mejóralo o cámbialo cuando quieras. Obtén las funciones que necesitas."
   },
-  "features": {
-    "bingUet": "ID de píxel UET de Bing",
-    "advancedJs": "JS avanzado",
-    "advancedCss": "CSS avanzado",
-    "apiAvailable": "API disponible",
-    "customizeMessage": "Personalizar el mensaje del formulario",
-    "hiddenField": "Campo oculto",
-    "restrictSubmissions": "Limitar los envíos por usuario",
-    "utmTracking": "Seguimiento UTM"
-  }
+  "mostPopular": "Más popular",
+  "planTagline": {
+    "base": "Perfecto para empezar.",
+    "pro": "Ideal para negocios en crecimiento.",
+    "proplus": "Para usuarios avanzados y equipos.",
+    "free": "Prueba todo con un formulario."
+  },
+  "needMoreDetails": {
+    "title": "¿Necesitas más detalles?",
+    "body": "Compara todas las funciones y encuentra el plan adecuado."
+  },
+  "currentPlan": "Plan actual",
+  "manageOrCancel": "Gestiona tu suscripción",
+  "manageOrCancelHelp": "Cambia de plan o cancela en la página de facturación de Shopify.",
+  "manageOrCancelCta": "Gestionar o cancelar plan",
+  "everythingIn": "Todo lo de {{plan}}, y además:",
+  "formsIncluded_one": "{{count}} formulario",
+  "formsIncluded_other": "{{count}} formularios",
+  "formsUnlimited": "Formularios ilimitados",
+  "allFeatures": "Todas las funciones incluidas",
+  "formsRow": "Formularios incluidos"
 }

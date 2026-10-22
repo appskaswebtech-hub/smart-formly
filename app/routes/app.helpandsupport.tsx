@@ -1,16 +1,19 @@
 import { json, type LoaderFunctionArgs } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import {
-  Page, Card, Text, BlockStack, InlineStack, Box, Icon, InlineGrid,
+  Page, Card, Text, BlockStack, InlineStack, Box, Icon,
   Collapsible, Banner, TextField, Divider, Badge, Button,
 } from "@shopify/polaris";
 import {
-  ChatIcon, EmailIcon, ExternalIcon, ChevronRightIcon,
+  EmailIcon, ExternalIcon, ChevronRightIcon,
   ChevronDownIcon, NoteIcon, FlagIcon, SearchIcon,
 } from "@shopify/polaris-icons";
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { authenticate } from "../shopify.server";
+
+import Hero from "../components/ui/Hero";
+import SupportForm from "../components/ui/SupportForm";
 
 export const handle = { i18n: ["help", "common"] };
 
@@ -84,8 +87,11 @@ export default function HelpAndSupport() {
   const [expandedItems,    setExpandedItems]    = useState<Set<string>>(new Set(["setup-1"]));
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(["setup"]));
   const [searchQuery,      setSearchQuery]      = useState("");
-  const [showChatBanner,   setShowChatBanner]   = useState(false);
-  const [showEmailBanner,  setShowEmailBanner]  = useState(false);
+  /* The contact form stays collapsed until asked for, so the card keeps the
+     compact shape it has today. */
+  const [showSupportForm,  setShowSupportForm]  = useState(false);
+  const [supportPrefill,   setSupportPrefill]   = useState<string | undefined>();
+  const contactRef = useRef<HTMLDivElement>(null);
 
   const toggleItem = useCallback((id: string) => {
     setExpandedItems((prev) => {
@@ -100,6 +106,17 @@ export default function HelpAndSupport() {
       const next = new Set(prev);
       next.has(id) ? next.delete(id) : next.add(id);
       return next;
+    });
+  }, []);
+
+  /* Opens the contact form and brings it into view. "Feature Request" sits far
+     above the contact card, so revealing it alone would look like nothing had
+     happened. */
+  const openSupportForm = useCallback((prefill?: string) => {
+    setSupportPrefill(prefill);
+    setShowSupportForm(true);
+    requestAnimationFrame(() => {
+      contactRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     });
   }, []);
 
@@ -143,17 +160,13 @@ export default function HelpAndSupport() {
     <Page backAction={{ content: t("backHome"), url: "/app" }} title={t("title")}>
       <BlockStack gap="400">
 
-        {/* ── Banners ── */}
-        {showChatBanner && (
-          <Banner tone="success" onDismiss={() => setShowChatBanner(false)}>
-            <p>{t("banners.chat")}</p>
-          </Banner>
-        )}
-        {showEmailBanner && (
-          <Banner tone="success" onDismiss={() => setShowEmailBanner(false)}>
-            <p>{t("banners.email")}</p>
-          </Banner>
-        )}
+        <Hero
+          art="help"
+          eyebrow={t("hero.eyebrow")}
+          title={t("hero.title")}
+          titleAccent={t("hero.accent")}
+          subtitle={t("hero.sub")}
+        />
 
         {/* ── Quick Setup Banner ── */}
         <Banner
@@ -333,7 +346,7 @@ export default function HelpAndSupport() {
         <Divider />
 
         {/* ── Quick Links ── */}
-        <InlineGrid columns={2} gap="400">
+        <div className="sf-grid-2">
           <Card padding="0">
             <div
               onClick={() => window.open("https://docs.smartformly.kaswebtechsolutions.com", "_blank")}
@@ -354,7 +367,7 @@ export default function HelpAndSupport() {
 
           <Card padding="0">
             <div
-              onClick={() => window.open("mailto:support@smartformly.kaswebtechsolutions.com?subject=Feature%20Request", "_blank")}
+              onClick={() => openSupportForm(t("links.featurePrefill"))}
               style={{ padding: "16px 20px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", transition: "background 0.15s" }}
               onMouseEnter={(e) => (e.currentTarget.style.background = "#f9fafb")}
               onMouseLeave={(e)  => (e.currentTarget.style.background = "transparent")}
@@ -366,38 +379,37 @@ export default function HelpAndSupport() {
                   <Text as="p" variant="bodySm" tone="subdued">{t("links.featureSub")}</Text>
                 </BlockStack>
               </InlineStack>
-              <Icon source={ExternalIcon} tone="subdued" />
+              <Icon source={ChevronRightIcon} tone="subdued" />
             </div>
           </Card>
-        </InlineGrid>
+        </div>
 
         {/* ── Contact Support ── */}
-        <Card>
-          <BlockStack gap="400">
-            <Text as="h2" variant="headingMd">{t("contact.heading")}</Text>
-            <Text as="p" variant="bodySm" tone="subdued">
-              {t("contact.body")}
-            </Text>
-            <InlineGrid columns={2} gap="400">
+        <div ref={contactRef}>
+          <Card>
+            <BlockStack gap="400">
+              <Text as="h2" variant="headingMd">{t("contact.heading")}</Text>
+              <Text as="p" variant="bodySm" tone="subdued">
+                {t("contact.body")}
+              </Text>
 
+              {/*
+                One tile, not two. The "Chat with us" tile opened the same dead
+                mailto: as this one and promised a reply in minutes, which
+                nothing behind it could honour.
+              */}
               <div
-                onClick={() => { setShowChatBanner(true); window.open("mailto:support@smartformly.kaswebtechsolutions.com?subject=Live%20Chat%20Request", "_blank"); }}
-                style={{ cursor: "pointer", border: "1px solid #e0e0e0", borderRadius: "12px", padding: "20px", textAlign: "center", transition: "all 0.2s" }}
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#10b981"; e.currentTarget.style.background = "#f0fdf4"; }}
-                onMouseLeave={(e)  => { e.currentTarget.style.borderColor = "#e0e0e0"; e.currentTarget.style.background = "transparent"; }}
-              >
-                <BlockStack gap="200" inlineAlign="center">
-                  <div style={{ width: "52px", height: "52px", borderRadius: "50%", background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto" }}>
-                    <Icon source={ChatIcon} tone="base" />
-                  </div>
-                  <Text as="h3" variant="headingSm" alignment="center">{t("contact.chat")}</Text>
-                  <Text as="p" variant="bodySm" tone="subdued" alignment="center">{t("contact.chatSub")}</Text>
-                  <Badge tone="success">{t("contact.chatBadge")}</Badge>
-                </BlockStack>
-              </div>
-
-              <div
-                onClick={() => { setShowEmailBanner(true); window.open("mailto:support@smartformly.kaswebtechsolutions.com?subject=Support%20Request%20-%20SmartFormly", "_blank"); }}
+                role="button"
+                tabIndex={0}
+                aria-expanded={showSupportForm}
+                aria-controls="support-form"
+                onClick={() => openSupportForm()}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    openSupportForm();
+                  }
+                }}
                 style={{ cursor: "pointer", border: "1px solid #e0e0e0", borderRadius: "12px", padding: "20px", textAlign: "center", transition: "all 0.2s" }}
                 onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#3b82f6"; e.currentTarget.style.background = "#eff6ff"; }}
                 onMouseLeave={(e)  => { e.currentTarget.style.borderColor = "#e0e0e0"; e.currentTarget.style.background = "transparent"; }}
@@ -412,9 +424,29 @@ export default function HelpAndSupport() {
                 </BlockStack>
               </div>
 
-            </InlineGrid>
-          </BlockStack>
-        </Card>
+              <Collapsible
+                open={showSupportForm}
+                id="support-form"
+                transition={{ duration: "200ms", timingFunction: "ease-in-out" }}
+              >
+                {/* Mounted only once open: the textarea is uncontrolled, so a
+                    prefill can only land on a fresh mount — and autoFocus must
+                    not fire while the card is still collapsed. */}
+                {showSupportForm && (
+                  <BlockStack gap="300">
+                    <Divider />
+                    <SupportForm
+                      key={supportPrefill ?? "blank"}
+                      initialMessage={supportPrefill}
+                      autoFocus
+                    />
+                  </BlockStack>
+                )}
+              </Collapsible>
+
+            </BlockStack>
+          </Card>
+        </div>
 
       </BlockStack>
     </Page>

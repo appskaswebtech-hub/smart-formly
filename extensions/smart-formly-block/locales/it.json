@@ -17,7 +17,12 @@
       "generic_error": "Qualcosa è andato storto. Riprova.",
       "success": "Grazie! Il tuo modulo è stato inviato.",
       "ticket": "Ticket n. {number}",
-      "closing_in": "Questo messaggio si chiuderà tra {seconds} s"
+      "closing_in": "Questo messaggio si chiuderà tra {seconds} s",
+      "remove_file": "Rimuovi {name}",
+      "choose_file": "Scegli file",
+      "choose_files": "Scegli i file",
+      "file_over_size": "Ogni file deve essere inferiore a {max} MB: {names} non è stato aggiunto.",
+      "too_many_files": "Puoi allegare al massimo {max} file."
     },
     "editor": {
       "no_form_id_title": "Modulo SmartFormly",

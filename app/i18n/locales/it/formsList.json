@@ -23,5 +23,11 @@
   "toast": {
     "created": "Modulo creato con successo!",
     "updated": "Modulo aggiornato con successo!"
+  },
+  "hero": {
+    "eyebrow": "I miei moduli",
+    "title": "Gestisci tutti",
+    "accent": "i tuoi moduli",
+    "sub": "Crea, modifica, consulta gli invii e altro. Costruisci moduli accattivanti per far crescere il negozio."
   }
 }

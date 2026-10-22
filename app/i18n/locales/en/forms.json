@@ -24,7 +24,8 @@
     "form": "Form",
     "input": "Input",
     "button": "Submit button",
-    "layout": "Layout"
+    "layout": "Layout",
+    "uploadButton": "Upload button"
   },
   "pills": {
     "form_details": "Form details",
@@ -216,7 +217,18 @@
     "fieldInCenter": "Field in center",
     "validationHeading": "Validation",
     "emailValidation": "Check the email address is real",
-    "addElement": "+ Add element"
+    "addElement": "+ Add element",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "remove": "Remove",
+    "uploadButtonText": "Upload button text",
+    "uploadButtonTextPlaceholder": "Choose files",
+    "uploadButtonTextHelp": "Leave empty to use the default wording for the shopper's language.",
+    "optionDefault": "Option {{n}}",
+    "maxFiles": "Maximum files",
+    "maxFilesHelp": "Leave empty for no limit.",
+    "maxFileSize": "Maximum size per file",
+    "maxFileSizeHelp": "Leave empty for no limit. A submission can never exceed {{max}} MB in total."
   },
   "formTab": {
     "backgroundHeading": "Background",
@@ -288,11 +300,58 @@
     "previewOnly": "Preview only.",
     "formTitle": "Form Title",
     "addFields": "Add fields from the left panel",
-    "pleaseSelect": "Please select"
+    "pleaseSelect": "Please select",
+    "chooseFile": "Choose file",
+    "chooseFiles": "Choose files"
   },
   "comingSoon": {
     "captcha": "Captcha integration coming soon.",
     "integrations": "Integrations coming soon."
   },
-  "editWithName": "Edit: {{name}}"
+  "editWithName": "Edit: {{name}}",
+  "hero": {
+    "eyebrow": "Create form",
+    "title": "Build Your Form",
+    "accent": "Easily",
+    "sub": "Create beautiful forms with powerful features. Customize, configure and publish in minutes."
+  },
+  "sectionSub": {
+    "settings": "Configure the basic details and behavior of your form.",
+    "quick": "Enable advanced features for your form.",
+    "elements": "Click or drag fields into the preview to add them.",
+    "preview": "See how your form will look to your customers."
+  },
+  "searchFields": "Search fields...",
+  "previewDesktop": "Desktop",
+  "previewMobile": "Mobile",
+  "previewNote": "Preview only. Test submissions here stay in the preview; publish your form to collect store submissions.",
+  "designGroups": {
+    "content": "Content",
+    "style": "Style",
+    "layout": "Layout"
+  },
+  "uploadBtn": {
+    "heading": "Upload button",
+    "hint": "Applies to the upload button on every file field.",
+    "bg": "Button background color",
+    "textColor": "Button text color",
+    "fontSize": "Button font size",
+    "borderColor": "Button border color",
+    "borderRadius": "Button border radius",
+    "borderWidth": "Button border width"
+  },
+  "locked": {
+    "title": "Available on {{plan}}",
+    "body": "Upgrade to turn this on. You can still see what it does below.",
+    "cta": "Upgrade"
+  },
+  "limit": {
+    "title": "You've reached your form limit",
+    "body_one": "Your plan includes {{count}} form. You have {{used}}. Upgrade for more, or delete one to free up space.",
+    "body_other": "Your plan includes {{count}} forms. You have {{used}}. Upgrade for more, or delete one to free up space.",
+    "upgrade": "See plans",
+    "manage": "Manage forms",
+    "reached_one": "Your plan includes {{count}} form. Upgrade to create another.",
+    "reached_other": "Your plan includes {{count}} forms. Upgrade to create another."
+  }
 }

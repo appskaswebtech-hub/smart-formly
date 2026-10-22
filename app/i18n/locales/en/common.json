@@ -40,5 +40,19 @@
       "action": "Create your first form",
       "body": "Create a form to start collecting submissions from your store."
     }
+  },
+  "support": {
+    "title": "Need help?",
+    "body": "Chat with us, we will help build your form free of charge and quickly.",
+    "copied": "Email address copied to clipboard!",
+    "copyFailed": "Couldn't copy the address",
+    "emailLabel": "Your email",
+    "emailPlaceholder": "you@example.com",
+    "messageLabel": "How can we help?",
+    "messagePlaceholder": "What the form is for, the fields you need, where it should appear...",
+    "send": "Send message",
+    "sending": "Sending...",
+    "sent": "Message sent — we'll reply by email.",
+    "error": "Couldn't send your message. Please try again or copy our address below."
   }
 }

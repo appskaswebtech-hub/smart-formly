@@ -6,6 +6,7 @@ import {
   Scripts,
   ScrollRestoration,
   useLoaderData,
+  type ShouldRevalidateFunction,
 } from "@remix-run/react";
 import { useChangeLanguage } from "remix-i18next/react";
 
@@ -34,6 +35,23 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   return json({ locale });
 };
+
+/**
+ * Keeps the locale resolved at document load for the rest of the session.
+ *
+ * Remix revalidates this loader on every client-side navigation, but those
+ * carry no `?shop=` — so resolveLocale cannot read ShopSettings and falls
+ * through to the mirror cookie, which is a third-party cookie inside the admin
+ * iframe and is dropped by default in current browsers. It then falls through
+ * again to Accept-Language and flips the whole app to the browser's language
+ * mid-session, which is how clicking from the dashboard into Create Form turned
+ * a German app English.
+ *
+ * Changing language still takes effect immediately: that posts to /api/locale,
+ * the one action this lets through.
+ */
+export const shouldRevalidate: ShouldRevalidateFunction = ({ formAction }) =>
+  formAction === "/api/locale";
 
 export const handle = { i18n: ["common", "nav"] };
 

@@ -40,5 +40,19 @@
       "action": "Erstelle dein erstes Formular",
       "body": "Erstelle ein Formular, um Einsendungen aus deinem Shop zu sammeln."
     }
+  },
+  "support": {
+    "title": "Brauchst du Hilfe?",
+    "body": "Schreib uns — wir helfen dir kostenlos und schnell beim Erstellen deines Formulars.",
+    "copied": "E-Mail-Adresse in die Zwischenablage kopiert!",
+    "copyFailed": "Adresse konnte nicht kopiert werden",
+    "emailLabel": "Deine E-Mail",
+    "emailPlaceholder": "du@beispiel.com",
+    "messageLabel": "Wie können wir helfen?",
+    "messagePlaceholder": "Wofür das Formular ist, welche Felder du brauchst, wo es erscheinen soll ...",
+    "send": "Nachricht senden",
+    "sending": "Wird gesendet ...",
+    "sent": "Nachricht gesendet — wir antworten per E-Mail.",
+    "error": "Nachricht konnte nicht gesendet werden. Versuch es erneut oder kopiere unsere Adresse unten."
   }
 }

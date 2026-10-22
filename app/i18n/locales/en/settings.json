@@ -94,5 +94,11 @@
     "tagline": "The Form Builder app.",
     "privacy": "Privacy policy",
     "terms": "Terms and conditions"
+  },
+  "hero": {
+    "eyebrow": "App settings",
+    "title": "Settings Made",
+    "accent": "Simple",
+    "sub": "Keep your app preferences in one place. Manage language, email options and integrations."
   }
 }

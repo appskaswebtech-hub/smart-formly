@@ -55,5 +55,11 @@
     "formData": "Datos del formulario",
     "deletedOne": "Envío eliminado",
     "deletedAll": "Todos los envíos eliminados"
+  },
+  "hero": {
+    "eyebrow": "Envíos",
+    "title": "Todos los",
+    "accent": "envíos",
+    "sub": "Consulta y gestiona todos los envíos en un solo lugar. Busca, filtra y exporta datos fácilmente."
   }
 }

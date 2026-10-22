@@ -24,7 +24,8 @@
     "form": "Formular",
     "input": "Eingabe",
     "button": "Senden-Schaltfläche",
-    "layout": "Layout"
+    "layout": "Layout",
+    "uploadButton": "Upload-Schaltfläche"
   },
   "pills": {
     "form_details": "Formulardetails",
@@ -216,7 +217,18 @@
     "fieldInCenter": "Feld zentrieren",
     "validationHeading": "Validierung",
     "emailValidation": "Prüfen, ob die E-Mail-Adresse echt ist",
-    "addElement": "+ Element hinzufügen"
+    "addElement": "+ Element hinzufügen",
+    "moveUp": "Nach oben",
+    "moveDown": "Nach unten",
+    "remove": "Entfernen",
+    "uploadButtonText": "Text der Upload-Schaltfläche",
+    "uploadButtonTextPlaceholder": "Dateien auswählen",
+    "uploadButtonTextHelp": "Leer lassen, um die Standardformulierung in der Sprache des Kunden zu verwenden.",
+    "optionDefault": "Option {{n}}",
+    "maxFiles": "Maximale Dateianzahl",
+    "maxFilesHelp": "Leer lassen für kein Limit.",
+    "maxFileSize": "Maximale Größe pro Datei",
+    "maxFileSizeHelp": "Leer lassen für kein Limit. Eine Einsendung darf insgesamt nie mehr als {{max}} MB umfassen."
   },
   "formTab": {
     "backgroundHeading": "Hintergrund",
@@ -288,11 +300,58 @@
     "previewOnly": "Nur Vorschau.",
     "formTitle": "Formulartitel",
     "addFields": "Füge Felder über das linke Panel hinzu",
-    "pleaseSelect": "Bitte auswählen"
+    "pleaseSelect": "Bitte auswählen",
+    "chooseFile": "Datei auswählen",
+    "chooseFiles": "Dateien auswählen"
   },
   "comingSoon": {
     "captcha": "Captcha-Integration folgt in Kürze.",
     "integrations": "Integrationen folgen in Kürze."
   },
-  "editWithName": "Bearbeiten: {{name}}"
+  "editWithName": "Bearbeiten: {{name}}",
+  "hero": {
+    "eyebrow": "Formular erstellen",
+    "title": "Erstelle dein Formular",
+    "accent": "ganz einfach",
+    "sub": "Erstelle ansprechende Formulare mit starken Funktionen. Anpassen, konfigurieren und in Minuten veröffentlichen."
+  },
+  "sectionSub": {
+    "settings": "Lege die Basisdaten und das Verhalten deines Formulars fest.",
+    "quick": "Aktiviere erweiterte Funktionen für dein Formular.",
+    "elements": "Klicke oder ziehe Felder in die Vorschau, um sie hinzuzufügen.",
+    "preview": "Sieh, wie dein Formular für Kundinnen und Kunden aussieht."
+  },
+  "searchFields": "Felder suchen...",
+  "previewDesktop": "Desktop",
+  "previewMobile": "Mobil",
+  "previewNote": "Nur Vorschau. Testeinsendungen bleiben in der Vorschau; veröffentliche das Formular, um echte Einsendungen zu sammeln.",
+  "designGroups": {
+    "content": "Inhalt",
+    "style": "Stil",
+    "layout": "Layout"
+  },
+  "uploadBtn": {
+    "heading": "Upload-Schaltfläche",
+    "hint": "Gilt für die Upload-Schaltfläche aller Dateifelder.",
+    "bg": "Hintergrundfarbe der Schaltfläche",
+    "textColor": "Textfarbe der Schaltfläche",
+    "fontSize": "Schriftgröße der Schaltfläche",
+    "borderColor": "Rahmenfarbe der Schaltfläche",
+    "borderRadius": "Eckenradius der Schaltfläche",
+    "borderWidth": "Rahmenbreite der Schaltfläche"
+  },
+  "locked": {
+    "title": "Verfügbar mit {{plan}}",
+    "body": "Upgrade, um dies zu aktivieren. Unten siehst du trotzdem, was es kann.",
+    "cta": "Upgraden"
+  },
+  "limit": {
+    "title": "Formular-Limit erreicht",
+    "body_one": "Dein Tarif enthält {{count}} Formular. Du hast {{used}}. Für mehr upgraden oder eines löschen.",
+    "body_other": "Dein Tarif enthält {{count}} Formulare. Du hast {{used}}. Für mehr upgraden oder eines löschen.",
+    "upgrade": "Tarife ansehen",
+    "manage": "Formulare verwalten",
+    "reached_one": "Dein Tarif enthält {{count}} Formular. Upgrade, um ein weiteres zu erstellen.",
+    "reached_other": "Dein Tarif enthält {{count}} Formulare. Upgrade, um ein weiteres zu erstellen."
+  }
 }

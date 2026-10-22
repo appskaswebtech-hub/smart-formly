@@ -84,10 +84,62 @@
     .smartformly-field .sf-checkbox-group { display:flex; flex-direction:column; gap:6px; }
     .smartformly-field .sf-checkbox-group label { display:flex; align-items:center; gap:8px; font-weight:normal; margin-bottom:0; }
 
+    /* ─── File picker ─── */
+    /* Off-screen rather than display:none, which would drop it out of the tab
+       order and stop the label from opening it in some browsers. */
+    .smartformly-field .sf-file-input {
+      position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+      overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0;
+    }
+    .smartformly-field .sf-file-button {
+      display:inline-flex; align-items:center; gap:8px; width:auto;
+      margin-bottom:0; padding:9px 14px;
+      background:#fff; color:#111827;
+      border:1px solid #D1D5DB; border-radius:6px;
+      font-size:13px; font-weight:500; cursor:pointer;
+    }
+    /* Opacity, not a fixed colour: the merchant's background is set inline and
+       a hard-coded hover shade would paint over it. */
+    .smartformly-field .sf-file-button:hover { opacity:.9; }
+    .smartformly-field .sf-file-control { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .smartformly-field .sf-file-input:focus-visible + .sf-file-button {
+      outline:2px solid var(--sf-input-focus,#5C6AC4); outline-offset:1px;
+    }
+
+    /* ─── Chosen files ─── */
+    /* Chips sit side by side and wrap onto the next line, so a handful of
+       uploads stays compact instead of pushing the Submit button down. */
+    .smartformly-field .sf-file-list {
+      display:flex; flex-direction:row; flex-wrap:wrap;
+      align-items:flex-start; gap:8px; margin-top:8px;
+    }
+    .smartformly-field .sf-file-list:empty { display:none; }
+    .smartformly-field .sf-file-item {
+      display:inline-flex; align-items:center; gap:8px;
+      max-width:100%; padding:7px 9px; background:#fff;
+      border:1px solid #E5E7EB; border-radius:6px;
+      font-size:13px; line-height:1.3;
+    }
+    .smartformly-field .sf-file-check { flex-shrink:0; display:inline-flex; color:#111827; }
+    .smartformly-field .sf-file-name {
+      min-width:0; max-width:170px; color:#111827;
+      overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    }
+    .smartformly-field .sf-file-remove {
+      flex-shrink:0; display:inline-flex; align-items:center; justify-content:center;
+      width:22px; height:22px; padding:0;
+      background:none; border:none; border-radius:4px;
+      color:#6B7280; cursor:pointer; font-family:inherit;
+    }
+    .smartformly-field .sf-file-remove:hover { background:#F3F4F6; color:#111827; }
+    .smartformly-field .sf-file-remove:focus-visible { outline:2px solid var(--sf-input-focus,#5C6AC4); outline-offset:1px; }
+
     /* ─── Field-level validation highlight ─── */
     .smartformly-field.sf-field-error input,
     .smartformly-field.sf-field-error textarea,
     .smartformly-field.sf-field-error select { border-color:#DC2626 !important; }
+    /* The file input itself is off-screen, so the button carries its error. */
+    .smartformly-field.sf-field-error .sf-file-button { border-color:#DC2626 !important; }
     .smartformly-field .sf-field-error-msg { font-size:12px; color:#DC2626; margin-top:4px; display:none; }
     .smartformly-field.sf-field-error .sf-field-error-msg { display:block; }
 
@@ -219,6 +271,11 @@
       numberMax:     {{ 'smartformly.form.invalid_number_max'   | t | json }},
       pastDate:      {{ 'smartformly.form.past_date'            | t | json }},
       fileTooLarge:  {{ 'smartformly.form.file_too_large'       | t | json }},
+      fileOverSize:  {{ 'smartformly.form.file_over_size'       | t | json }},
+      tooManyFiles:  {{ 'smartformly.form.too_many_files'       | t | json }},
+      removeFile:    {{ 'smartformly.form.remove_file'          | t | json }},
+      chooseFile:    {{ 'smartformly.form.choose_file'          | t | json }},
+      chooseFiles:   {{ 'smartformly.form.choose_files'         | t | json }},
       invalidEmail:  {{ 'smartformly.form.invalid_email'        | t | json }},
       emailNoDomain: {{ 'smartformly.form.email_domain_invalid' | t | json }},
       emailTypo:     {{ 'smartformly.form.email_typo'           | t | json }},
@@ -329,6 +386,157 @@
         });
       });
       return Promise.all(jobs);
+    }
+
+    /* A FileList is read-only, so removing one entry means rebuilding the whole
+       list through a DataTransfer and assigning it back. Keeping input.files
+       authoritative is what lets the size check, the required check and
+       collectFiles() carry on reading the input directly. */
+    var canEditFileList = (function () {
+      try {
+        var dt = new DataTransfer();
+        return !!(dt && dt.items);
+      } catch (e) { return false; }
+    })();
+
+    function setInputFiles(input, files) {
+      var dt = new DataTransfer();
+      files.forEach(function (file) { dt.items.add(file); });
+      input.files = dt.files;
+    }
+
+    /* Enough to tell two picks of the same file apart from two different ones;
+       File objects are never identity-equal across separate picks. */
+    function sameFile(a, b) {
+      return a.name === b.name && a.size === b.size && a.lastModified === b.lastModified;
+    }
+
+    var SF_CHECK_SVG = '<svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" ' +
+      'stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      '<path d="m4.5 10.5 3.5 3.5 7.5-8"/></svg>';
+    var SF_CROSS_SVG = '<svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" ' +
+      'stroke-width="2" stroke-linecap="round" aria-hidden="true">' +
+      '<path d="M5 5l10 10M15 5L5 15"/></svg>';
+
+    function renderFileList(input) {
+      var wrapper = input.closest('.smartformly-field');
+      var list    = wrapper && wrapper.querySelector('.sf-file-list');
+      if (!list) return;
+
+      list.innerHTML = '';
+      Array.prototype.slice.call(input.files || []).forEach(function (file, index) {
+        var row = document.createElement('div');
+        row.className = 'sf-file-item';
+
+        var check = document.createElement('span');
+        check.className = 'sf-file-check';
+        check.innerHTML = SF_CHECK_SVG;
+
+        /* textContent, not innerHTML: the name comes from the shopper's disk. */
+        var name = document.createElement('span');
+        name.className = 'sf-file-name';
+        name.textContent = file.name;
+        name.title = file.name;
+
+        row.appendChild(check);
+        row.appendChild(name);
+
+        if (canEditFileList) {
+          var remove = document.createElement('button');
+          remove.type = 'button';
+          remove.className = 'sf-file-remove';
+          remove.setAttribute('aria-label', T.removeFile.replace('{name}', file.name));
+          remove.innerHTML = SF_CROSS_SVG;
+          remove.addEventListener('click', function () {
+            var kept = Array.prototype.slice.call(input.files).filter(function (_, i) {
+              return i !== index;
+            });
+            setInputFiles(input, kept);
+            input.sfKept = kept;
+            renderFileList(input);
+            /* Dropping a file may be exactly what fixes a "too large" error. */
+            if (input.form) setFieldError(input.form, input.getAttribute('name'), null);
+          });
+          row.appendChild(remove);
+        }
+
+        list.appendChild(row);
+      });
+    }
+
+    /* The merchant's per-field limits, stamped onto the input at render time so
+       this does not have to look the field up again. 0 means no limit. */
+    function limitsFor(input) {
+      var files = parseInt(input.getAttribute('data-max-files') || '', 10);
+      var mb    = parseInt(input.getAttribute('data-max-size-mb') || '', 10);
+      return {
+        maxFiles: isFinite(files) && files > 0 ? files : 0,
+        maxBytes: isFinite(mb) && mb > 0 ? mb * 1024 * 1024 : 0,
+      };
+    }
+
+    /**
+     * Splits a selection into what may be kept and what must be refused.
+     *
+     * Applied as the shopper picks rather than at submit, so a rejected file
+     * never becomes a chip and the list always shows exactly what will be
+     * sent. Oversize files are dropped first, so one huge file cannot use up
+     * the count allowance and push out files that were actually acceptable.
+     */
+    function applyUploadLimits(candidates, limits) {
+      var accepted = [], tooLarge = [], tooMany = [];
+
+      candidates.forEach(function (file) {
+        if (limits.maxBytes && file.size > limits.maxBytes) { tooLarge.push(file); return; }
+        if (limits.maxFiles && accepted.length >= limits.maxFiles) { tooMany.push(file); return; }
+        accepted.push(file);
+      });
+
+      return { accepted: accepted, tooLarge: tooLarge, tooMany: tooMany };
+    }
+
+    function wireFileInputs(form) {
+      fileInputs(form).forEach(function (input) {
+        input.sfKept = [];
+        input.addEventListener('change', function () {
+          var picked = Array.prototype.slice.call(input.files || []);
+          var limits = limitsFor(input);
+          var candidates;
+
+          if (input.multiple && canEditFileList) {
+            /* Picking again replaces the FileList outright, but a shopper who
+               adds a second file expects to end up with both. */
+            candidates = (input.sfKept || []).slice();
+            picked.forEach(function (file) {
+              if (!candidates.some(function (k) { return sameFile(k, file); })) candidates.push(file);
+            });
+          } else {
+            candidates = picked;
+          }
+
+          var result = applyUploadLimits(candidates, limits);
+
+          if (canEditFileList) {
+            setInputFiles(input, result.accepted);
+          }
+          input.sfKept = result.accepted;
+
+          renderFileList(input);
+
+          /* One message covering whatever was refused, rather than the field's
+             generic "required" text. */
+          var problems = [];
+          if (result.tooLarge.length) {
+            problems.push(T.fileOverSize
+              .replace('{max}', input.getAttribute('data-max-size-mb'))
+              .replace('{names}', result.tooLarge.map(function (f) { return f.name; }).join(', ')));
+          }
+          if (result.tooMany.length) {
+            problems.push(T.tooManyFiles.replace('{max}', input.getAttribute('data-max-files')));
+          }
+          setFieldError(form, input.getAttribute('name'), problems.join(' ') || null);
+        });
+      });
     }
 
     function fileNamesFor(form, label) {
@@ -642,7 +850,7 @@
       html += '<div class="smartformly-error" id="sf-error-' + formId + '" style="display:none"></div>';
       html += '<div class="smartformly-fields">';
 
-      globalFields.forEach(function(f) {
+      globalFields.forEach(function(f, fieldIndex) {
         var halfCls   = f.halfWidth     ? ' half-width' : '';
         var centerSty = f.fieldInCenter ? 'text-align:center;' : '';
         var labelSty  = 'font-size:' + (d.labelFontSize||'14') + 'px;color:' + (d.labelColor||'#000') + ';';
@@ -675,8 +883,40 @@
             html += '</div>';
             break;
           case 'file':
-            html += '<input type="file" ' + nameAttr + dataReq +
-                    (f.allowMultiple ? ' multiple' : '') + '>';
+            /* Always our own control, never the browser's. A native file
+               button's text is written by the browser from its own language
+               and cannot be read or changed by the page, so leaving it in
+               place would show "Choose Files / No file chosen" in English to
+               every shopper whatever the storefront's language.
+               The real input stays, off-screen rather than display:none so it
+               keeps its place in the tab order, and the label drives it. */
+            var multiAttr   = f.allowMultiple ? ' multiple' : '';
+            var uploadLabel = String(f.uploadButtonText || '').trim() ||
+                              (f.allowMultiple ? T.chooseFiles : T.chooseFile);
+            var fileId      = 'sf-file-' + formId + '-' + fieldIndex;
+            /* Fallbacks match the stylesheet, so forms saved before these
+               settings existed keep the look they have today. */
+            var upStyle = [
+              'background:'    + (d.uploadBtnBg           || '#fff'),
+              'color:'         + (d.uploadBtnTextColor    || '#111827'),
+              'border:'        + (d.uploadBtnBorderWidth  || '1') + 'px solid ' + (d.uploadBtnBorderColor || '#D1D5DB'),
+              'border-radius:' + (d.uploadBtnBorderRadius || '6') + 'px',
+              'font-size:'     + (d.uploadBtnFontSize     || '13') + 'px',
+            ].join(';');
+            /* Limits ride on the element so the change handler can read them
+               without looking the field up again. Absent means unlimited. */
+            var limitAttrs =
+              (f.maxFiles      ? ' data-max-files="'   + escHtml(String(f.maxFiles))      + '"' : '') +
+              (f.maxFileSizeMb ? ' data-max-size-mb="' + escHtml(String(f.maxFileSizeMb)) + '"' : '');
+
+            html += '<div class="sf-file-control">';
+            html += '<input type="file" class="sf-file-input" id="' + fileId + '" ' + nameAttr + dataReq + multiAttr + limitAttrs + '>';
+            html += '<label class="sf-file-button" for="' + fileId + '" style="' + upStyle + '">' + escHtml(uploadLabel) + '</label>';
+            html += '</div>';
+
+            /* Filled in by renderFileList() on every change, so the shopper can
+               see what they picked and drop any of it. */
+            html += '<div class="sf-file-list"></div>';
             break;
           case 'number':
             html += '<input type="number" ' + nameAttr + dataReq +
@@ -728,6 +968,8 @@
         e.preventDefault();
         submitForm(e.target, container);
       });
+
+      wireFileInputs(formEl);
 
       /* Checked on blur so a typo is corrected in place, rather than being
          discovered only after the shopper presses submit. */

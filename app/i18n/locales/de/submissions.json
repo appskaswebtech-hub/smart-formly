@@ -55,5 +55,11 @@
     "formData": "Formulardaten",
     "deletedOne": "Einsendung gelöscht",
     "deletedAll": "Alle Einsendungen gelöscht"
+  },
+  "hero": {
+    "eyebrow": "Einsendungen",
+    "title": "Alle",
+    "accent": "Einsendungen",
+    "sub": "Sieh dir alle Formulareinsendungen an einem Ort an. Suchen, filtern und exportieren leicht gemacht."
   }
 }

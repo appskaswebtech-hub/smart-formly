@@ -311,6 +311,14 @@ export type FormField = {
   dateFormat?: "us" | "uk";
   /* File fields only — let the shopper pick more than one file. */
   allowMultiple?: boolean;
+  /* File fields only — relabels the picker. Empty leaves the browser's own
+     control in place, since a native file button's text cannot be changed. */
+  uploadButtonText?: string;
+  /* File fields only — upload limits. Strings for the same reason min/max are,
+     and an empty string means no limit. The 18 MB cap on a whole submission
+     applies regardless: these restrict what is accepted, never extend it. */
+  maxFiles?: string;
+  maxFileSizeMb?: string;
 };
 
 export type FormSettings = {
@@ -475,6 +483,17 @@ export async function deleteFormById(formId: string, shopDomain: string) {
 }
 
 // ── Stats ─────────────────────────────────────────────────────────────────────
+
+/**
+ * How many forms a shop has, for the plan's form limit.
+ *
+ * A count rather than getFormStats(), which loads every form and its
+ * submissions — this runs on every visit to the builder and only needs a
+ * number. Drafts are included: the limit is on forms, not published ones.
+ */
+export async function countForms(shopDomain: string): Promise<number> {
+  return db.formConfig.count({ where: { shopDomain } });
+}
 
 export async function getFormStats(shopDomain: string) {
   const forms = await db.formConfig.findMany({

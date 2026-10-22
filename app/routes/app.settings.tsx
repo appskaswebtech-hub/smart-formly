@@ -5,6 +5,8 @@ import { Trans, useTranslation } from "react-i18next";
 import { localeLabels, supportedLngs } from "../i18n/config";
 import type { loader as rootLoader } from "../root";
 
+import Hero from "../components/ui/Hero";
+
 export const handle = { i18n: ["settings", "common"] };
 
 const Badge = ({ text, variant = "pro" }: { text: string; variant?: string }) => (
@@ -281,10 +283,8 @@ const SectionRow = ({
   children: React.ReactNode;
 }) => (
   <div
+    className="sf-settings-row"
     style={{
-      display: "grid",
-      gridTemplateColumns: "280px 1fr",
-      gap: 40,
       alignItems: "start",
       paddingBottom: 32,
       marginBottom: 32,
@@ -772,18 +772,24 @@ export default function SettingsPanel() {
         color: "#111827",
       }}
     >
+      {/* Hero — this page is a plain div rather than a Polaris Page, so the
+          banner is placed inside the header block instead of a Layout.Section. */}
+      <div className="sf-page-pad" style={{ paddingTop: 20 }}>
+        <Hero
+          art="settings"
+          eyebrow={t("hero.eyebrow")}
+          title={t("hero.title")}
+          titleAccent={t("hero.accent")}
+          subtitle={t("hero.sub")}
+        />
+      </div>
+
       {/* Header */}
       <div
-        style={{
-          padding: "24px 40px 0",
-          background: "#fff",
-          borderBottom: "1px solid #e2e5ea",
-        }}
+        className="sf-page-pad"
+        style={{ paddingTop: 24, background: "transparent" }}
       >
-        <h1 style={{ fontSize: 22, fontWeight: 700, margin: "0 0 20px", color: "#111827" }}>
-          {t("title")}
-        </h1>
-        <div style={{ display: "flex", gap: 0 }}>
+        <div className="sf-toolbar" style={{ display: "flex", gap: 0 }}>
           {mainTabs.map((tab) => (
             <button
               key={tab.id}

@@ -40,5 +40,19 @@
       "action": "Crea tu primer formulario",
       "body": "Crea un formulario para empezar a recibir envíos desde tu tienda."
     }
+  },
+  "support": {
+    "title": "¿Necesitas ayuda?",
+    "body": "Escríbenos: te ayudamos a crear tu formulario sin coste y rápidamente.",
+    "copied": "¡Dirección de correo copiada!",
+    "copyFailed": "No se pudo copiar la dirección",
+    "emailLabel": "Tu correo",
+    "emailPlaceholder": "tu@ejemplo.com",
+    "messageLabel": "¿Cómo podemos ayudarte?",
+    "messagePlaceholder": "Para qué es el formulario, qué campos necesitas, dónde debe aparecer...",
+    "send": "Enviar mensaje",
+    "sending": "Enviando...",
+    "sent": "Mensaje enviado: te responderemos por correo.",
+    "error": "No se pudo enviar el mensaje. Inténtalo de nuevo o copia nuestra dirección abajo."
   }
 }

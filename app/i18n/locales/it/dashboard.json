@@ -8,7 +8,10 @@
   "stats": {
     "formsCreated": "Moduli creati",
     "formSubmissions": "Invii dei moduli",
-    "activeForms": "Moduli attivi"
+    "activeForms": "Moduli attivi",
+    "formsCreatedHint": "Totale moduli creati",
+    "formSubmissionsHint": "Totale invii ricevuti",
+    "activeFormsHint": "Attivi ora nel tuo negozio"
   },
   "quickActions": {
     "createForm": {
@@ -38,5 +41,12 @@
       "actions": "Azioni"
     },
     "viewSubmissions": "Invii"
+  },
+  "hero": {
+    "title": "Trasforma le domande",
+    "accent": "in opportunità",
+    "sub": "Crea moduli accattivanti, raccogli informazioni preziose e fai crescere il tuo negozio Shopify.",
+    "createFirst": "Crea il tuo primo modulo",
+    "openThemeEditor": "Apri editor dei temi"
   }
 }

@@ -94,5 +94,11 @@
     "tagline": "La app Form Builder.",
     "privacy": "Política de privacidad",
     "terms": "Términos y condiciones"
+  },
+  "hero": {
+    "eyebrow": "Ajustes de la app",
+    "title": "Ajustes",
+    "accent": "sencillos",
+    "sub": "Ten tus preferencias en un solo lugar. Gestiona idioma, opciones de correo e integraciones."
   }
 }

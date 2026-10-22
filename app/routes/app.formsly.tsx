@@ -13,6 +13,8 @@ import {
 } from "@shopify/polaris";
 import { SearchIcon } from "@shopify/polaris-icons";
 
+import Hero from "../components/ui/Hero";
+
 export const handle = { i18n: ["formsList", "common"] };
 
 // ── Loader ────────────────────────────────────────────────────────────────────
@@ -210,6 +212,15 @@ export default function FormsPage() {
     >
       <Layout>
         <Layout.Section>
+          <Hero
+            art="manage"
+            eyebrow={t("hero.eyebrow")}
+            title={t("hero.title")}
+            titleAccent={t("hero.accent")}
+            subtitle={t("hero.sub")}
+          />
+        </Layout.Section>
+        <Layout.Section>
           <Card padding="0">
             <BlockStack>
               {/* ── Filter Tabs ── */}
@@ -267,6 +278,7 @@ export default function FormsPage() {
                 </div>
               ) : (
                 <>
+                  <div className="sf-table-scroll">
                   <DataTable
                     columnContentTypes={["text", "text", "text", "numeric", "text", "text"]}
                     headings={[
@@ -279,6 +291,7 @@ export default function FormsPage() {
                     ]}
                     rows={rows}
                   />
+                  </div>
                   <div style={{
                     padding: "12px 16px",
                     borderTop: "1px solid #E5E7EB",

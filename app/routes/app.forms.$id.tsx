@@ -1,9 +1,9 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   json, redirect,
   type ActionFunctionArgs, type LoaderFunctionArgs,
 } from "@remix-run/node";
-import { useLoaderData, useSubmit, useActionData, useNavigation } from "@remix-run/react";
+import { useLoaderData, useSubmit, useActionData, useNavigation, useNavigate, useRouteLoaderData } from "@remix-run/react";
 import { Trans, useTranslation } from "react-i18next";
 import { authenticate } from "../shopify.server";
 import i18next from "../i18n/i18next.server";
@@ -13,46 +13,19 @@ import type { FormField, FormSettings } from "../models/form.server";
 import { v4 as uuidv4 } from "uuid";
 import {
   Page, Card, Text, BlockStack, InlineStack,
-  Button, TextField, Select, Checkbox, Badge,
+  TextField, Select, Checkbox, Badge,
   Tabs, Divider, Box, Banner,
 } from "@shopify/polaris";
 
+import { SectionCard, FieldRow, ColorField, LockedPanel } from "../components/ui/Builder";
+import { PILLS, tierAllows, applyTierToExtra, type Tier } from "../billing/features";
+import { shopTier } from "../billing/tier.server";
+import DesignPanel, { type DesignSettings } from "../components/ui/DesignPanel";
+import { elementStyle, FIELD_TYPES } from "../components/ui/fieldStyles";
+import Glyph from "../components/ui/Icon";
+import { C } from "../components/ui/theme";
+
 export const handle = { i18n: ["forms", "common"] };
-
-/* ── ColorInput ── */
-function ColorInput({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
-  return (
-    <div>
-      <Text as="p" variant="bodySm" fontWeight="semibold">{label}</Text>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6 }}>
-        <input type="color" value={value} onChange={e => onChange(e.target.value)}
-          style={{ width: 36, height: 36, border: "1px solid #D1D5DB", borderRadius: 6, padding: 2, cursor: "pointer" }} />
-        <div style={{ flex: 1 }}>
-          <TextField label="" labelHidden value={value} onChange={onChange} autoComplete="off" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ── RadioGroup ── */
-function RadioGroup({ label, options, value, onChange }: {
-  label: string; options: { label: string; value: string }[]; value: string; onChange: (v: string) => void;
-}) {
-  return (
-    <div>
-      <Text as="p" variant="bodySm" fontWeight="semibold">{label}</Text>
-      <div style={{ display: "flex", gap: 16, marginTop: 6, flexWrap: "wrap" }}>
-        {options.map(o => (
-          <label key={o.value} style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 13 }}>
-            <input type="radio" checked={value === o.value} onChange={() => onChange(o.value)} style={{ accentColor: "#5C6AC4" }} />
-            {o.label}
-          </label>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 /* ── Pill ── */
 function Pill({ label, plan, active, onClick }: {
@@ -62,10 +35,10 @@ function Pill({ label, plan, active, onClick }: {
     <button onClick={onClick} style={{
       display: "inline-flex", alignItems: "center", gap: 5,
       padding: "5px 11px", borderRadius: 5, cursor: "pointer",
-      border: active ? "2px solid #5C6AC4" : "1px solid #D1D5DB",
-      background: active ? "#EEF0FB" : "#fff",
+      border: active ? "2px solid #0B6B45" : "1px solid #D1D5DB",
+      background: active ? "#EFF9F3" : "#fff",
       fontSize: 13, fontWeight: active ? 600 : 400,
-      color: active ? "#5C6AC4" : "#111827",
+      color: active ? "#0B6B45" : "#111827",
       whiteSpace: "nowrap", fontFamily: "inherit", transition: "all .12s",
     }}>
       {label}
@@ -119,22 +92,6 @@ function RichArea({ label, value, onChange }: { label?: string; value: string; o
 /* ══════════════════════════════════════════════════════════════════════
    TYPES
    ══════════════════════════════════════════════════════════════════ */
-type DesignSettings = {
-  bgType: "transparent" | "color" | "gradient";
-  bgColor: string; bgColor2: string; bgShadow: string;
-  formWidth: string; formPadding: string;
-  borderColor: string; borderRadius: string; borderSize: string;
-  inputBg: string; inputBorderColor: string; inputBorderFocusColor: string;
-  inputBorderRadius: string; inputFontSize: string; inputFontColor: string;
-  inputPlaceholderColor: string;
-  labelFontSize: string; labelColor: string; labelStyle: "block" | "inline" | "floating";
-  buttonBg: string; buttonText: string; buttonTextColor: string;
-  buttonAlignment: "full" | "left" | "center" | "right";
-  buttonFontSize: string; buttonBorderColor: string; buttonBorderRadius: string; buttonBorderWidth: string;
-  formBannerUrl: string; formBannerHeight: string; formBannerWidth: string; formBannerAlignment: "left" | "center" | "right";
-  formDescription: string;
-};
-
 type ExtraSettings = {
   // Ticket
   ticketEnabled: boolean;
@@ -211,10 +168,14 @@ const defaultDesign: DesignSettings = {
   bgType: "transparent", bgColor: "#ffffff", bgColor2: "#f0f0f0",
   bgShadow: "none", formWidth: "600px", formPadding: "30",
   borderColor: "#000000", borderRadius: "1", borderSize: "2",
-  inputBg: "#ffffff", inputBorderColor: "#000000", inputBorderFocusColor: "#5C6AC4",
+  inputBg: "#ffffff", inputBorderColor: "#000000", inputBorderFocusColor: "#0B6B45",
   inputBorderRadius: "1", inputFontSize: "14", inputFontColor: "#000000",
   inputPlaceholderColor: "#9CA3AF",
   labelFontSize: "14", labelColor: "#000000", labelStyle: "block",
+  /* Matches the picker button's built-in look, so turning on a custom
+     label does not change its appearance until the merchant styles it. */
+  uploadBtnBg: "#ffffff", uploadBtnTextColor: "#111827", uploadBtnFontSize: "13",
+  uploadBtnBorderColor: "#D1D5DB", uploadBtnBorderRadius: "6", uploadBtnBorderWidth: "1",
   buttonBg: "#000000", buttonText: "Submit", buttonTextColor: "#ffffff",
   buttonAlignment: "full", buttonFontSize: "16",
   buttonBorderColor: "#000000", buttonBorderRadius: "2", buttonBorderWidth: "1",
@@ -225,39 +186,11 @@ const defaultDesign: DesignSettings = {
 // Labels live in the `forms` namespace under `fieldTypes.<type>` / `pills.<key>`
 // and are resolved at render time — these constants are evaluated at import,
 // before i18next knows the request's language.
-const FIELD_TYPES = [
-  { type: "text",     icon: "T" },
-  { type: "email",    icon: "@" },
-  { type: "phone",    icon: "☎" },
-  { type: "textarea", icon: "¶" },
-  { type: "select",   icon: "▾" },
-  { type: "checkbox", icon: "☑" },
-  { type: "file",     icon: "⬆" },
-  { type: "number",   icon: "#" },
-  { type: "date",     icon: "📅" },
-  { type: "time",     icon: "🕐" },
-] as const;
-
 // Local (not UTC) yyyy-mm-dd, to match what <input type="date"> expects.
 function todayISO() {
   const n = new Date();
   return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, "0")}-${String(n.getDate()).padStart(2, "0")}`;
 }
-
-const PILLS = [
-  { key: "form_details" },
-  { key: "ticket_system",            plan: "pro_plus" as const },
-  { key: "allow_form_access",        plan: "pro_plus" as const },
-  { key: "form_schedule",            plan: "pro" as const },
-  { key: "customize_form_messages",  plan: "pro" as const },
-  { key: "customize_form_scrolling", plan: "pro" as const },
-  { key: "after_submission_action" },
-  { key: "after_submit_script",      plan: "pro" as const },
-  { key: "auto_responder_email" },
-  { key: "admin_email" },
-  { key: "email_export",             plan: "pro" as const },
-  { key: "form_load_as_popup",       plan: "pro" as const },
-];
 
 /* ══════════════════════════════════════════════════════════════════════
    LOADER
@@ -276,7 +209,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
    ACTION
    ══════════════════════════════════════════════════════════════════ */
 export const action = async ({ request, params }: ActionFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
   // These errors are rendered to the merchant, so they must follow the same
   // locale the page was rendered in — not the server's default.
   const t = await i18next.getFixedT(await resolveLocale(request), "forms");
@@ -292,7 +225,18 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
   if (!formName?.trim()) return json({ error: t("errors.nameRequired") }, { status: 422 });
   if (!fields || fields.length === 0) return json({ error: t("errors.addField") }, { status: 422 });
 
-  await updateForm(id, session.shop, { formName, fields, settings, isActive });
+  // Features already switched on are grandfathered: a merchant below the tier
+  // cannot change a gated setting, but whatever the form already has is kept
+  // rather than wiped the next time they save anything.
+  const tier = await shopTier(admin);
+  const existing = await getForm(id, session.shop);
+  const storedExtra = (existing?.settings as any)?.extra ?? null;
+  const safeSettings = {
+    ...settings,
+    extra: applyTierToExtra((settings as any)?.extra ?? {}, storedExtra, tier),
+  } as FormSettings;
+
+  await updateForm(id, session.shop, { formName, fields, settings: safeSettings, isActive });
   return redirect("/app/formsly?updated=1");
 };
 
@@ -307,9 +251,6 @@ export default function EditForm() {
   const saving     = navigation.state === "submitting";
   const { t } = useTranslation(["forms", "common"]);
 
-  const [bannerFile,    setBannerFile]    = useState<File | null>(null);
-  const [bannerPreview, setBannerPreview] = useState<string>("");
-  const bannerInputRef = useRef<HTMLInputElement>(null);
 
   const savedDesign = (form.settings as any)?.design;
   const savedExtra  = (form.settings as any)?.extra ?? {};
@@ -331,13 +272,18 @@ export default function EditForm() {
 
   const [activeTab,       setActiveTab]       = useState(0);
   const [activePill,      setActivePill]      = useState("form_details");
-  const [activeDesignTab, setActiveDesignTab] = useState(0);
   const [clientError,     setClientError]     = useState("");
-  const [optionInputs,    setOptionInputs]    = useState<Record<string, string>>({});
-  const [expandedFieldId, setExpandedFieldId] = useState<string | null>(null);
-  const [showAddElement,  setShowAddElement]  = useState(false);
 
   const error = clientError || (actionData as any)?.error;
+
+  /* Quick Settings are gated by plan. The tier is published by the app route's
+     loader so neither builder page has to re-query the subscription. */
+  const appData = useRouteLoaderData<{ tier: Tier }>("routes/app");
+  const tier: Tier = appData?.tier ?? "base";
+  const navigate = useNavigate();
+  const activePillPlan = PILLS.find((p) => p.key === activePill)?.plan;
+  const activePillLocked = !tierAllows(tier, activePillPlan);
+
   const d  = design;
   const setD = (p: Partial<DesignSettings>) => setDesign(prev => ({ ...prev, ...p }));
   const setE = (p: Partial<ExtraSettings>)  => setExtra(prev  => ({ ...prev, ...p }));
@@ -353,22 +299,26 @@ export default function EditForm() {
     const nf: FormField = {
       id: uuidv4(), type, label, placeholder: "", required: false,
       halfWidth: false, fieldInCenter: false, sendSubmissionEmail: false, emailValidation: false,
-      options: type === "select" || type === "checkbox" ? ["Option 1", "Option 2"] : undefined,
+      // Seeded in the merchant's language, like the label above — these are
+      // stored on the form and rendered verbatim on the storefront.
+      options: type === "select" || type === "checkbox"
+        ? [t("elements.optionDefault", { n: 1 }), t("elements.optionDefault", { n: 2 })]
+        : undefined,
       // Quantities start at 1 with no upper bound until the merchant sets one.
       min: type === "number" ? "1" : undefined,
       max: undefined,
       dateFormat: type === "date" ? "us" : undefined,
+      // Shoppers attaching one file are the exception, so uploads start open to
+      // several; the merchant can narrow it on the field.
+      allowMultiple: type === "file" ? true : undefined,
     };
     setFields(prev => [...prev, nf]);
-    setExpandedFieldId(nf.id);
-    setShowAddElement(false);
   }
   function updateField(id: string, patch: Partial<FormField>) {
     setFields(prev => prev.map(f => f.id === id ? { ...f, ...patch } : f));
   }
   function deleteField(id: string) {
     setFields(prev => prev.filter(f => f.id !== id));
-    if (expandedFieldId === id) setExpandedFieldId(null);
   }
   function moveField(id: string, dir: "up" | "down") {
     setFields(prev => {
@@ -380,14 +330,6 @@ export default function EditForm() {
       return next;
     });
   }
-  function addOption(fid: string) {
-    const val = (optionInputs[fid] ?? "").trim();
-    if (!val) return;
-    updateField(fid, { options: [...(fields.find(f => f.id === fid)?.options ?? []), val] });
-    setOptionInputs(p => ({ ...p, [fid]: "" }));
-  }
-
-  /* ── Save ── */
   function handleSave(isActive: boolean) {
     if (!formName.trim()) { setClientError("Form name is required"); return; }
     if (fields.length === 0) { setClientError("Add at least one field"); return; }
@@ -406,16 +348,6 @@ export default function EditForm() {
     { id: "design",      content: t("mainTabs.design") },
     { id: "integration", content: t("mainTabs.integration") },
   ];
-  const designTabs = [
-    { id: "heading",  content: t("designTabs.heading") },
-    { id: "elements", content: t("designTabs.elements") },
-    { id: "captcha",  content: t("designTabs.captcha") },
-    { id: "form",     content: t("designTabs.form") },
-    { id: "input",    content: t("designTabs.input") },
-    { id: "button",   content: t("designTabs.button") },
-    { id: "layout",   content: t("designTabs.layout") },
-  ];
-
   /* ── Preview styles ── */
   const pInput: React.CSSProperties = {
     width: "100%", padding: "8px 10px",
@@ -424,17 +356,35 @@ export default function EditForm() {
     background: d.inputBg, fontSize: Number(d.inputFontSize),
     fontFamily: "inherit", boxSizing: "border-box", color: d.inputFontColor,
   };
-  const iconBtn: React.CSSProperties = {
-    background: "none", border: "1px solid #E5E7EB",
-    borderRadius: 6, padding: "3px 7px", cursor: "pointer", fontSize: 12, color: "#6B7280",
-  };
 
   function renderPreview(field: FormField) {
     switch (field.type) {
       case "textarea": return <textarea placeholder={field.placeholder} style={pInput} rows={3} />;
       case "select":   return <select style={pInput}><option>{t("preview.pleaseSelect")}</option>{(field.options??[]).map(o=><option key={o}>{o}</option>)}</select>;
       case "checkbox": return <div style={{display:"flex",flexDirection:"column",gap:4}}>{(field.options??[]).map(o=><label key={o} style={{display:"flex",gap:8,alignItems:"center",fontSize:14}}><input type="checkbox"/>{o}</label>)}</div>;
-      case "file":     return <input type="file" multiple={field.allowMultiple ?? false} style={{fontSize:13}} />;
+      case "file":
+        /* Never a real <input type="file">: the browser writes its button text
+           from its own language, so it would sit in the preview in English
+           whatever the merchant has selected. Mirrors the storefront, which
+           draws the same control for the same reason. */
+        return (
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            <span
+              style={{
+                display: "inline-flex", alignItems: "center", padding: "9px 14px",
+                background: d.uploadBtnBg,
+                color: d.uploadBtnTextColor,
+                border: `${d.uploadBtnBorderWidth}px solid ${d.uploadBtnBorderColor}`,
+                borderRadius: `${d.uploadBtnBorderRadius}px`,
+                fontSize: Number(d.uploadBtnFontSize),
+                fontWeight: 500,
+              }}
+            >
+              {field.uploadButtonText?.trim() ||
+                (field.allowMultiple ? t("preview.chooseFiles") : t("preview.chooseFile"))}
+            </span>
+          </span>
+        );
       case "number":   return <input type="number" placeholder={field.placeholder} min={field.min || undefined} max={field.max || undefined} style={pInput} />;
       case "date":     return <input type="date" min={todayISO()} style={pInput} />;
       default:         return <input type={field.type} placeholder={field.placeholder} style={pInput} />;
@@ -464,32 +414,51 @@ export default function EditForm() {
             <Text as="h3" variant="headingSm" fontWeight="semibold">{t("details.elementsHeading")}</Text>
             <Text as="p" variant="bodySm" tone="subdued">{t("details.clickToAdd")}</Text>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-              {FIELD_TYPES.map(ft => (
-                <button key={ft.type} onClick={() => addField(ft.type as FormField["type"])}
-                  style={{ display:"flex",alignItems:"center",gap:8,padding:"10px 12px",background:"#fff",border:"1px solid #E5E7EB",borderRadius:8,cursor:"pointer",textAlign:"left",fontFamily:"inherit" }}
-                  onMouseEnter={e=>(e.currentTarget.style.borderColor="#5C6AC4")}
-                  onMouseLeave={e=>(e.currentTarget.style.borderColor="#E5E7EB")}>
-                  <span style={{width:28,height:28,borderRadius:6,background:"#EEF0FB",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,color:"#5C6AC4",flexShrink:0}}>{ft.icon}</span>
-                  <span style={{fontSize:12.5,fontWeight:500,color:"#111827"}}>{t(`fieldTypes.${ft.type}`)}</span>
-                </button>
-              ))}
+              {FIELD_TYPES.map(ft => {
+                const style = elementStyle(ft.type);
+                return (
+                  <button key={ft.type} type="button" onClick={() => addField(ft.type as FormField["type"])}
+                    style={{ display:"flex",alignItems:"center",gap:8,padding:"10px 12px",background:"#fff",border:`1px solid ${C.line}`,borderRadius:8,cursor:"pointer",textAlign:"left",fontFamily:"inherit" }}
+                    onMouseEnter={e=>(e.currentTarget.style.borderColor=C.mid)}
+                    onMouseLeave={e=>(e.currentTarget.style.borderColor=C.line)}>
+                    <span style={{width:28,height:28,borderRadius:6,background:style.tint,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                      <Glyph name={style.glyph} size={14} color={style.ink} strokeWidth={1.8} />
+                    </span>
+                    <span style={{fontSize:12.5,fontWeight:500,color:C.ink}}>{t(`fieldTypes.${ft.type}`)}</span>
+                  </button>
+                );
+              })}
             </div>
           </BlockStack>
           {fields.length > 0 && (
-            <><Divider />
-            <BlockStack gap="200">
-              <Text as="h3" variant="headingSm" fontWeight="semibold">Form fields ({fields.length})</Text>
-              {fields.map(f => (
-                <div key={f.id} style={{padding:"8px 12px",background:"#F9FAFB",border:"1px solid #E5E7EB",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                  <div style={{display:"flex",alignItems:"center",gap:6}}>
-                    <Text as="span" variant="bodySm" fontWeight="semibold">{f.label}</Text>
-                    <Badge>{f.type}</Badge>
-                    {f.required && <Badge tone="attention">{t("details.requiredBadge")}</Badge>}
-                  </div>
-                  <button onClick={()=>deleteField(f.id)} style={{...iconBtn,color:"#C0392B"}}>✕</button>
-                </div>
-              ))}
-            </BlockStack></>
+            <SectionCard
+              glyph="sliders"
+              title={t("details.fieldsCount", { count: fields.length })}
+            >
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {fields.map((f, i) => {
+                  const style = elementStyle(f.type);
+                  return (
+                    <FieldRow
+                      key={f.id}
+                      glyph={style.glyph}
+                      tint={style.tint}
+                      ink={style.ink}
+                      label={f.label}
+                      typeLabel={t(`fieldTypes.${f.type}`)}
+                      required={f.required}
+                      requiredLabel={t("details.requiredBadge")}
+                      onMoveUp={i === 0 ? undefined : () => moveField(f.id, "up")}
+                      onMoveDown={i === fields.length - 1 ? undefined : () => moveField(f.id, "down")}
+                      onDelete={() => deleteField(f.id)}
+                      moveUpLabel={t("elements.moveUp")}
+                      moveDownLabel={t("elements.moveDown")}
+                      deleteLabel={t("elements.remove")}
+                    />
+                  );
+                })}
+              </div>
+            </SectionCard>
           )}
         </BlockStack>
       );
@@ -719,12 +688,12 @@ export default function EditForm() {
                     autoComplete="off"
                   />
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                    <ColorInput
+                    <ColorField
                       label={t("popup.buttonBg")}
                       value={extra.popupButtonBg}
                       onChange={v => setE({ popupButtonBg: v })}
                     />
-                    <ColorInput
+                    <ColorField
                       label={t("popup.buttonTextColor")}
                       value={extra.popupButtonColor}
                       onChange={v => setE({ popupButtonColor: v })}
@@ -772,7 +741,7 @@ export default function EditForm() {
               <Divider />
               <Text as="h3" variant="headingSm" fontWeight="semibold">{t("popup.overlayHeading")}</Text>
 
-              <ColorInput
+              <ColorField
                 label={t("popup.overlayBg")}
                 value={extra.popupOverlayBg || "#000000"}
                 onChange={v => setE({ popupOverlayBg: v })}
@@ -821,321 +790,31 @@ export default function EditForm() {
     return (
       <BlockStack gap="400">
         <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-          {PILLS.map(p => (
-            <Pill key={p.key} label={t(`pills.${p.key}`)} plan={p.plan}
-              active={activePill === p.key}
-              onClick={() => setActivePill(p.key)} />
-          ))}
+          {PILLS.map(p => {
+            const pillLocked = !tierAllows(tier, p.plan);
+            return (
+              <span key={p.key} style={{ opacity: pillLocked ? 0.55 : 1 }}>
+                <Pill label={t(`pills.${p.key}`)} plan={p.plan}
+                  active={activePill === p.key}
+                  onClick={() => setActivePill(p.key)} />
+              </span>
+            );
+          })}
         </div>
         <Divider />
         <Box paddingBlockStart="200">
-          {renderPillContent()}
-        </Box>
-      </BlockStack>
-    );
-  }
-
-  /* ══════════════════════════════════════════════════════════════════
-     DESIGN PANEL
-     ══════════════════════════════════════════════════════════════ */
-  function renderHeadingTab() {
-    function handleBannerUpload(e: React.ChangeEvent<HTMLInputElement>) {
-      const file = e.target.files?.[0];
-      if (!file) return;
-      setBannerFile(file);
-      const reader = new FileReader();
-      reader.onload = ev => {
-        const url = ev.target?.result as string;
-        setBannerPreview(url);
-        setD({ formBannerUrl: url });
-      };
-      reader.readAsDataURL(file);
-    }
-    function handleRemoveBanner() {
-      setBannerFile(null); setBannerPreview(""); setD({ formBannerUrl: "" });
-      if (bannerInputRef.current) bannerInputRef.current.value = "";
-    }
-    return (
-      <BlockStack gap="500">
-        <BlockStack gap="300">
-          <Text as="h3" variant="headingSm" fontWeight="semibold">{t("heading.bannerHeading")}</Text>
-          <input ref={bannerInputRef} type="file" accept="image/*" onChange={handleBannerUpload} style={{ display: "none" }} />
-          {bannerPreview ? (
-            <div style={{ borderRadius: 8, overflow: "hidden", border: "1px solid #E5E7EB" }}>
-              <div style={{ position: "relative" }}>
-                <img src={bannerPreview} alt="Banner" style={{ width: "100%", height: 160, objectFit: "cover", display: "block" }} />
-                <button onClick={handleRemoveBanner} style={{ position:"absolute",top:8,right:8,background:"rgba(0,0,0,0.6)",color:"#fff",border:"none",borderRadius:6,padding:"4px 10px",cursor:"pointer",fontSize:12 }}>{t("heading.removeImage")}</button>
-              </div>
-              <div style={{ padding: "8px 12px", background: "#F9FAFB", borderTop: "1px solid #E5E7EB" }}>
-                <button onClick={() => bannerInputRef.current?.click()} style={{ background:"none",border:"none",cursor:"pointer",color:"#5C6AC4",fontSize:13,fontWeight:500,padding:0,fontFamily:"inherit" }}>{t("heading.replaceImage")}</button>
-                {bannerFile && <Text as="p" variant="bodySm" tone="subdued">{bannerFile.name} ({(bannerFile.size/1024).toFixed(1)} KB)</Text>}
-              </div>
-            </div>
+          {activePillLocked ? (
+            <LockedPanel
+              title={t("locked.title", { plan: activePillPlan === "pro_plus" ? "Pro+" : "Pro" })}
+              body={t("locked.body")}
+              cta={t("locked.cta")}
+              onUpgrade={() => navigate("/app/pricing")}
+            >
+              {renderPillContent()}
+            </LockedPanel>
           ) : (
-            <div onClick={() => bannerInputRef.current?.click()}
-              style={{ display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:8,padding:"32px 16px",border:"2px dashed #D1D5DB",borderRadius:8,cursor:"pointer",background:"#F9FAFB" }}
-              onMouseEnter={e=>{e.currentTarget.style.borderColor="#5C6AC4";e.currentTarget.style.background="#EEF0FB"}}
-              onMouseLeave={e=>{e.currentTarget.style.borderColor="#D1D5DB";e.currentTarget.style.background="#F9FAFB"}}>
-              <span style={{ fontSize: 32 }}>🖼️</span>
-              <Text as="p" variant="bodySm" fontWeight="semibold">{t("heading.uploadPrompt")}</Text>
-              <Text as="p" variant="bodySm" tone="subdued">{t("heading.uploadFormats")}</Text>
-              <div style={{ marginTop:4,padding:"6px 16px",background:"#5C6AC4",color:"#fff",borderRadius:6,fontSize:13,fontWeight:500 }}>{t("heading.browseFiles")}</div>
-            </div>
+            renderPillContent()
           )}
-        </BlockStack>
-        <Divider />
-        <BlockStack gap="300">
-          <Text as="h3" variant="headingSm" fontWeight="semibold">{t("heading.titleHeading")}</Text>
-          <TextField label={t("heading.title")} value={formName} onChange={setFormName} autoComplete="off" multiline={2} />
-        </BlockStack>
-        <Divider />
-        <BlockStack gap="300">
-          <Text as="h3" variant="headingSm" fontWeight="semibold">{t("heading.descriptionHeading")}</Text>
-          <TextField label={t("heading.description")} value={d.formDescription} onChange={v=>setD({formDescription:v})} placeholder={t("heading.descriptionPlaceholder")} autoComplete="off" multiline={4} />
-        </BlockStack>
-        <Divider />
-        <BlockStack gap="300">
-          <Text as="h3" variant="headingSm" fontWeight="semibold">{t("heading.positionHeading")}</Text>
-          <TextField label={t("heading.imageHeight")} value={d.formBannerHeight} onChange={v=>setD({formBannerHeight:v})} autoComplete="off" suffix="px" />
-          <TextField label={t("heading.imageWidth")}  value={d.formBannerWidth}  onChange={v=>setD({formBannerWidth:v})}  autoComplete="off" />
-          <RadioGroup label={t("heading.imageAlignment")} value={d.formBannerAlignment}
-            options={[{label:t("alignment.left"),value:"left"},{label:t("alignment.center"),value:"center"},{label:t("alignment.right"),value:"right"}]}
-            onChange={v=>setD({formBannerAlignment:v as any})} />
-        </BlockStack>
-      </BlockStack>
-    );
-  }
-
-  function renderElementsTab() {
-    return (
-      <BlockStack gap="400">
-        {fields.length === 0 && (
-          <div style={{padding:"40px 20px",textAlign:"center",color:"#9CA3AF",fontSize:13,border:"2px dashed #E5E7EB",borderRadius:8}}>
-            {t("elements.empty")}
-          </div>
-        )}
-        {fields.map((field, idx) => {
-          const isExp = expandedFieldId === field.id;
-          const ft    = FIELD_TYPES.find(f => f.type === field.type);
-          return (
-            <div key={field.id} style={{border:"1px solid #D1D5DB",borderRadius:8,overflow:"hidden",background:"#fff"}}>
-              <div onClick={() => setExpandedFieldId(isExp ? null : field.id)}
-                style={{padding:"12px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer",background:isExp?"#F9FAFB":"#fff",borderBottom:isExp?"1px solid #E5E7EB":"none"}}>
-                <div style={{display:"flex",alignItems:"center",gap:10}}>
-                  <div style={{display:"flex",flexDirection:"column",gap:2}}>
-                    <button onClick={e=>{e.stopPropagation();moveField(field.id,"up")}}   disabled={idx===0}               style={{...iconBtn,padding:"1px 5px",fontSize:10,border:"none"}}>▲</button>
-                    <button onClick={e=>{e.stopPropagation();moveField(field.id,"down")}} disabled={idx===fields.length-1} style={{...iconBtn,padding:"1px 5px",fontSize:10,border:"none"}}>▼</button>
-                  </div>
-                  <span style={{width:24,height:24,borderRadius:4,background:"#EEF0FB",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:"#5C6AC4"}}>{ft?.icon ?? "?"}</span>
-                  <Text as="span" variant="bodyMd" fontWeight="semibold">{ft ? t(`fieldTypes.${ft.type}`) : field.type} ({field.label})</Text>
-                </div>
-                <button onClick={e=>{e.stopPropagation();deleteField(field.id)}} style={{background:"none",border:"none",cursor:"pointer",fontSize:16,color:"#9CA3AF",padding:"4px 8px"}}>🗑</button>
-              </div>
-              {isExp && (
-                <div style={{padding:"16px 20px",display:"flex",flexDirection:"column",gap:20}}>
-                  <BlockStack gap="300">
-                    <Text as="h4" variant="headingSm" fontWeight="semibold">{t("elements.detailsHeading")}</Text>
-                    <TextField label={t("elements.fieldLabel")} value={field.label} onChange={v=>updateField(field.id,{label:v})} autoComplete="off" />
-                    {field.type !== "checkbox" && field.type !== "file" && field.type !== "date" && field.type !== "time" && (
-                      <TextField label={t("elements.placeholder")} value={field.placeholder ?? ""} onChange={v=>updateField(field.id,{placeholder:v})} autoComplete="off" />
-                    )}
-                    {field.type === "number" && (
-                      <InlineStack gap="300" wrap={false}>
-                        <div style={{flex:1}}><TextField label={t("elements.minValue")} type="number" value={field.min ?? ""}
-                          onChange={v=>updateField(field.id,{min:v})} autoComplete="off" /></div>
-                        <div style={{flex:1}}><TextField label={t("elements.maxValue")} type="number" value={field.max ?? ""}
-                          onChange={v=>updateField(field.id,{max:v})} placeholder={t("elements.noLimit")} autoComplete="off" /></div>
-                      </InlineStack>
-                    )}
-                    {field.type === "date" && (
-                      <Select label={t("elements.dateFormat")}
-                        options={[
-                          { label: t("elements.dateFormatUs"), value: "us" },
-                          { label: t("elements.dateFormatUk"), value: "uk" },
-                        ]}
-                        value={field.dateFormat ?? "us"}
-                        onChange={v=>updateField(field.id,{dateFormat:v as "us" | "uk"})} />
-                    )}
-                    {field.type === "file" && (
-                      <Checkbox label={t("elements.allowMultipleFiles")}
-                        checked={field.allowMultiple ?? false}
-                        onChange={v=>updateField(field.id,{allowMultiple:v})} />
-                    )}
-                  </BlockStack>
-                  {(field.type === "select" || field.type === "checkbox") && (
-                    <BlockStack gap="200">
-                      <Text as="p" variant="bodySm" fontWeight="semibold">{t("elements.options")}</Text>
-                      {(field.options ?? []).map((opt, oi) => (
-                        <InlineStack key={oi} gap="200" blockAlign="center">
-                          <div style={{flex:1}}><TextField label="" labelHidden value={opt}
-                            onChange={v=>{const n=[...(field.options??[])];n[oi]=v;updateField(field.id,{options:n})}} autoComplete="off" /></div>
-                          <Button size="slim" tone="critical" variant="plain"
-                            onClick={()=>{const n=[...(field.options??[])];n.splice(oi,1);updateField(field.id,{options:n})}}>✕</Button>
-                        </InlineStack>
-                      ))}
-                      <InlineStack gap="200" blockAlign="end">
-                        <div style={{flex:1}}><TextField label="" labelHidden placeholder={t("elements.newOption")}
-                          value={optionInputs[field.id] ?? ""}
-                          onChange={v=>setOptionInputs(p=>({...p,[field.id]:v}))} autoComplete="off" /></div>
-                        <Button size="slim" onClick={()=>addOption(field.id)}>{t("elements.addOption")}</Button>
-                      </InlineStack>
-                    </BlockStack>
-                  )}
-                  {field.type === "email" && (
-                    <><Divider />
-                    <Checkbox label={t("elements.sendSubmissionEmail")} checked={field.sendSubmissionEmail ?? false}
-                      onChange={v=>updateField(field.id,{sendSubmissionEmail:v})} helpText={t("elements.sendSubmissionEmailHelp")} /></>
-                  )}
-                  <Divider />
-                  <BlockStack gap="300">
-                    <Text as="h4" variant="headingSm" fontWeight="semibold">{t("elements.layoutHeading")}</Text>
-                    <div style={{display:"flex",gap:24,flexWrap:"wrap"}}>
-                      <Checkbox label={t("elements.halfWidth")} checked={field.halfWidth ?? false} onChange={v=>updateField(field.id,{halfWidth:v})} />
-                      <Checkbox label={t("elements.required")}   checked={field.required}           onChange={v=>updateField(field.id,{required:v})} />
-                    </div>
-                    <Checkbox label={t("elements.fieldInCenter")} checked={field.fieldInCenter ?? false} onChange={v=>updateField(field.id,{fieldInCenter:v})} />
-                  </BlockStack>
-                  {field.type === "email" && (
-                    <><Divider />
-                    <BlockStack gap="200">
-                      <Text as="h4" variant="headingSm" fontWeight="semibold">{t("elements.validationHeading")}</Text>
-                      <Checkbox label={t("elements.emailValidation")} checked={field.emailValidation ?? false} onChange={v=>updateField(field.id,{emailValidation:v})} />
-                    </BlockStack></>
-                  )}
-                </div>
-              )}
-            </div>
-          );
-        })}
-        <div style={{position:"relative"}}>
-          <Button variant="plain" onClick={()=>setShowAddElement(!showAddElement)}>{t("elements.addElement")}</Button>
-          {showAddElement && (
-            <div style={{position:"absolute",top:"100%",left:0,zIndex:10,marginTop:4,background:"#fff",border:"1px solid #D1D5DB",borderRadius:8,boxShadow:"0 4px 12px rgba(0,0,0,0.1)",padding:8,minWidth:220}}>
-              {FIELD_TYPES.map(ft => (
-                <button key={ft.type} onClick={()=>addField(ft.type as FormField["type"])}
-                  style={{display:"flex",alignItems:"center",gap:10,width:"100%",padding:"8px 10px",background:"none",border:"none",borderRadius:6,cursor:"pointer",fontSize:13,fontFamily:"inherit",textAlign:"left"}}
-                  onMouseEnter={e=>(e.currentTarget.style.background="#F3F4F6")}
-                  onMouseLeave={e=>(e.currentTarget.style.background="none")}>
-                  <span style={{width:24,height:24,borderRadius:4,background:"#EEF0FB",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:"#5C6AC4"}}>{ft.icon}</span>
-                  {t(`fieldTypes.${ft.type}`)}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      </BlockStack>
-    );
-  }
-
-  function renderFormTab() {
-    return (
-      <BlockStack gap="500">
-        <BlockStack gap="300">
-          <Text as="h3" variant="headingSm" fontWeight="bold">{t("formTab.backgroundHeading")}</Text>
-          <RadioGroup label={t("formTab.bgType")} value={d.bgType}
-            options={[{label:t("formTab.transparent"),value:"transparent"},{label:t("formTab.color"),value:"color"},{label:t("formTab.gradient"),value:"gradient"}]}
-            onChange={v=>setD({bgType:v as any})} />
-          {(d.bgType==="color"||d.bgType==="gradient") && <ColorInput label={t("formTab.bgColor")} value={d.bgColor} onChange={v=>setD({bgColor:v})} />}
-          {d.bgType==="gradient" && <ColorInput label={t("formTab.gradientEnd")} value={d.bgColor2} onChange={v=>setD({bgColor2:v})} />}
-          <Select label={t("formTab.bgShadow")} options={[{label:t("formTab.shadowNone"),value:"none"},{label:t("formTab.shadowSmall"),value:"0 1px 3px rgba(0,0,0,0.12)"},{label:t("formTab.shadowMedium"),value:"0 4px 12px rgba(0,0,0,0.15)"},{label:t("formTab.shadowLarge"),value:"0 8px 24px rgba(0,0,0,0.2)"}]} value={d.bgShadow} onChange={v=>setD({bgShadow:v})} />
-        </BlockStack>
-        <Divider />
-        <BlockStack gap="300">
-          <Text as="h3" variant="headingSm" fontWeight="bold">{t("formTab.positionHeading")}</Text>
-          <TextField label={t("formTab.formWidth")}   value={d.formWidth}   onChange={v=>setD({formWidth:v})}   autoComplete="off" helpText={t("formTab.formWidthHelp")} />
-          <TextField label={t("formTab.formPadding")} value={d.formPadding} onChange={v=>setD({formPadding:v})} autoComplete="off" />
-        </BlockStack>
-        <Divider />
-        <BlockStack gap="300">
-          <Text as="h3" variant="headingSm" fontWeight="bold">{t("formTab.borderHeading")}</Text>
-          <ColorInput label={t("formTab.borderColor")}  value={d.borderColor}  onChange={v=>setD({borderColor:v})} />
-          <TextField  label={t("formTab.borderRadius")} value={d.borderRadius} onChange={v=>setD({borderRadius:v})} autoComplete="off" prefix="↺" />
-          <TextField  label={t("formTab.borderSize")}   value={d.borderSize}   onChange={v=>setD({borderSize:v})}   autoComplete="off" prefix="↺" />
-        </BlockStack>
-      </BlockStack>
-    );
-  }
-
-  function renderInputTab() {
-    return (
-      <BlockStack gap="500">
-        <BlockStack gap="300">
-          <Text as="h3" variant="headingSm" fontWeight="bold">{t("inputTab.inputHeading")}</Text>
-          <ColorInput label={t("inputTab.inputBg")}      value={d.inputBg}               onChange={v=>setD({inputBg:v})} />
-          <ColorInput label={t("inputTab.inputBorderColor")} value={d.inputBorderColor}      onChange={v=>setD({inputBorderColor:v})} />
-          <ColorInput label={t("inputTab.inputBorderFocus")} value={d.inputBorderFocusColor} onChange={v=>setD({inputBorderFocusColor:v})} />
-          <TextField  label={t("inputTab.inputBorderRadius")}         value={d.inputBorderRadius}     onChange={v=>setD({inputBorderRadius:v})} autoComplete="off" />
-        </BlockStack>
-        <Divider />
-        <BlockStack gap="300">
-          <Text as="h3" variant="headingSm" fontWeight="bold">{t("inputTab.fontHeading")}</Text>
-          <TextField  label={t("inputTab.fontSize")}         value={d.inputFontSize}         onChange={v=>setD({inputFontSize:v})}         autoComplete="off" prefix="A" />
-          <ColorInput label={t("inputTab.fontColor")}        value={d.inputFontColor}        onChange={v=>setD({inputFontColor:v})} />
-          <ColorInput label={t("inputTab.placeholderColor")} value={d.inputPlaceholderColor} onChange={v=>setD({inputPlaceholderColor:v})} />
-        </BlockStack>
-        <Divider />
-        <BlockStack gap="300">
-          <Text as="h3" variant="headingSm" fontWeight="bold">{t("inputTab.labelHeading")}</Text>
-          <TextField  label={t("inputTab.labelFontSize")}  value={d.labelFontSize} onChange={v=>setD({labelFontSize:v})} autoComplete="off" prefix="A" />
-          <ColorInput label={t("inputTab.labelColor")} value={d.labelColor}    onChange={v=>setD({labelColor:v})} />
-        </BlockStack>
-      </BlockStack>
-    );
-  }
-
-  function renderButtonTab() {
-    return (
-      <BlockStack gap="500">
-        <BlockStack gap="300">
-          <Text as="h3" variant="headingSm" fontWeight="bold">{t("buttonTab.positionHeading")}</Text>
-          <RadioGroup label={t("buttonTab.alignment")} value={d.buttonAlignment}
-            options={[{label:t("buttonTab.alignFull"),value:"full"},{label:t("buttonTab.alignLeft"),value:"left"},{label:t("buttonTab.alignCenter"),value:"center"},{label:t("buttonTab.alignRight"),value:"right"}]}
-            onChange={v=>setD({buttonAlignment:v as any})} />
-          <ColorInput label={t("buttonTab.bg")} value={d.buttonBg} onChange={v=>setD({buttonBg:v})} />
-        </BlockStack>
-        <Divider />
-        <BlockStack gap="300">
-          <Text as="h3" variant="headingSm" fontWeight="bold">{t("buttonTab.textHeading")}</Text>
-          <TextField  label={t("buttonTab.text")} value={d.buttonText}      onChange={v=>setD({buttonText:v})}      autoComplete="off" />
-          <ColorInput label={t("buttonTab.textColor")}  value={d.buttonTextColor} onChange={v=>setD({buttonTextColor:v})} />
-          <TextField  label={t("buttonTab.fontSize")}   value={d.buttonFontSize}  onChange={v=>setD({buttonFontSize:v})}  autoComplete="off" prefix="A" />
-        </BlockStack>
-        <Divider />
-        <BlockStack gap="300">
-          <Text as="h3" variant="headingSm" fontWeight="bold">{t("buttonTab.borderHeading")}</Text>
-          <ColorInput label={t("buttonTab.borderColor")} value={d.buttonBorderColor}  onChange={v=>setD({buttonBorderColor:v})} />
-          <TextField  label={t("buttonTab.borderRadius")}       value={d.buttonBorderRadius} onChange={v=>setD({buttonBorderRadius:v})} autoComplete="off" prefix="↺" />
-          <TextField  label={t("buttonTab.borderWidth")}        value={d.buttonBorderWidth}  onChange={v=>setD({buttonBorderWidth:v})} autoComplete="off" prefix="↺" />
-        </BlockStack>
-      </BlockStack>
-    );
-  }
-
-  function renderLayoutTab() {
-    return (
-      <BlockStack gap="400">
-        <Text as="h3" variant="headingSm" fontWeight="bold">{t("layoutTab.heading")}</Text>
-        <Select label={t("layoutTab.labelStyle")} options={[
-          {label:t("layoutTab.block"),    value:"block"},
-          {label:t("layoutTab.inline"),   value:"inline"},
-          {label:t("layoutTab.floating"), value:"floating"},
-        ]} value={d.labelStyle} onChange={v=>setD({labelStyle:v as any})} />
-      </BlockStack>
-    );
-  }
-
-  function renderDesignPanel() {
-    return (
-      <BlockStack gap="400">
-        <Tabs tabs={designTabs} selected={activeDesignTab} onSelect={setActiveDesignTab} fitted />
-        <Box paddingBlockStart="200">
-          {activeDesignTab === 0 && renderHeadingTab()}
-          {activeDesignTab === 1 && renderElementsTab()}
-          {activeDesignTab === 2 && <Banner tone="info"><p>{t("comingSoon.captcha")}</p></Banner>}
-          {activeDesignTab === 3 && renderFormTab()}
-          {activeDesignTab === 4 && renderInputTab()}
-          {activeDesignTab === 5 && renderButtonTab()}
-          {activeDesignTab === 6 && renderLayoutTab()}
         </Box>
       </BlockStack>
     );
@@ -1164,7 +843,7 @@ export default function EditForm() {
         </Box>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 420px", gap: 20, alignItems: "start" }}>
+      <div className="sf-split" style={{ display: "grid", gridTemplateColumns: "1fr 420px", gap: 20, alignItems: "start" }}>
 
         {/* Left: Builder */}
         <Card>
@@ -1172,7 +851,19 @@ export default function EditForm() {
             <Tabs tabs={mainTabs} selected={activeTab} onSelect={setActiveTab} />
             <Box paddingBlockStart="300">
               {activeTab === 0 && renderSettingsPanel()}
-              {activeTab === 1 && renderDesignPanel()}
+              {activeTab === 1 && (
+                <DesignPanel
+                  d={d}
+                  setD={setD}
+                  formName={formName}
+                  setFormName={setFormName}
+                  fields={fields}
+                  addField={addField}
+                  updateField={updateField}
+                  deleteField={deleteField}
+                  moveField={moveField}
+                />
+              )}
               {activeTab === 2 && (
                 <BlockStack gap="400">
                   <Banner tone="info"><p>{t("comingSoon.integrations")}</p></Banner>

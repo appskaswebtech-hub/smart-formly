@@ -8,7 +8,10 @@
   "stats": {
     "formsCreated": "Erstellte Formulare",
     "formSubmissions": "Formulareinsendungen",
-    "activeForms": "Aktive Formulare"
+    "activeForms": "Aktive Formulare",
+    "formsCreatedHint": "Insgesamt erstellte Formulare",
+    "formSubmissionsHint": "Insgesamt erhaltene Einsendungen",
+    "activeFormsHint": "Derzeit in deinem Shop aktiv"
   },
   "quickActions": {
     "createForm": {
@@ -38,5 +41,12 @@
       "actions": "Aktionen"
     },
     "viewSubmissions": "Einsendungen"
+  },
+  "hero": {
+    "title": "Aus Fragen",
+    "accent": "werden Chancen",
+    "sub": "Erstelle ansprechende Formulare, sammle wertvolle Informationen und lass deinen Shopify-Shop wachsen.",
+    "createFirst": "Erstelle dein erstes Formular",
+    "openThemeEditor": "Theme-Editor öffnen"
   }
 }

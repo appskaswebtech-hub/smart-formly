@@ -9,6 +9,7 @@ import {
 } from "../utils/email.server";
 import { attachmentDownloadUrl } from "../utils/attachment-url.server";
 import { getStorefrontStrings } from "../i18n/storefront.server";
+import { parseLimits, SUBMISSION_MAX_BYTES } from "../utils/upload-limits";
 
 // const CORS_HEADERS = {
 //   "Access-Control-Allow-Origin":  "*",
@@ -20,7 +21,7 @@ import { getStorefrontStrings } from "../i18n/storefront.server";
    submission and attached to the merchant's email. Base64 costs about a third
    extra, so this ceiling keeps the message under the 25 MB most mail servers
    accept. */
-const MAX_UPLOAD_BYTES = 18 * 1024 * 1024;
+const MAX_UPLOAD_BYTES = SUBMISSION_MAX_BYTES;
 
 /* Reserved body key carrying the uploads. It is stripped before the rest of
    the body is treated as form answers. */
@@ -175,7 +176,39 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
 
     const fields = JSON.parse(form.fields) as Array<{
       id: string; label: string; type: string; required: boolean;
+      maxFiles?: string; maxFileSizeMb?: string;
     }>;
+
+    // Per-field upload limits. The storefront refuses these as the shopper
+    // picks, but that check lives in the browser and is trivially bypassed —
+    // this is the one an attacker actually meets.
+    for (const field of fields) {
+      if (field.type !== "file") continue;
+
+      const { maxFiles, maxBytes } = parseLimits(field);
+      if (maxFiles === null && maxBytes === null) continue;
+
+      const mine = attachments.filter((a) => a.fieldLabel === field.label);
+
+      if (maxFiles !== null && mine.length > maxFiles) {
+        return json(
+          { error: `${field.label}: at most ${maxFiles} file(s) may be uploaded.` },
+          { status: 413, headers: CORS_HEADERS },
+        );
+      }
+
+      const oversized = maxBytes === null ? [] : mine.filter((a) => a.content.length > maxBytes);
+      if (oversized.length) {
+        return json(
+          {
+            error:
+              `${field.label}: each file must be under ${field.maxFileSizeMb} MB ` +
+              `(${oversized.map((a) => a.filename).join(", ")}).`,
+          },
+          { status: 413, headers: CORS_HEADERS },
+        );
+      }
+    }
 
     // The storefront passes its own language as ?locale=; it is independent of
     // the merchant's admin language, so it is resolved here rather than reusing

@@ -23,5 +23,11 @@
   "toast": {
     "created": "Form created successfully!",
     "updated": "Form updated successfully!"
+  },
+  "hero": {
+    "eyebrow": "My forms",
+    "title": "Manage All",
+    "accent": "Your Forms",
+    "sub": "Create, edit, view submissions and more. Build beautiful forms to collect valuable information and grow your store."
   }
 }

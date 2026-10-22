@@ -94,5 +94,11 @@
     "tagline": "Die Form-Builder-App.",
     "privacy": "Datenschutzerklärung",
     "terms": "Allgemeine Geschäftsbedingungen"
+  },
+  "hero": {
+    "eyebrow": "App-Einstellungen",
+    "title": "Einstellungen ganz",
+    "accent": "einfach",
+    "sub": "Behalte deine App-Einstellungen an einem Ort. Sprache, E-Mail-Optionen und Integrationen verwalten."
   }
 }

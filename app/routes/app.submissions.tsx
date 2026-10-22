@@ -30,6 +30,8 @@ import db from "../db.server";
 import { getAttachmentsFor } from "../models/submission.server";
 import { signedAttachmentPath } from "../utils/attachment-url.server";
 
+import Hero from "../components/ui/Hero";
+
 export const handle = { i18n: ["submissions", "common"] };
 
 // ── Loader ────────────────────────────────────────────────────────────────
@@ -203,6 +205,15 @@ export default function AllSubmissions() {
     >
       <Layout>
         <Layout.Section>
+          <Hero
+            art="submissions"
+            eyebrow={t("hero.eyebrow")}
+            title={t("hero.title")}
+            titleAccent={t("hero.accent")}
+            subtitle={t("hero.sub")}
+          />
+        </Layout.Section>
+        <Layout.Section>
           <Card>
             <BlockStack gap="400">
               <Text as="h2" variant="headingMd">
@@ -218,6 +229,7 @@ export default function AllSubmissions() {
                 </EmptyState>
               ) : (
                 <>
+                  <div className="sf-table-scroll">
                   <DataTable
                     columnContentTypes={["text", "text", "text", "text"]}
                     headings={[
@@ -228,6 +240,7 @@ export default function AllSubmissions() {
                     ]}
                     rows={rows}
                   />
+                  </div>
                   <div
                     style={{
                       padding: "12px 0 0",

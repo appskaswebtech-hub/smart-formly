@@ -24,7 +24,8 @@
     "form": "Modulo",
     "input": "Campo",
     "button": "Pulsante di invio",
-    "layout": "Layout"
+    "layout": "Layout",
+    "uploadButton": "Pulsante di caricamento"
   },
   "pills": {
     "form_details": "Dettagli del modulo",
@@ -216,7 +217,18 @@
     "fieldInCenter": "Campo al centro",
     "validationHeading": "Convalida",
     "emailValidation": "Verifica che l'email esista",
-    "addElement": "+ Aggiungi elemento"
+    "addElement": "+ Aggiungi elemento",
+    "moveUp": "Sposta su",
+    "moveDown": "Sposta giù",
+    "remove": "Rimuovi",
+    "uploadButtonText": "Testo del pulsante di caricamento",
+    "uploadButtonTextPlaceholder": "Scegli i file",
+    "uploadButtonTextHelp": "Lascia vuoto per usare il testo predefinito nella lingua del cliente.",
+    "optionDefault": "Opzione {{n}}",
+    "maxFiles": "Numero massimo di file",
+    "maxFilesHelp": "Lascia vuoto per nessun limite.",
+    "maxFileSize": "Dimensione massima per file",
+    "maxFileSizeHelp": "Lascia vuoto per nessun limite. Un invio non può mai superare {{max}} MB in totale."
   },
   "formTab": {
     "backgroundHeading": "Sfondo",
@@ -288,11 +300,58 @@
     "previewOnly": "Solo anteprima.",
     "formTitle": "Titolo del modulo",
     "addFields": "Aggiungi campi dal pannello a sinistra",
-    "pleaseSelect": "Seleziona"
+    "pleaseSelect": "Seleziona",
+    "chooseFile": "Scegli file",
+    "chooseFiles": "Scegli i file"
   },
   "comingSoon": {
     "captcha": "L'integrazione Captcha sarà disponibile a breve.",
     "integrations": "Le integrazioni saranno disponibili a breve."
   },
-  "editWithName": "Modifica: {{name}}"
+  "editWithName": "Modifica: {{name}}",
+  "hero": {
+    "eyebrow": "Crea modulo",
+    "title": "Crea il tuo modulo",
+    "accent": "facilmente",
+    "sub": "Crea moduli accattivanti con funzioni potenti. Personalizza, configura e pubblica in pochi minuti."
+  },
+  "sectionSub": {
+    "settings": "Configura i dati di base e il comportamento del modulo.",
+    "quick": "Attiva funzioni avanzate per il tuo modulo.",
+    "elements": "Fai clic o trascina i campi nell anteprima per aggiungerli.",
+    "preview": "Guarda come apparirà il modulo ai tuoi clienti."
+  },
+  "searchFields": "Cerca campi...",
+  "previewDesktop": "Desktop",
+  "previewMobile": "Mobile",
+  "previewNote": "Solo anteprima. Gli invii di prova restano qui; pubblica il modulo per raccogliere invii reali.",
+  "designGroups": {
+    "content": "Contenuto",
+    "style": "Stile",
+    "layout": "Layout"
+  },
+  "uploadBtn": {
+    "heading": "Pulsante di caricamento",
+    "hint": "Si applica al pulsante di caricamento di tutti i campi file.",
+    "bg": "Colore di sfondo del pulsante",
+    "textColor": "Colore del testo del pulsante",
+    "fontSize": "Dimensione del carattere del pulsante",
+    "borderColor": "Colore del bordo del pulsante",
+    "borderRadius": "Raggio del bordo del pulsante",
+    "borderWidth": "Spessore del bordo del pulsante"
+  },
+  "locked": {
+    "title": "Disponibile con {{plan}}",
+    "body": "Passa a un piano superiore per attivarlo. Qui sotto vedi cosa fa.",
+    "cta": "Aggiorna piano"
+  },
+  "limit": {
+    "title": "Hai raggiunto il limite di moduli",
+    "body_one": "Il tuo piano include {{count}} modulo. Ne hai {{used}}. Passa a un piano superiore o eliminane uno.",
+    "body_other": "Il tuo piano include {{count}} moduli. Ne hai {{used}}. Passa a un piano superiore o eliminane uno.",
+    "upgrade": "Vedi i piani",
+    "manage": "Gestisci i moduli",
+    "reached_one": "Il tuo piano include {{count}} modulo. Passa a un piano superiore per crearne un altro.",
+    "reached_other": "Il tuo piano include {{count}} moduli. Passa a un piano superiore per crearne un altro."
+  }
 }

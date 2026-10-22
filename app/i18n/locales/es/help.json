@@ -1,10 +1,6 @@
 {
   "title": "Ayuda y soporte",
   "backHome": "Inicio",
-  "banners": {
-    "chat": "¡Se abrió el redactor de correo! Envíanos tu pregunta y te responderemos en breve.",
-    "email": "¡Se abrió el redactor de correo! Te responderemos en unas pocas horas."
-  },
   "setupBanner": {
     "title": "Activa SmartFormly en tu tienda",
     "action": "Abrir el panel de App Embeds →",
@@ -27,7 +23,8 @@
     "docs": "Documentación",
     "docsSub": "Guías completas y referencia",
     "feature": "Solicitud de función",
-    "featureSub": "Sugiere nuevas funciones"
+    "featureSub": "Sugiere nuevas funciones",
+    "featurePrefill": "Solicitud de función: "
   },
   "contact": {
     "heading": "¿Aún necesitas ayuda?",
@@ -213,5 +210,11 @@
         }
       }
     }
+  },
+  "hero": {
+    "eyebrow": "Ayuda y soporte",
+    "title": "Ayuda en",
+    "accent": "cada paso",
+    "sub": "Encuentra respuestas y soporte cuando lo necesites. Guías, ayuda de configuración y consejos."
   }
 }

@@ -55,5 +55,11 @@
     "formData": "Dati del modulo",
     "deletedOne": "Invio eliminato",
     "deletedAll": "Tutti gli invii eliminati"
+  },
+  "hero": {
+    "eyebrow": "Invii",
+    "title": "Tutti gli",
+    "accent": "invii",
+    "sub": "Visualizza e gestisci tutti gli invii in un unico posto. Cerca, filtra ed esporta i dati facilmente."
   }
 }

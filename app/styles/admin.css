@@ -1,0 +1,221 @@
+/*
+ * Admin layout and responsive rules.
+ *
+ * Most of this app styles with inline React styles, which cannot express media
+ * queries. Anything that has to change across breakpoints therefore lives here
+ * and is targeted by class name.
+ *
+ * Breakpoints:
+ *   <= 1024px  iPad landscape and below — hero art drops, grids go two-up
+ *   <=  768px  iPad portrait / large phone — everything stacks
+ *   <=  480px  phone — tighter padding, full-width controls
+ */
+
+/* ── Hero ─────────────────────────────────────────────────────────────────── */
+
+.sf-hero__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 420px);
+  gap: 32px;
+  align-items: center;
+}
+
+.sf-hero__title {
+  font-size: 40px;
+}
+
+.sf-hero__subtitle {
+  font-size: 15px;
+}
+
+.sf-hero__art {
+  justify-self: end;
+  width: 100%;
+  max-width: 420px;
+}
+
+/* ── Shared page scaffolding ──────────────────────────────────────────────── */
+
+/* Stat tiles, plan cards, article cards: auto-fit so they reflow on their own. */
+.sf-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.sf-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+/* The four plan cards. Drops to two-up then one as the column narrows. */
+.sf-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+/* Any wide table gets horizontal scroll rather than breaking the layout. */
+.sf-table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.sf-table-scroll > table {
+  min-width: 720px;
+}
+
+/* Settings rows: a 280px label column beside its controls. */
+.sf-settings-row {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 40px;
+}
+
+/* Page gutters that have to shrink on small screens. */
+.sf-page-pad {
+  padding-left: 40px;
+  padding-right: 40px;
+}
+
+/*
+ * Toolbars wrap at every width, not only below a breakpoint.
+ *
+ * These rows sit in columns whose width is independent of the viewport: the
+ * Create Form toolbar lives in the 1fr side of a `1fr 420px` split, so it can
+ * be ~435px wide on a 990px screen. A viewport media query cannot see that, so
+ * wrapping is on by default — inert when there is room, and the row breaks onto
+ * a second line rather than overflowing when there is not.
+ */
+.sf-toolbar {
+  flex-wrap: wrap;
+}
+
+/* ── iPad landscape and below ─────────────────────────────────────────────── */
+
+@media (max-width: 1024px) {
+  .sf-hero {
+    padding: 28px 28px;
+  }
+
+  /* The artwork is decorative. Below this width it would be squeezed into an
+     illegible sliver, so it is removed and the copy takes the full width. */
+  .sf-hero__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sf-hero__art {
+    display: none;
+  }
+
+  .sf-hero__title {
+    font-size: 34px;
+  }
+
+  .sf-grid-3,
+  .sf-grid-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ── iPad portrait / large phone ──────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  /* 280px of label column plus 80px of gutter overflows a 375px screen, so
+     the label stacks above its controls. */
+  .sf-settings-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .sf-page-pad {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .sf-hero {
+    padding: 24px 20px;
+    border-radius: 12px;
+  }
+
+  .sf-hero__title {
+    font-size: 28px;
+  }
+
+  .sf-hero__subtitle {
+    font-size: 14px;
+  }
+
+  .sf-grid-4,
+  .sf-grid-3,
+  .sf-grid-2 {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  /* Two-pane screens (form builder, help) stack with the editor on top. */
+  .sf-split {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+/* Polaris DataTable: let wide tables scroll rather than squash. */
+@media (max-width: 1024px) {
+  .Polaris-DataTable__ScrollContainer {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* The pricing comparison keeps its four columns but scrolls as a unit, so the
+   feature name never gets cropped to a couple of characters. */
+@media (max-width: 768px) {
+  .sf-compare-row {
+    min-width: 520px;
+  }
+}
+
+
+/* Form elements chips: four across, dropping to two then one. */
+.sf-elements {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+@media (max-width: 1024px) {
+  .sf-elements { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 768px) {
+  .sf-elements { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 480px) {
+  .sf-elements { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ── Phone ────────────────────────────────────────────────────────────────── */
+
+@media (max-width: 480px) {
+  .sf-hero__title {
+    font-size: 24px;
+  }
+
+  /* Hero buttons go full width so they are comfortable thumb targets. */
+  .sf-hero__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .sf-hero__actions > * {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .sf-table-scroll > table {
+    min-width: 560px;
+  }
+}

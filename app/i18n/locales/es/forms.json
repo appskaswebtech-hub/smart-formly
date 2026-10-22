@@ -24,7 +24,8 @@
     "form": "Formulario",
     "input": "Campo",
     "button": "Botón de envío",
-    "layout": "Diseño"
+    "layout": "Diseño",
+    "uploadButton": "Botón de subida"
   },
   "pills": {
     "form_details": "Detalles del formulario",
@@ -216,7 +217,18 @@
     "fieldInCenter": "Campo centrado",
     "validationHeading": "Validación",
     "emailValidation": "Comprobar que el correo existe",
-    "addElement": "+ Añadir elemento"
+    "addElement": "+ Añadir elemento",
+    "moveUp": "Subir",
+    "moveDown": "Bajar",
+    "remove": "Eliminar",
+    "uploadButtonText": "Texto del botón de subida",
+    "uploadButtonTextPlaceholder": "Elegir archivos",
+    "uploadButtonTextHelp": "Déjalo vacío para usar el texto predeterminado en el idioma del cliente.",
+    "optionDefault": "Opción {{n}}",
+    "maxFiles": "Máximo de archivos",
+    "maxFilesHelp": "Déjalo vacío para no poner límite.",
+    "maxFileSize": "Tamaño máximo por archivo",
+    "maxFileSizeHelp": "Déjalo vacío para no poner límite. Un envío nunca puede superar {{max}} MB en total."
   },
   "formTab": {
     "backgroundHeading": "Fondo",
@@ -288,11 +300,58 @@
     "previewOnly": "Solo vista previa.",
     "formTitle": "Título del formulario",
     "addFields": "Añade campos desde el panel de la izquierda",
-    "pleaseSelect": "Selecciona una opción"
+    "pleaseSelect": "Selecciona una opción",
+    "chooseFile": "Elegir archivo",
+    "chooseFiles": "Elegir archivos"
   },
   "comingSoon": {
     "captcha": "La integración con Captcha estará disponible pronto.",
     "integrations": "Las integraciones estarán disponibles pronto."
   },
-  "editWithName": "Editar: {{name}}"
+  "editWithName": "Editar: {{name}}",
+  "hero": {
+    "eyebrow": "Crear formulario",
+    "title": "Crea tu formulario",
+    "accent": "fácilmente",
+    "sub": "Crea formularios atractivos con funciones potentes. Personaliza, configura y publica en minutos."
+  },
+  "sectionSub": {
+    "settings": "Configura los datos básicos y el comportamiento de tu formulario.",
+    "quick": "Activa funciones avanzadas para tu formulario.",
+    "elements": "Haz clic o arrastra campos a la vista previa para añadirlos.",
+    "preview": "Mira cómo verán tu formulario tus clientes."
+  },
+  "searchFields": "Buscar campos...",
+  "previewDesktop": "Escritorio",
+  "previewMobile": "Móvil",
+  "previewNote": "Solo vista previa. Los envíos de prueba se quedan aquí; publica el formulario para recibir envíos reales.",
+  "designGroups": {
+    "content": "Contenido",
+    "style": "Estilo",
+    "layout": "Diseño"
+  },
+  "uploadBtn": {
+    "heading": "Botón de subida",
+    "hint": "Se aplica al botón de subida de todos los campos de archivo.",
+    "bg": "Color de fondo del botón",
+    "textColor": "Color del texto del botón",
+    "fontSize": "Tamaño de fuente del botón",
+    "borderColor": "Color del borde del botón",
+    "borderRadius": "Radio del borde del botón",
+    "borderWidth": "Grosor del borde del botón"
+  },
+  "locked": {
+    "title": "Disponible en {{plan}}",
+    "body": "Mejora tu plan para activarlo. Abajo puedes ver lo que hace.",
+    "cta": "Mejorar plan"
+  },
+  "limit": {
+    "title": "Has alcanzado el límite de formularios",
+    "body_one": "Tu plan incluye {{count}} formulario. Tienes {{used}}. Mejora tu plan o elimina uno.",
+    "body_other": "Tu plan incluye {{count}} formularios. Tienes {{used}}. Mejora tu plan o elimina uno.",
+    "upgrade": "Ver planes",
+    "manage": "Gestionar formularios",
+    "reached_one": "Tu plan incluye {{count}} formulario. Mejora tu plan para crear otro.",
+    "reached_other": "Tu plan incluye {{count}} formularios. Mejora tu plan para crear otro."
+  }
 }

@@ -357,6 +357,59 @@ export async function sendFormSubmissionEmail({
   return { status: "sent", messageId: info.messageId };
 }
 
+// ── Support request (merchant asking us for help) ────────────────────────────
+
+/** Where support requests land. */
+const SUPPORT_INBOX = "apps.kaswebtech@gmail.com";
+
+/**
+ * Sends a merchant question to our own inbox.
+ *
+ * Deliberately not a mailto: link in the admin. The Shopify admin runs the app
+ * in an iframe that blocks navigating to mailto:, and even when it escapes to
+ * the top window the message goes nowhere on a machine with no mail client
+ * registered. Sending through our own transporter removes that dependency.
+ */
+export async function sendSupportEmail({
+  shop,
+  replyTo,
+  message,
+}: {
+  shop: string;
+  replyTo: string;
+  message: string;
+}): Promise<MailResult> {
+  const transporter = getTransporter();
+  if (!transporter) return { status: "skipped", reason: "no-transport" };
+
+  const html = `
+    <div style="font-family:sans-serif;max-width:600px;margin:0 auto">
+      <div style="background:#0B6B45;padding:20px 28px;border-radius:8px 8px 0 0">
+        <h1 style="color:#fff;margin:0;font-size:18px">Support request</h1>
+        <p style="color:#D9F0E4;margin:4px 0 0;font-size:13px">${escapeHtml(shop)}</p>
+      </div>
+      <div style="background:#fff;border:1px solid #E5E7EB;border-top:none;border-radius:0 0 8px 8px;padding:22px 28px">
+        <p style="margin:0 0 14px;font-size:13px;color:#6B7280">
+          Reply to: <strong style="color:#111827">${escapeHtml(replyTo)}</strong>
+        </p>
+        <div style="font-size:14px;color:#111827;line-height:1.7">
+          ${escapeMultiline(message)}
+        </div>
+      </div>
+    </div>
+  `;
+
+  const info = await transporter.sendMail({
+    from:    senderIdentity("SmartFormly Support"),
+    to:      SUPPORT_INBOX,
+    replyTo: validEmailOrUndefined(replyTo),
+    subject: headerSafe(`Support request - ${shop}`),
+    html,
+  });
+
+  return { status: "sent", messageId: info.messageId };
+}
+
 // ── Auto-responder (to the person who submitted the form) ────────────────────
 
 export async function sendAutoResponderEmail({
