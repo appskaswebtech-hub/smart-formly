@@ -319,6 +319,13 @@ export type FormField = {
      applies regardless: these restrict what is accepted, never extend it. */
   maxFiles?: string;
   maxFileSizeMb?: string;
+  /* Help text shown under the control. The storefront renders it for any field
+     type; only the file panel offers it today, so surfacing it elsewhere is a
+     matter of showing the control, not of new rendering. */
+  description?: string;
+  /* Alignment for that description. Unset inherits the field wrapper, which
+     is what rendered before this setting existed. */
+  descriptionAlign?: "left" | "center" | "right" | "justify";
 };
 
 export type FormSettings = {

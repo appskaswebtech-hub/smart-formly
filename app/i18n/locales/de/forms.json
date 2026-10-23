@@ -228,7 +228,11 @@
     "maxFiles": "Maximale Dateianzahl",
     "maxFilesHelp": "Leer lassen für kein Limit.",
     "maxFileSize": "Maximale Größe pro Datei",
-    "maxFileSizeHelp": "Leer lassen für kein Limit. Eine Einsendung darf insgesamt nie mehr als {{max}} MB umfassen."
+    "maxFileSizeHelp": "Leer lassen für kein Limit. Eine Einsendung darf insgesamt nie mehr als {{max}} MB umfassen.",
+    "fieldDescription": "Beschreibung",
+    "fieldDescriptionPlaceholder": "z. B. PDF oder JPG, je max. 5 MB",
+    "fieldDescriptionHelp": "Wird in deinem Formular unter dem Feld angezeigt.",
+    "descriptionAlign": "Ausrichtung der Beschreibung"
   },
   "formTab": {
     "backgroundHeading": "Hintergrund",
@@ -281,7 +285,11 @@
     "borderHeading": "Rahmenstil",
     "borderColor": "Rahmenfarbe der Schaltfläche",
     "borderRadius": "Eckenradius",
-    "borderWidth": "Rahmenbreite"
+    "borderWidth": "Rahmenbreite",
+    "description": "Beschreibung",
+    "descriptionPlaceholder": "z. B. Wir antworten meist innerhalb von 1–2 Werktagen.",
+    "descriptionHelp": "Wird in deinem Formular unter der Senden-Schaltfläche angezeigt.",
+    "descriptionAlign": "Ausrichtung der Beschreibung"
   },
   "layoutTab": {
     "heading": "Layout-Einstellungen",
@@ -293,7 +301,8 @@
   "alignment": {
     "left": "Links",
     "center": "Zentriert",
-    "right": "Rechts"
+    "right": "Rechts",
+    "justify": "Blocksatz"
   },
   "preview": {
     "heading": "Formularvorschau",

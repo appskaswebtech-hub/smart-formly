@@ -228,7 +228,11 @@
     "maxFiles": "Máximo de archivos",
     "maxFilesHelp": "Déjalo vacío para no poner límite.",
     "maxFileSize": "Tamaño máximo por archivo",
-    "maxFileSizeHelp": "Déjalo vacío para no poner límite. Un envío nunca puede superar {{max}} MB en total."
+    "maxFileSizeHelp": "Déjalo vacío para no poner límite. Un envío nunca puede superar {{max}} MB en total.",
+    "fieldDescription": "Descripción",
+    "fieldDescriptionPlaceholder": "p. ej. PDF o JPG, hasta 5 MB cada uno",
+    "fieldDescriptionHelp": "Se muestra debajo del campo en tu formulario.",
+    "descriptionAlign": "Alineación de la descripción"
   },
   "formTab": {
     "backgroundHeading": "Fondo",
@@ -281,7 +285,11 @@
     "borderHeading": "Estilo del borde",
     "borderColor": "Color del borde del botón",
     "borderRadius": "Radio del borde",
-    "borderWidth": "Grosor del borde"
+    "borderWidth": "Grosor del borde",
+    "description": "Descripción",
+    "descriptionPlaceholder": "p. ej. Normalmente respondemos en 1-2 días laborables.",
+    "descriptionHelp": "Se muestra debajo del botón de envío en tu formulario.",
+    "descriptionAlign": "Alineación de la descripción"
   },
   "layoutTab": {
     "heading": "Configuración del diseño",
@@ -293,7 +301,8 @@
   "alignment": {
     "left": "Izquierda",
     "center": "Centro",
-    "right": "Derecha"
+    "right": "Derecha",
+    "justify": "Justificado"
   },
   "preview": {
     "heading": "Vista previa del formulario",

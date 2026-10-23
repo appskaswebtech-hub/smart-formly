@@ -653,12 +653,14 @@ export function TextAreaField({
   onChange,
   rows = 3,
   placeholder,
+  help,
 }: {
   label: string;
   value: string;
   onChange: (next: string) => void;
   rows?: number;
   placeholder?: string;
+  help?: string;
 }) {
   return (
     <label style={{ display: "block" }}>
@@ -680,6 +682,7 @@ export function TextAreaField({
           resize: "vertical",
         }}
       />
+      {help && <span style={{ display: "block", fontSize: 11.5, color: C.muted, marginTop: 4 }}>{help}</span>}
     </label>
   );
 }

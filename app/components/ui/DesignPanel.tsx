@@ -7,6 +7,9 @@ import { elementStyle, FIELD_TYPES } from "./fieldStyles";
 import { C, RADIUS, secondaryButton } from "./theme";
 import { clampPositiveInt, SUBMISSION_MAX_MB } from "../../utils/upload-limits";
 import {
+  fieldDescriptionAlign, submitDescriptionAlign, TEXT_ALIGNS, type TextAlign,
+} from "../../utils/alignment";
+import {
   PanelTabs, SubSection, ColorField, UnitField, SelectField, TextAreaField,
   CheckRow, ChoiceRow, DropZone, MiniButton, FieldRow,
 } from "./Builder";
@@ -34,6 +37,12 @@ export type DesignSettings = {
   buttonBg: string; buttonText: string; buttonTextColor: string;
   buttonAlignment: "full" | "left" | "center" | "right";
   buttonFontSize: string; buttonBorderColor: string; buttonBorderRadius: string; buttonBorderWidth: string;
+  /* Help text under the submit button — the same idea as a field's
+     description, but the button is rendered outside the field loop, so it
+     carries its own setting rather than hanging off a FormField. */
+  buttonDescription: string;
+  /* Empty follows the button, which is how it rendered before the control. */
+  buttonDescriptionAlign: string;
   /* The upload picker's button. Only visible when a file field sets its own
      button text — without one the browser draws its own control, which a page
      cannot restyle. */
@@ -419,6 +428,24 @@ export default function DesignPanel({
               help={t("elements.uploadButtonTextHelp")}
             />
 
+            <TextAreaField
+              label={t("elements.fieldDescription")}
+              value={field.description ?? ""}
+              placeholder={t("elements.fieldDescriptionPlaceholder")}
+              onChange={(v) => updateField(field.id, { description: v })}
+              rows={2}
+              help={t("elements.fieldDescriptionHelp")}
+            />
+
+            {/* Seeded from the helper, so the lit segment is the alignment
+                actually in force rather than an arbitrary default. */}
+            <ChoiceRow
+              label={t("elements.descriptionAlign")}
+              value={fieldDescriptionAlign(field)}
+              options={TEXT_ALIGNS.map((a) => ({ value: a, label: t(`alignment.${a}`) }))}
+              onChange={(v) => updateField(field.id, { descriptionAlign: v as TextAlign })}
+            />
+
             {/* Only meaningful alongside "Allow multiple files" — with it off
                 the answer is always one, and a box saying otherwise would lie. */}
             {field.allowMultiple && (
@@ -620,6 +647,20 @@ export default function DesignPanel({
 
         <SubSection glyph="text" title={t("buttonTab.textHeading")}>
           <UnitField label={t("buttonTab.text")} value={d.buttonText} onChange={(v) => setD({ buttonText: v })} />
+          <TextAreaField
+            label={t("buttonTab.description")}
+            value={d.buttonDescription}
+            placeholder={t("buttonTab.descriptionPlaceholder")}
+            onChange={(v) => setD({ buttonDescription: v })}
+            rows={2}
+            help={t("buttonTab.descriptionHelp")}
+          />
+          <ChoiceRow
+            label={t("buttonTab.descriptionAlign")}
+            value={submitDescriptionAlign(d)}
+            options={TEXT_ALIGNS.map((a) => ({ value: a, label: t(`alignment.${a}`) }))}
+            onChange={(v) => setD({ buttonDescriptionAlign: v })}
+          />
           <ColorField label={t("buttonTab.textColor")} value={d.buttonTextColor} onChange={(v) => setD({ buttonTextColor: v })} />
           <UnitField label={t("buttonTab.fontSize")} value={d.buttonFontSize} onChange={(v) => setD({ buttonFontSize: v })} unit="px" />
         </SubSection>

@@ -21,6 +21,7 @@ import { PILLS, tierAllows, applyTierToExtra, canCreateForm, formLimitFor, type 
 import { shopTier } from "../billing/tier.server";
 import DesignPanel, { type DesignSettings } from "../components/ui/DesignPanel";
 import { elementStyle, FIELD_TYPES } from "../components/ui/fieldStyles";
+import { fieldDescriptionAlign, submitDescriptionAlign } from "../utils/alignment";
 import SupportForm from "../components/ui/SupportForm";
 import Glyph, { IconChip, type GlyphName } from "../components/ui/Icon";
 import { C, RADIUS, cardStyle, primaryButton, secondaryButton } from "../components/ui/theme";
@@ -157,7 +158,7 @@ const defaultDesign: DesignSettings = {
      label does not change its appearance until the merchant styles it. */
   uploadBtnBg: "#ffffff", uploadBtnTextColor: "#111827", uploadBtnFontSize: "13",
   uploadBtnBorderColor: "#D1D5DB", uploadBtnBorderRadius: "6", uploadBtnBorderWidth: "1",
-  buttonBg: "#000000", buttonText: "Submit", buttonTextColor: "#ffffff",
+  buttonBg: "#000000", buttonText: "Submit", buttonTextColor: "#ffffff", buttonDescription: "", buttonDescriptionAlign: "",
   buttonAlignment: "full", buttonFontSize: "16",
   buttonBorderColor: "#000000", buttonBorderRadius: "2", buttonBorderWidth: "1",
   formBannerUrl: "", formBannerHeight: "200", formBannerWidth: "100%",
@@ -1050,6 +1051,13 @@ export default function NewForm() {
                             </label>
                           </div>
                         )}
+                        {/* After all three label styles, so it shows whichever
+                            is in use rather than being repeated three times. */}
+                        {f.description?.trim() && (
+                          <div style={{ marginTop:6, fontSize:13, color:"#6B7280", lineHeight:1.45, whiteSpace:"pre-line", maxWidth:"100%", overflowWrap:"break-word", wordBreak:"break-word", textAlign: fieldDescriptionAlign(f) }}>
+                            {f.description}
+                          </div>
+                        )}
                       </div>
                     ))}
                     <div style={{ width:"100%", display:"flex", justifyContent:d.buttonAlignment==="full"?"stretch":d.buttonAlignment==="center"?"center":d.buttonAlignment==="right"?"flex-end":"flex-start" }}>
@@ -1057,6 +1065,12 @@ export default function NewForm() {
                         {extra.submitButtonText || d.buttonText || "Submit"}
                       </button>
                     </div>
+                    {d.buttonDescription?.trim() && (
+                      <div style={{ width:"100%", marginTop:10, fontSize:13, color:"#6B7280", lineHeight:1.45, whiteSpace:"pre-line", overflowWrap:"break-word", wordBreak:"break-word",
+                        textAlign: submitDescriptionAlign(d) }}>
+                        {d.buttonDescription}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

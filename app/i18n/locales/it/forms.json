@@ -228,7 +228,11 @@
     "maxFiles": "Numero massimo di file",
     "maxFilesHelp": "Lascia vuoto per nessun limite.",
     "maxFileSize": "Dimensione massima per file",
-    "maxFileSizeHelp": "Lascia vuoto per nessun limite. Un invio non può mai superare {{max}} MB in totale."
+    "maxFileSizeHelp": "Lascia vuoto per nessun limite. Un invio non può mai superare {{max}} MB in totale.",
+    "fieldDescription": "Descrizione",
+    "fieldDescriptionPlaceholder": "es. PDF o JPG, max 5 MB ciascuno",
+    "fieldDescriptionHelp": "Mostrato sotto il campo nel tuo modulo.",
+    "descriptionAlign": "Allineamento della descrizione"
   },
   "formTab": {
     "backgroundHeading": "Sfondo",
@@ -281,7 +285,11 @@
     "borderHeading": "Stile del bordo",
     "borderColor": "Colore del bordo del pulsante",
     "borderRadius": "Raggio del bordo",
-    "borderWidth": "Spessore del bordo"
+    "borderWidth": "Spessore del bordo",
+    "description": "Descrizione",
+    "descriptionPlaceholder": "es. Di solito rispondiamo entro 1-2 giorni lavorativi.",
+    "descriptionHelp": "Mostrato sotto il pulsante di invio nel tuo modulo.",
+    "descriptionAlign": "Allineamento della descrizione"
   },
   "layoutTab": {
     "heading": "Impostazioni di layout",
@@ -293,7 +301,8 @@
   "alignment": {
     "left": "Sinistra",
     "center": "Centro",
-    "right": "Destra"
+    "right": "Destra",
+    "justify": "Giustificato"
   },
   "preview": {
     "heading": "Anteprima del modulo",

@@ -134,6 +134,19 @@
     .smartformly-field .sf-file-remove:hover { background:#F3F4F6; color:#111827; }
     .smartformly-field .sf-file-remove:focus-visible { outline:2px solid var(--sf-input-focus,#5C6AC4); outline-offset:1px; }
 
+    /* ─── Merchant help text under a field, and under the submit button ─── */
+    /* break-word matters here: this is text a merchant types, and a long
+       unbroken string (a URL, or no spaces at all) has nothing to wrap at, so
+       without it the line runs straight out past the edge of the form. */
+    .smartformly-field .sf-field-desc,
+    .sf-submit-desc {
+      font-size: 13px; color: #6B7280; margin-top: 6px;
+      line-height: 1.45; white-space: pre-line;
+      max-width: 100%; min-width: 0;
+      overflow-wrap: break-word; word-break: break-word;
+    }
+    .sf-submit-desc { margin-top: 10px; }
+
     /* ─── Field-level validation highlight ─── */
     .smartformly-field.sf-field-error input,
     .smartformly-field.sf-field-error textarea,
@@ -464,6 +477,21 @@
       });
     }
 
+    /* Mirrors app/utils/alignment.ts, which this file cannot import. Unset
+       reproduces what rendered before the alignment control existed: a field
+       description inherits its wrapper, and the submit one follows the button.
+       Keep both copies in step. */
+    function fieldDescriptionAlign(f) {
+      if (f.descriptionAlign) return f.descriptionAlign;
+      return f.fieldInCenter ? 'center' : 'left';
+    }
+
+    function submitDescriptionAlign(design) {
+      if (design.buttonDescriptionAlign) return design.buttonDescriptionAlign;
+      /* A full-width button spans the form, so its caption reads best centred. */
+      return design.buttonAlignment === 'full' ? 'center' : (design.buttonAlignment || 'left');
+    }
+
     /* The merchant's per-field limits, stamped onto the input at render time so
        this does not have to look the field up again. 0 means no limit. */
     function limitsFor(input) {
@@ -627,7 +655,17 @@
     function initForm(config) {
       globalFields   = typeof config.fields   === 'string' ? JSON.parse(config.fields)   : (config.fields   || []);
       globalSettings = typeof config.settings === 'string' ? JSON.parse(config.settings) : (config.settings || {});
-      globalDesign   = globalSettings.design || {};
+
+      /* Design comes from its own column first. It used to be read only from
+         settings.design, which the create path strips out — so a form that had
+         never been edited rendered with no design at all. The settings branch
+         stays for rows the edit path wrote, which still nest it there. */
+      var designFromColumn = typeof config.design === 'string'
+        ? (function () { try { return JSON.parse(config.design); } catch (e) { return null; } })()
+        : config.design;
+      globalDesign   = (designFromColumn && Object.keys(designFromColumn).length)
+        ? designFromColumn
+        : (globalSettings.design || {});
       globalExtra    = globalSettings.extra  || {};
 
       if (globalExtra.allowLoggedInOnly === true && !customerLoggedIn) {
@@ -913,10 +951,9 @@
             html += '<input type="file" class="sf-file-input" id="' + fileId + '" ' + nameAttr + dataReq + multiAttr + limitAttrs + '>';
             html += '<label class="sf-file-button" for="' + fileId + '" style="' + upStyle + '">' + escHtml(uploadLabel) + '</label>';
             html += '</div>';
-
-            /* Filled in by renderFileList() on every change, so the shopper can
-               see what they picked and drop any of it. */
-            html += '<div class="sf-file-list"></div>';
+            /* The chip list is appended after the shared description block
+               below, not here, so the merchant's help text sits directly under
+               the button rather than beneath whatever the shopper picked. */
             break;
           case 'number':
             html += '<input type="number" ' + nameAttr + dataReq +
@@ -939,6 +976,23 @@
           html += '<label style="position:absolute;top:4px;left:10px;font-size:10px;color:' + (d.labelColor||'#000') + ';opacity:.6;pointer-events:none;">' + escHtml(f.label) + req + '</label>';
         }
 
+        /* The merchant's own help text, under the control and above any error.
+           Rendered for every field type even though only the file panel offers
+           it today, so exposing it elsewhere is a builder change alone.
+           Newlines survive via white-space:pre-line rather than <br>, which
+           keeps this on escHtml and out of innerHTML-with-markup territory. */
+        if (f.description) {
+          html += '<div class="sf-field-desc" style="text-align:' + fieldDescriptionAlign(f) + '">' +
+                  escHtml(f.description) + '</div>';
+        }
+
+        /* After the description deliberately: the help text explains what to
+           upload, so it belongs under the button, above what was picked.
+           Filled in by renderFileList() on every change. */
+        if (f.type === 'file') {
+          html += '<div class="sf-file-list"></div>';
+        }
+
         html += '<div class="sf-field-error-msg">' + escHtml(globalExtra.requiredFieldMessage || T.requiredField) + '</div>';
         html += '</div>';
       });
@@ -958,7 +1012,16 @@
       html += '</div>';
       html += '<div class="smartformly-submit" style="display:flex;justify-content:' + btnJustify + ';margin-top:16px;">';
       html += '<button type="submit" style="' + btnStyle + '">' + escHtml(btnLabel) + '</button>';
-      html += '</div></form>';
+      html += '</div>';
+
+      /* Outside .smartformly-submit, which is a flex row — inside it the text
+         would sit beside the button rather than under it. */
+      if (d.buttonDescription) {
+        html += '<div class="sf-submit-desc" style="text-align:' + submitDescriptionAlign(d) + '">' +
+                escHtml(d.buttonDescription) + '</div>';
+      }
+
+      html += '</form>';
 
       container.innerHTML = html;
 

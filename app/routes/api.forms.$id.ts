@@ -36,6 +36,11 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
     formName: form.formName,
     fields: form.fields,
     settings: form.settings,
+    // Served from its own column. The create path strips `design` out of
+    // settings while the edit path leaves it nested, so a form that had never
+    // been edited used to reach the storefront with no design at all — every
+    // value silently falling back to its default.
+    design: form.design,
   }, {
     headers: corsHeaders(),
   });

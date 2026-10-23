@@ -228,7 +228,11 @@
     "maxFiles": "Maximum files",
     "maxFilesHelp": "Leave empty for no limit.",
     "maxFileSize": "Maximum size per file",
-    "maxFileSizeHelp": "Leave empty for no limit. A submission can never exceed {{max}} MB in total."
+    "maxFileSizeHelp": "Leave empty for no limit. A submission can never exceed {{max}} MB in total.",
+    "fieldDescription": "Description",
+    "fieldDescriptionPlaceholder": "e.g. PDF or JPG, up to 5 MB each",
+    "fieldDescriptionHelp": "Shown under the field on your form.",
+    "descriptionAlign": "Description alignment"
   },
   "formTab": {
     "backgroundHeading": "Background",
@@ -281,7 +285,11 @@
     "borderHeading": "Border style",
     "borderColor": "Button border color",
     "borderRadius": "Border radius",
-    "borderWidth": "Border width"
+    "borderWidth": "Border width",
+    "description": "Description",
+    "descriptionPlaceholder": "e.g. We usually reply within 1–2 business days.",
+    "descriptionHelp": "Shown under the submit button on your form.",
+    "descriptionAlign": "Description alignment"
   },
   "layoutTab": {
     "heading": "Layout settings",
@@ -293,7 +301,8 @@
   "alignment": {
     "left": "Left",
     "center": "Center",
-    "right": "Right"
+    "right": "Right",
+    "justify": "Justify"
   },
   "preview": {
     "heading": "Form preview",
