@@ -296,12 +296,59 @@
       genericError:  {{ 'smartformly.form.generic_error'  | t | json }},
       success:       {{ 'smartformly.form.success'        | t | json }},
       ticket:        {{ 'smartformly.form.ticket'         | t | json }},
-      closingIn:     {{ 'smartformly.form.closing_in'     | t | json }}
+      closingIn:     {{ 'smartformly.form.closing_in'     | t | json }},
+      pleaseSelect:  {{ 'smartformly.form.please_select'  | t | json }},
+      networkError:  {{ 'smartformly.form.network_error'  | t | json }},
+      notOpenYet:    {{ 'smartformly.form.not_open_yet'   | t | json }},
+      formClosed:    {{ 'smartformly.form.form_closed'    | t | json }},
+      openForm:      {{ 'smartformly.form.open_form'      | t | json }},
+      openFormBar:   {{ 'smartformly.form.open_form_bar'  | t | json }},
+      close:         {{ 'smartformly.form.close'          | t | json }},
+      loadFailed:    {{ 'smartformly.form.load_failed'    | t | json }}
+    };
+
+    /* Which key in the locale files each T entry comes from. The form API sends
+       the same keys in the form's own language; see applyFormLanguage(). */
+    var T_KEYS = {
+      submit: 'submit', submitting: 'submitting', requiredField: 'required_field',
+      numberRange: 'invalid_number_range', numberMin: 'invalid_number_min',
+      numberMax: 'invalid_number_max', pastDate: 'past_date',
+      fileTooLarge: 'file_too_large', fileOverSize: 'file_over_size',
+      tooManyFiles: 'too_many_files', removeFile: 'remove_file',
+      chooseFile: 'choose_file', chooseFiles: 'choose_files',
+      invalidEmail: 'invalid_email', emailNoDomain: 'email_domain_invalid',
+      emailTypo: 'email_typo', loginRequired: 'login_required',
+      genericError: 'generic_error', success: 'success', ticket: 'ticket',
+      closingIn: 'closing_in', pleaseSelect: 'please_select',
+      networkError: 'network_error', notOpenYet: 'not_open_yet',
+      formClosed: 'form_closed', openForm: 'open_form',
+      openFormBar: 'open_form_bar', close: 'close', loadFailed: 'load_failed'
     };
 
     /* The storefront's active language, forwarded to the API so it can localize
-       the one message it renders server-side. */
+       the one message it renders server-side. Replaced by the form's own
+       language once the form loads. */
     var SF_LOCALE = {{ request.locale.iso_code | json }};
+
+    /* A form is written in one language (its labels are), which can differ from
+       the store's. When the API knows that language it sends the matching
+       messages, and they replace the store-language ones above, so errors
+       match the labels. Keys it does not send keep their Liquid value. */
+    function applyFormLanguage(config) {
+      var m = config && config.messages;
+      if (!m || typeof m !== 'object') return;
+      for (var k in T_KEYS) {
+        if (typeof m[T_KEYS[k]] === 'string') T[k] = m[T_KEYS[k]];
+      }
+      if (config.locale) SF_LOCALE = config.locale;
+    }
+
+    /* The builder saves English placeholders ("Submit") until the merchant edits
+       them. Those count as unset, so the button follows the form's language. */
+    function customText(value, englishDefault) {
+      var v = String(value || '').trim();
+      return v && v !== englishDefault ? v : '';
+    }
 
     var wrapper        = document.getElementById('smartformly-form-{{ block.settings.form_id }}');
     var formId         = wrapper.dataset.formId;
@@ -581,11 +628,11 @@
       var now   = new Date();
       if (extra.scheduleStartDate) {
         var start = new Date(extra.scheduleStartDate + 'T' + (extra.scheduleStartTime || '00:00'));
-        if (now < start) return extra.beforeStartMessage || 'This form is not open yet.';
+        if (now < start) return extra.beforeStartMessage || T.notOpenYet;
       }
       if (extra.scheduleEndDate) {
         var end = new Date(extra.scheduleEndDate + 'T' + (extra.scheduleEndTime || '23:59'));
-        if (now > end) return extra.afterEndMessage || 'This form has closed.';
+        if (now > end) return extra.afterEndMessage || T.formClosed;
       }
       return null;
     }
@@ -648,12 +695,16 @@
         var data = await res.json();
         initForm(data);
       } catch (err) {
-        wrapper.innerHTML = '<div style="padding:20px;text-align:center;color:#999;">Unable to load form. Please check the Form ID.</div>';
+        /* Store language only: the form, and so its language, never arrived. */
+        wrapper.innerHTML = '<div style="padding:20px;text-align:center;color:#999;">' + escHtml(T.loadFailed) + '</div>';
       }
     }
 
     function initForm(config) {
-      globalFields   = typeof config.fields   === 'string' ? JSON.parse(config.fields)   : (config.fields   || []);
+      /* First, so every message below — the login gate included — uses it. */
+      applyFormLanguage(config);
+
+      globalFields   =typeof config.fields   === 'string' ? JSON.parse(config.fields)   : (config.fields   || []);
       globalSettings = typeof config.settings === 'string' ? JSON.parse(config.settings) : (config.settings || {});
 
       /* Design comes from its own column first. It used to be read only from
@@ -714,7 +765,7 @@
       var closeBtn = document.createElement('button');
       closeBtn.className = 'sf-popup-close';
       closeBtn.innerHTML = '&times;';
-      closeBtn.setAttribute('aria-label', 'Close');
+      closeBtn.setAttribute('aria-label', T.close);
       closeBtn.addEventListener('click', closePopup);
       modal.appendChild(closeBtn);
 
@@ -760,7 +811,7 @@
       if (trigger === 'button') {
         wrapper.innerHTML = '';
         var btn = document.createElement('button');
-        btn.textContent   = globalExtra.popupButtonText  || 'Open Form';
+        btn.textContent   = globalExtra.popupButtonText  || T.openForm;
         btn.style.cssText = [
           'padding:10px 24px',
           'background:' + (globalExtra.popupButtonBg    || '#000000'),
@@ -792,7 +843,7 @@
         bar.id        = 'sf-bar-' + formId;
         bar.className = 'sf-floating-bar';
         var barBtn = document.createElement('button');
-        barBtn.textContent      = globalExtra.popupFloatingBtnText  || 'Fill out our form';
+        barBtn.textContent      = globalExtra.popupFloatingBtnText  || T.openFormBar;
         barBtn.style.background = globalExtra.popupFloatingBtnBg    || '#000000';
         barBtn.style.color      = globalExtra.popupFloatingBtnColor || '#ffffff';
         barBtn.addEventListener('click', openPopup);
@@ -907,7 +958,7 @@
             html += '<textarea ' + nameAttr + dataReq + ' placeholder="' + escHtml(f.placeholder||'') + '"></textarea>';
             break;
           case 'select':
-            html += '<select ' + nameAttr + dataReq + '><option value="">Please select</option>';
+            html += '<select ' + nameAttr + dataReq + '><option value="">' + escHtml(T.pleaseSelect) + '</option>';
             (f.options || []).forEach(function(o) {
               html += '<option value="' + escHtml(o) + '">' + escHtml(o) + '</option>';
             });
@@ -999,7 +1050,10 @@
 
       var btnAlign   = d.buttonAlignment || 'full';
       var btnJustify = btnAlign==='full' ? 'stretch' : btnAlign==='center' ? 'center' : btnAlign==='right' ? 'flex-end' : 'flex-start';
-      var btnLabel   = globalExtra.submitButtonText || globalSettings.submitLabel || d.buttonText || T.submit;
+      var btnLabel   = globalExtra.submitButtonText ||
+                       customText(globalSettings.submitLabel, 'Submit') ||
+                       customText(d.buttonText, 'Submit') ||
+                       T.submit;
       var btnStyle   = [
         'width:'         + (btnAlign==='full' ? '100%' : 'auto'),
         'background:'    + (d.buttonBg           || '#000'),
@@ -1331,7 +1385,7 @@
         }
 
       } catch (err) {
-        if (errEl) { errEl.textContent = 'Network error. Please try again.'; errEl.style.display = 'block'; }
+        if (errEl) { errEl.textContent = T.networkError; errEl.style.display = 'block'; }
         btn.disabled    = false;
         btn.textContent = btn._origText;
       }

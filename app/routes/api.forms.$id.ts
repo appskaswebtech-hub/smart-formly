@@ -1,5 +1,6 @@
 import { json, type LoaderFunctionArgs } from "@remix-run/node";
 import db from "../db.server";
+import { resolveFormLocale, storefrontMessages } from "../i18n/storefront.server";
 
 // GET /api/forms/:id — public endpoint, no auth required
 // Returns form config for storefront rendering
@@ -31,7 +32,13 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
     });
   }
 
+  // The storefront's Liquid strings follow the store's language. A form is
+  // written in one language of its own, so its messages are sent along here
+  // and replace those. Left out when the form has no known language.
+  const locale = await resolveFormLocale(form);
+
   return json({
+    ...(locale && { locale, messages: storefrontMessages(locale) }),
     id: form.id,
     formName: form.formName,
     fields: form.fields,

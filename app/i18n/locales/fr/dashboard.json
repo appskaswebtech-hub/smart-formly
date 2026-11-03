@@ -1,0 +1,52 @@
+{
+  "title": "Bonjour ! 👋 Prêt à créer ?",
+  "banner": {
+    "title": "Activez SmartFormly sur votre boutique",
+    "action": "Activer l'intégration d'app →",
+    "body": "Activez l'intégration d'app SmartFormly dans l'éditeur de thème pour afficher vos formulaires sur votre boutique. Cliquez sur le bouton pour ouvrir l'éditeur de thème, puis activez SmartFormly et enregistrez."
+  },
+  "stats": {
+    "formsCreated": "Formulaires créés",
+    "formSubmissions": "Envois de formulaires",
+    "activeForms": "Formulaires actifs",
+    "formsCreatedHint": "Nombre total de formulaires que vous avez créés",
+    "formSubmissionsHint": "Nombre total d'envois reçus",
+    "activeFormsHint": "Actuellement actifs sur votre boutique"
+  },
+  "quickActions": {
+    "createForm": {
+      "title": "Créer un formulaire",
+      "body": "Créez et personnalisez des formulaires pour recueillir les informations dont vous avez besoin.",
+      "cta": "+ Créer un formulaire"
+    },
+    "enableStorefront": {
+      "title": "Activer sur la boutique",
+      "body": "Activez l'intégration SmartFormly dans l'éditeur de thème pour afficher les formulaires sur votre boutique.",
+      "cta": "Ouvrir l'éditeur de thème →"
+    },
+    "learnMore": {
+      "title": "En savoir plus",
+      "body": "Guides, conseils et réponses pour tirer le meilleur parti de SmartFormly.",
+      "cta": "Consulter la base de connaissances"
+    }
+  },
+  "formsTable": {
+    "heading": "Vos formulaires",
+    "columns": {
+      "name": "Nom du formulaire",
+      "id": "ID du formulaire",
+      "status": "Statut",
+      "submissions": "Envois",
+      "created": "Créé le",
+      "actions": "Actions"
+    },
+    "viewSubmissions": "Envois"
+  },
+  "hero": {
+    "title": "Transformez vos questions",
+    "accent": "en opportunités",
+    "sub": "Créez de beaux formulaires, recueillez des informations précieuses et développez votre boutique Shopify.",
+    "createFirst": "Créer votre premier formulaire",
+    "openThemeEditor": "Ouvrir l'éditeur de thème"
+  }
+}

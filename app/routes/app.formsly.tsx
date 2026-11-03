@@ -129,7 +129,7 @@ export default function FormsPage() {
   };
 
   // ── Format date ──────────────────────────────────────────────────────────
-  // Follows the active UI language so dates don't stay US-formatted in de/es/it.
+  // Follows the active UI language so dates don't stay US-formatted in de/es/it/fr.
   function formatDate(dateStr: string) {
     const d = new Date(dateStr);
     return d.toLocaleDateString(i18n.language, {

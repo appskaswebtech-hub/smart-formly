@@ -1,0 +1,67 @@
+{
+  "all": {
+    "title": "Tous les envois",
+    "backToForms": "Formulaires",
+    "recent": "Envois récents",
+    "emptyHeading": "Aucun envoi pour le moment",
+    "emptyBody": "Les envois apparaîtront ici dès que des clients rempliront vos formulaires.",
+    "columns": {
+      "form": "Formulaire",
+      "preview": "Aperçu",
+      "submitted": "Envoyé le",
+      "actions": "Actions"
+    },
+    "viewDetails": "Voir les détails",
+    "allInForm": "Tous pour ce formulaire",
+    "showing_one": "{{count}} envoi le plus récent affiché",
+    "showing_many": "{{count}} envois les plus récents affichés",
+    "showing_other": "{{count}} envois les plus récents affichés",
+    "unknownForm": "Formulaire inconnu"
+  },
+  "modal": {
+    "title": "Envoi — {{form}}",
+    "deleteThis": "Supprimer cet envoi",
+    "form": "Formulaire",
+    "submitted": "Envoyé le",
+    "id": "ID",
+    "submittedData": "Données envoyées",
+    "confirmTitle": "Supprimer l'envoi ?",
+    "confirmBody": "Cette action est irréversible. L'envoi sera définitivement supprimé."
+  },
+  "byForm": {
+    "title": "Envois : {{name}}",
+    "subtitle_one": "{{count}} envoi",
+    "subtitle_many": "{{count}} envois",
+    "subtitle_other": "{{count}} envois",
+    "backToForms": "Retour aux formulaires",
+    "deleteAll": "Supprimer tous les envois",
+    "totalSubmissions": "Nombre total d'envois",
+    "formStatus": "Statut du formulaire",
+    "formFields": "Champs du formulaire",
+    "heading": "Tous les envois",
+    "editForm": "Modifier le formulaire",
+    "emptyHeading": "Aucun envoi pour le moment",
+    "emptyBody": "Les envois apparaîtront ici dès que des clients rempliront votre formulaire. Vérifiez que le formulaire est intégré à votre boutique et qu'il est défini sur Actif.",
+    "columns": {
+      "id": "ID",
+      "preview": "Aperçu des données",
+      "submitted": "Envoyé le",
+      "actions": "Actions"
+    },
+    "view": "Voir",
+    "confirmDeleteOne": "Voulez-vous vraiment supprimer cet envoi ?",
+    "confirmDeleteAll": "Supprimer TOUS les envois de ce formulaire ? Cette action est irréversible.",
+    "detailTitle": "Détails de l'envoi",
+    "idLabel": "ID :",
+    "submittedLabel": "Envoyé le :",
+    "formData": "Données du formulaire",
+    "deletedOne": "Envoi supprimé",
+    "deletedAll": "Tous les envois ont été supprimés"
+  },
+  "hero": {
+    "eyebrow": "Envois",
+    "title": "Tous les",
+    "accent": "envois",
+    "sub": "Consultez et gérez tous les envois de formulaires au même endroit. Recherchez, filtrez et exportez facilement vos données."
+  }
+}

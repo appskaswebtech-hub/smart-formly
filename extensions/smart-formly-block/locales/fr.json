@@ -1,0 +1,41 @@
+{
+  "smartformly": {
+    "form": {
+      "loading": "Chargement du formulaire…",
+      "submit": "Envoyer",
+      "submitting": "Envoi en cours…",
+      "required_field": "Ce champ est obligatoire.",
+      "invalid_number_range": "Saisissez un nombre entre {min} et {max}.",
+      "invalid_number_min": "Saisissez {min} ou plus.",
+      "invalid_number_max": "Saisissez {max} ou moins.",
+      "past_date": "Veuillez choisir la date du jour ou une date ultérieure.",
+      "file_too_large": "Le total des fichiers doit être inférieur à {max} Mo.",
+      "invalid_email": "Veuillez saisir une adresse e-mail valide.",
+      "email_domain_invalid": "Ce domaine de messagerie n'accepte pas les e-mails. Veuillez le vérifier.",
+      "email_typo": "Vouliez-vous dire {suggestion} ?",
+      "login_required": "Veuillez vous connecter pour accéder à ce formulaire.",
+      "generic_error": "Une erreur s'est produite. Veuillez réessayer.",
+      "success": "Merci ! Votre formulaire a bien été envoyé.",
+      "ticket": "Ticket n° {number}",
+      "closing_in": "Ce message se fermera dans {seconds} s",
+      "remove_file": "Retirer {name}",
+      "choose_file": "Choisir un fichier",
+      "choose_files": "Choisir des fichiers",
+      "file_over_size": "Chaque fichier doit faire moins de {max} Mo — {names} n'a pas été ajouté.",
+      "too_many_files": "Vous pouvez joindre au maximum {max} fichier(s).",
+      "please_select": "Veuillez sélectionner",
+      "network_error": "Erreur réseau. Veuillez réessayer.",
+      "not_open_yet": "Ce formulaire n'est pas encore ouvert.",
+      "form_closed": "Ce formulaire est fermé.",
+      "open_form": "Ouvrir le formulaire",
+      "open_form_bar": "Remplissez notre formulaire",
+      "close": "Fermer",
+      "load_failed": "Impossible de charger le formulaire. Veuillez vérifier l'ID du formulaire."
+    },
+    "editor": {
+      "no_form_id_title": "Formulaire SmartFormly",
+      "no_form_id_body": "Saisissez un ID de formulaire dans les paramètres du bloc pour afficher votre formulaire.",
+      "not_configured": "SmartFormly n'est pas encore entièrement configuré. Veuillez ouvrir une fois l'app SmartFormly depuis votre interface administrateur Shopify pour l'initialiser."
+    }
+  }
+}

@@ -12,7 +12,7 @@
     "title": "App language",
     "desc": "Choose the language for the SmartFormly admin interface.",
     "label": "Language",
-    "help": "This applies to every page in the app and is saved for your store."
+    "help": "This applies to every page in the app and is saved for your store. New forms also use it for the messages shoppers see, such as errors and the submit button."
   },
   "basic": {
     "monthlyTitle": "Monthly analysis",

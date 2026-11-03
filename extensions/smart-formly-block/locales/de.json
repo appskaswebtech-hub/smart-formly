@@ -22,7 +22,15 @@
       "choose_file": "Datei auswählen",
       "choose_files": "Dateien auswählen",
       "file_over_size": "Jede Datei muss kleiner als {max} MB sein — {names} wurde nicht hinzugefügt.",
-      "too_many_files": "Du kannst höchstens {max} Datei(en) anhängen."
+      "too_many_files": "Du kannst höchstens {max} Datei(en) anhängen.",
+      "please_select": "Bitte auswählen",
+      "network_error": "Netzwerkfehler. Bitte versuche es erneut.",
+      "not_open_yet": "Dieses Formular ist noch nicht geöffnet.",
+      "form_closed": "Dieses Formular ist geschlossen.",
+      "open_form": "Formular öffnen",
+      "open_form_bar": "Fülle unser Formular aus",
+      "close": "Schließen",
+      "load_failed": "Formular konnte nicht geladen werden. Bitte überprüfe die Formular-ID."
     },
     "editor": {
       "no_form_id_title": "SmartFormly-Formular",

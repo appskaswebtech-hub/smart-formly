@@ -1,0 +1,34 @@
+{
+  "title": "Mes formulaires",
+  "newForm": "+ Nouveau formulaire",
+  "tabs": {
+    "all": "Tous {{count}}",
+    "active": "Actifs {{count}}",
+    "inactive": "Inactifs {{count}}"
+  },
+  "search": "Rechercher des formulaires par nom ou ID…",
+  "noMatch": "Aucun formulaire ne correspond à votre filtre",
+  "noMatchFor": "Aucun formulaire ne correspond à votre filtre pour « <bold>{{query}}</bold> »",
+  "columns": {
+    "title": "Titre",
+    "id": "ID du formulaire",
+    "status": "Statut",
+    "submissions": "Envois",
+    "created": "Date de création",
+    "actions": "Actions"
+  },
+  "viewSubmissions": "Envois",
+  "showing_one": "{{count}} enregistrement affiché",
+  "showing_many": "{{count}} enregistrements affichés",
+  "showing_other": "{{count}} enregistrements affichés",
+  "toast": {
+    "created": "Formulaire créé avec succès !",
+    "updated": "Formulaire mis à jour avec succès !"
+  },
+  "hero": {
+    "eyebrow": "Mes formulaires",
+    "title": "Gérez tous",
+    "accent": "vos formulaires",
+    "sub": "Créez, modifiez, consultez les envois et plus encore. Concevez de beaux formulaires pour recueillir des informations précieuses et développer votre boutique."
+  }
+}

@@ -2,6 +2,7 @@ import en from "@shopify/polaris/locales/en.json";
 import de from "@shopify/polaris/locales/de.json";
 import es from "@shopify/polaris/locales/es.json";
 import it from "@shopify/polaris/locales/it.json";
+import fr from "@shopify/polaris/locales/fr.json";
 
 import { fallbackLng, type SupportedLocale } from "./config";
 
@@ -13,7 +14,7 @@ import { fallbackLng, type SupportedLocale } from "./config";
  * Never route these through loader data — `app.tsx` revalidates on every
  * navigation and would re-serialize ~15KB per click.
  */
-const polarisTranslations = { en, de, es, it };
+const polarisTranslations = { en, de, es, it, fr };
 
 export function getPolarisTranslations(locale: string) {
   return (

@@ -6,6 +6,7 @@ import { Trans, useTranslation } from "react-i18next";
 import { authenticate } from "../shopify.server";
 import i18next from "../i18n/i18next.server";
 import { resolveLocale } from "../i18n/resolve.server";
+import { isSupportedLocale } from "../i18n/config";
 import { countForms, createForm } from "../models/form.server";
 import type { FormField, FormSettings } from "../models/form.server";
 import { v4 as uuidv4 } from "uuid";
@@ -204,6 +205,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const fields      = JSON.parse(body.get("fields") as string) as FormField[];
     const rawSettings = JSON.parse(body.get("settings") as string);
     const { isActive, design, extra, ...settings } = rawSettings;
+    // The language the builder was open in, which is the one the field labels
+    // were created in. Saved so the storefront shows its messages in it too.
+    const locale = body.get("locale");
 
     if (!formName?.trim()) return json({ error: t("errors.nameRequired") }, { status: 422 });
     if (!fields || fields.length === 0) return json({ error: t("errors.addField") }, { status: 422 });
@@ -224,7 +228,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const safeExtra = applyTierToExtra(extra ?? {}, null, tier);
 
     await createForm(session.shop, formName, fields, {
-      settings: { ...settings, extra: safeExtra },
+      settings: {
+        ...settings,
+        ...(isSupportedLocale(locale) && { locale }),
+        extra: safeExtra,
+      },
       design: design ?? {},
       isActive: isActive === true,
     });
@@ -245,7 +253,7 @@ export default function NewForm() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const saving     = navigation.state === "submitting";
-  const { t } = useTranslation(["forms", "common"]);
+  const { t, i18n } = useTranslation(["forms", "common"]);
 
 
   // Presentation-only state for the rebuilt chrome.
@@ -327,6 +335,7 @@ export default function NewForm() {
     fd.append("formName", formName);
     fd.append("fields",   JSON.stringify(fields));
     fd.append("settings", JSON.stringify({ ...settings, design, extra, isActive }));
+    fd.append("locale",   i18n.language);
     submit(fd, { method: "POST" });
   }
 

@@ -127,7 +127,7 @@ export default function AllSubmissions() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  // Follows the active UI language so dates don't stay US-formatted in de/es/it.
+  // Follows the active UI language so dates don't stay US-formatted in de/es/it/fr.
   function formatDate(dateStr: string) {
     return new Date(dateStr).toLocaleDateString(i18n.language, {
       year: "numeric",

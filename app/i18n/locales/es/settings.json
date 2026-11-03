@@ -12,7 +12,7 @@
     "title": "Idioma de la aplicación",
     "desc": "Elige el idioma de la interfaz de administración de SmartFormly.",
     "label": "Idioma",
-    "help": "Se aplica a todas las páginas de la aplicación y se guarda para tu tienda."
+    "help": "Se aplica a todas las páginas de la aplicación y se guarda para tu tienda. Los formularios nuevos también lo usan para los mensajes que ven los clientes, como los errores y el botón de envío."
   },
   "basic": {
     "monthlyTitle": "Análisis mensual",

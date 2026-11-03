@@ -1,4 +1,4 @@
-export const supportedLngs = ["en", "de", "es", "it"] as const;
+export const supportedLngs = ["en", "de", "es", "it", "fr"] as const;
 
 export type SupportedLocale = (typeof supportedLngs)[number];
 
@@ -12,6 +12,7 @@ export const localeLabels: Record<SupportedLocale, string> = {
   de: "Deutsch",
   es: "Español",
   it: "Italiano",
+  fr: "Français",
 };
 
 export function isSupportedLocale(value: unknown): value is SupportedLocale {

@@ -1,0 +1,222 @@
+{
+  "title": "Aide et assistance",
+  "backHome": "Accueil",
+  "setupBanner": {
+    "title": "Activez SmartFormly sur votre boutique",
+    "action": "Ouvrir le panneau Intégrations d'applications →",
+    "body": "Ouvrez l'éditeur de thème et activez SmartFormly dans le panneau Intégrations d'applications pour afficher vos formulaires sur votre boutique."
+  },
+  "search": {
+    "heading": "Comment pouvons-nous vous aider ?",
+    "placeholder": "Recherchez une réponse… par ex. « créer un formulaire » ou « intégration d'app »",
+    "results_one": "{{count}} résultat trouvé",
+    "results_many": "{{count}} résultats trouvés",
+    "results_other": "{{count}} résultats trouvés"
+  },
+  "articles_one": "{{count}} article",
+  "articles_many": "{{count}} articles",
+  "articles_other": "{{count}} articles",
+  "noResults": {
+    "heading": "Aucun article trouvé pour « {{query}} »",
+    "body": "Essayez d'autres mots-clés ou contactez notre équipe d'assistance ci-dessous"
+  },
+  "openEmbedPanel": "Ouvrir le panneau Intégrations d'applications →",
+  "links": {
+    "docs": "Documentation",
+    "docsSub": "Guides complets et référence",
+    "feature": "Demande de fonctionnalité",
+    "featureSub": "Proposez de nouvelles fonctionnalités",
+    "featurePrefill": "Demande de fonctionnalité : "
+  },
+  "contact": {
+    "heading": "Besoin d'aide supplémentaire ?",
+    "body": "Vous ne trouvez pas ce que vous cherchez ? Notre équipe d'assistance est prête à vous aider.",
+    "chat": "Discuter avec nous",
+    "chatSub": "Parlez à notre équipe dès maintenant.",
+    "chatBadge": "Répond généralement en quelques minutes",
+    "email": "Nous écrire",
+    "emailSub": "Envoyez-nous un message détaillé.",
+    "emailBadge": "Réponse sous quelques heures"
+  },
+  "faq": {
+    "setup": {
+      "title": "Configurer SmartFormly sur votre boutique",
+      "badge": "Commencez ici",
+      "items": {
+        "setup-1": {
+          "question": "Comment activer SmartFormly sur ma boutique ? (Intégration d'app)",
+          "answer": [
+            "Dans votre interface administrateur Shopify, allez dans Boutique en ligne → Thèmes → Personnaliser.",
+            "Cliquez sur l'icône en forme de pièce de puzzle (Intégrations d'applications) dans la barre latérale gauche.",
+            "Trouvez SmartFormly dans la liste et activez-le.",
+            "Cliquez sur Enregistrer en haut à droite.",
+            "SmartFormly est maintenant actif sur votre boutique !"
+          ]
+        },
+        "setup-2": {
+          "question": "Comment ajouter un formulaire à une page précise ?",
+          "answer": [
+            "Une fois l'intégration d'app activée, ajoutez des formulaires à n'importe quelle page :",
+            "1. Allez dans Boutique en ligne → Thèmes → Personnaliser.",
+            "2. Accédez à la page sur laquelle vous voulez afficher le formulaire.",
+            "3. Cliquez sur « Ajouter une section » ou « Ajouter un bloc » dans la barre latérale gauche.",
+            "4. Recherchez « SmartFormly » et sélectionnez le bloc de formulaire.",
+            "5. Dans le panneau des paramètres du bloc, sélectionnez votre formulaire dans la liste déroulante.",
+            "6. Cliquez sur Enregistrer."
+          ]
+        },
+        "setup-3": {
+          "question": "Pourquoi mon formulaire ne s'affiche-t-il pas sur la boutique ?",
+          "answer": [
+            "Vérifiez ces causes fréquentes dans l'ordre :",
+            "1. Intégration d'app — Assurez-vous que l'intégration d'app SmartFormly est activée dans l'éditeur de thème.",
+            "2. Statut du formulaire — Vérifiez que le formulaire est défini sur « Actif » dans le tableau de bord SmartFormly.",
+            "3. Bloc de formulaire — Vérifiez que le bloc SmartFormly est ajouté à la bonne page avec le bon formulaire sélectionné.",
+            "4. Cache du navigateur — Essayez d'afficher votre boutique dans une fenêtre de navigation privée."
+          ]
+        },
+        "setup-4": {
+          "question": "Dois-je modifier le code de mon thème ?",
+          "answer": [
+            "Aucune modification du code n'est nécessaire. SmartFormly utilise le système de blocs d'app de Shopify, compatible avec tous les thèmes Online Store 2.0.",
+            "Il suffit d'activer l'intégration d'app dans l'éditeur de thème et d'ajouter le bloc de formulaire à n'importe quelle page.",
+            "Si vous utilisez un thème ancien (antérieur à OS 2.0), veuillez contacter notre équipe d'assistance."
+          ]
+        }
+      }
+    },
+    "getting-started": {
+      "title": "Premiers pas",
+      "items": {
+        "gs-1": {
+          "question": "Comment créer mon premier formulaire ?",
+          "answer": [
+            "Créer votre premier formulaire est simple :",
+            "1. Cliquez sur « Créer un formulaire » dans le tableau de bord ou allez dans Formulaires → Nouveau formulaire.",
+            "2. Donnez un nom à votre formulaire.",
+            "3. Ajoutez des champs depuis la palette de champs (texte, e-mail, téléphone, liste déroulante, etc.).",
+            "4. Personnalisez le design — couleurs, bordure, style du bouton.",
+            "5. Définissez le formulaire sur Actif.",
+            "6. Cliquez sur Enregistrer — votre formulaire est prêt à être intégré à votre boutique."
+          ]
+        },
+        "gs-2": {
+          "question": "Comment trouver l'ID de mon formulaire ?",
+          "answer": [
+            "L'ID de votre formulaire figure dans la liste des formulaires du tableau de bord.",
+            "Cliquez sur la colonne ID du formulaire pour le copier automatiquement dans le presse-papiers.",
+            "Vous le trouverez aussi sur la page des paramètres du formulaire, sous le nom du formulaire."
+          ]
+        },
+        "gs-3": {
+          "question": "Où puis-je voir les envois de formulaires ?",
+          "answer": [
+            "Allez sur la page Formulaires et cliquez sur « Envois » pour le formulaire voulu.",
+            "Vous pouvez consulter chaque envoi en détail, voir un aperçu des données et supprimer un envoi ou tous les envois.",
+            "Si vous avez configuré les notifications par e-mail dans les Paramètres, vous recevrez aussi un e-mail pour chaque nouvel envoi."
+          ]
+        },
+        "gs-4": {
+          "question": "Puis-je avoir plusieurs formulaires sur ma boutique ?",
+          "answer": [
+            "Oui — vous pouvez créer autant de formulaires que nécessaire.",
+            "Chaque formulaire possède un ID unique et peut être placé indépendamment sur différentes pages.",
+            "Il suffit d'ajouter plusieurs blocs SmartFormly dans l'éditeur de thème et d'attribuer un formulaire différent à chacun."
+          ]
+        }
+      }
+    },
+    "forms": {
+      "title": "Formulaires et champs",
+      "items": {
+        "f-1": {
+          "question": "Quels types de champs sont disponibles ?",
+          "answer": [
+            "SmartFormly prend en charge les types de champs suivants :",
+            "Texte — saisie de texte sur une ligne",
+            "E-mail — adresse e-mail avec validation",
+            "Téléphone — saisie d'un numéro de téléphone",
+            "Zone de texte — texte sur plusieurs lignes",
+            "Liste déroulante / Sélection — choix parmi une liste d'options",
+            "Case à cocher — une ou plusieurs cases à cocher",
+            "Nombre — saisie numérique",
+            "Date — sélecteur de date",
+            "Pièce jointe — permet aux clients de joindre des fichiers"
+          ]
+        },
+        "f-2": {
+          "question": "Comment rendre un champ obligatoire ?",
+          "answer": [
+            "Cliquez sur le champ dans l'outil de création de formulaires pour ouvrir ses paramètres.",
+            "Activez l'option « Obligatoire ».",
+            "Les champs obligatoires affichent un astérisque rouge (*) et bloquent l'envoi s'ils sont laissés vides."
+          ]
+        },
+        "f-3": {
+          "question": "Puis-je réorganiser les champs du formulaire ?",
+          "answer": [
+            "Oui — faites glisser les champs dans l'outil de création de formulaires pour les réorganiser.",
+            "Utilisez la poignée de déplacement (⠿) à gauche de chaque champ.",
+            "Cliquez sur Enregistrer après la réorganisation."
+          ]
+        },
+        "f-4": {
+          "question": "Comment définir un message de confirmation personnalisé ?",
+          "answer": [
+            "Dans les paramètres du formulaire, trouvez le champ « Message de confirmation ».",
+            "Saisissez le message que les clients verront après l'envoi.",
+            "Par défaut : « Merci ! Votre formulaire a bien été envoyé. »"
+          ]
+        }
+      }
+    },
+    "troubleshooting": {
+      "title": "Dépannage",
+      "items": {
+        "ts-1": {
+          "question": "Le formulaire affiche « Impossible de charger le formulaire. Veuillez vérifier l'ID du formulaire. »",
+          "answer": [
+            "Cela signifie que le bloc de formulaire ne parvient pas à joindre l'API SmartFormly. Vérifiez :",
+            "1. ID du formulaire — Assurez-vous que le bon ID de formulaire figure dans les paramètres du bloc du thème.",
+            "2. Formulaire actif — Vérifiez que le statut du formulaire est Actif dans votre tableau de bord.",
+            "3. Intégration d'app activée — L'intégration d'app SmartFormly doit être activée."
+          ]
+        },
+        "ts-2": {
+          "question": "Le formulaire se charge mais l'envoi échoue.",
+          "answer": [
+            "Vérifiez les points suivants :",
+            "1. Champs obligatoires — Assurez-vous que tous les champs obligatoires sont correctement remplis.",
+            "2. Validation des e-mails — Les champs e-mail n'acceptent que des adresses e-mail valides.",
+            "3. Ouvrez les outils de développement du navigateur (F12) → onglet Réseau et recherchez un POST en échec vers /api/submit/.",
+            "4. Contactez l'assistance en indiquant les détails de l'erreur."
+          ]
+        },
+        "ts-3": {
+          "question": "Je ne reçois pas les notifications par e-mail des envois.",
+          "answer": [
+            "1. Allez dans Paramètres → Notifications par e-mail et vérifiez que votre e-mail de notification est correct.",
+            "2. Vérifiez votre dossier de courrier indésirable.",
+            "3. Vérifiez que les identifiants SMTP ou Gmail saisis dans les Paramètres sont corrects.",
+            "4. Envoyez un formulaire de test et recherchez d'éventuelles erreurs d'e-mail."
+          ]
+        },
+        "ts-4": {
+          "question": "L'app se charge lentement ou affiche des erreurs.",
+          "answer": [
+            "1. Actualisez la page (Ctrl+R ou Cmd+R).",
+            "2. Videz le cache de votre navigateur.",
+            "3. Essayez un autre navigateur.",
+            "4. Si l'erreur persiste, faites une capture d'écran et contactez notre équipe d'assistance."
+          ]
+        }
+      }
+    }
+  },
+  "hero": {
+    "eyebrow": "Aide et assistance",
+    "title": "De l'aide à",
+    "accent": "chaque étape",
+    "sub": "Trouvez des réponses et obtenez de l'aide quand vous en avez besoin. Guides, aide à la configuration et conseils pour utiliser SmartFormly."
+  }
+}

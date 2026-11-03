@@ -1,0 +1,27 @@
+{
+  "smartformly": {
+    "form": {
+      "name": "Smart Formly",
+      "settings": {
+        "form_id": {
+          "label": "ID du formulaire",
+          "info": "Saisissez l'ID du formulaire indiqué dans le tableau de bord de l'app SmartFormly"
+        },
+        "max_width": {
+          "label": "Largeur maximale"
+        },
+        "section_padding": {
+          "label": "Marge intérieure de la section"
+        }
+      }
+    },
+    "app_embed": {
+      "name": "SmartFormly",
+      "settings": {
+        "paragraph": {
+          "content": "SmartFormly est actif sur votre boutique. Ajoutez la section SmartFormly à n'importe quelle page pour afficher vos formulaires."
+        }
+      }
+    }
+  }
+}

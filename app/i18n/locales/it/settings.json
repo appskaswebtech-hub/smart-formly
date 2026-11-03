@@ -12,7 +12,7 @@
     "title": "Lingua dell'app",
     "desc": "Scegli la lingua dell'interfaccia di amministrazione di SmartFormly.",
     "label": "Lingua",
-    "help": "Si applica a ogni pagina dell'app e viene salvata per il tuo negozio."
+    "help": "Si applica a ogni pagina dell'app e viene salvata per il tuo negozio. I nuovi moduli la usano anche per i messaggi che vedono i clienti, come gli errori e il pulsante di invio."
   },
   "basic": {
     "monthlyTitle": "Analisi mensile",

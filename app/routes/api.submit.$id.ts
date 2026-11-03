@@ -8,7 +8,11 @@ import {
   type MailFileLink,
 } from "../utils/email.server";
 import { attachmentDownloadUrl } from "../utils/attachment-url.server";
-import { getStorefrontStrings } from "../i18n/storefront.server";
+import {
+  customSuccessMessage,
+  resolveFormLocale,
+  storefrontMessages,
+} from "../i18n/storefront.server";
 import { parseLimits, SUBMISSION_MAX_BYTES } from "../utils/upload-limits";
 
 // const CORS_HEADERS = {
@@ -210,17 +214,18 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
       }
     }
 
-    // The storefront passes its own language as ?locale=; it is independent of
-    // the merchant's admin language, so it is resolved here rather than reusing
-    // resolveLocale (which reads the admin's ShopSettings preference).
-    const storefront = getStorefrontStrings(
-      new URL(request.url).searchParams.get("locale"),
+    // Messages follow the form's own language, the one its labels are written
+    // in. Without one, the storefront's language (sent as ?locale=) is used.
+    const messages = storefrontMessages(
+      (await resolveFormLocale(form)) ?? new URL(request.url).searchParams.get("locale"),
     );
 
     const settings = {
       notifyOnSubmit:        rawSettings.notifyOnSubmit  ?? false,
       recipientEmail:        rawSettings.recipientEmail  ?? "",
-      successMessage:        rawSettings.successMessage  ?? storefront.successMessage,
+      // An untouched English default counts as unset, so the shopper sees the
+      // success text in the form's language instead.
+      successMessage:        customSuccessMessage(rawSettings.successMessage) ?? messages.success,
       submitLabel:           rawSettings.submitLabel     ?? "Submit",
       afterSubmissionAction: extra.afterSubmissionAction ?? "clear_and_allow",
       redirectUrl:           extra.redirectUrl           ?? "",
@@ -238,7 +243,7 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
           value === undefined || value === null || value === "" ||
           (Array.isArray(value) && value.length === 0)
         ) {
-          errors.push(`${field.label} is required`);
+          errors.push(`${field.label}: ${messages.required_field}`);
           continue;
         }
       }
@@ -248,7 +253,7 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
       // checks are a convenience rather than a guarantee.
       if (field.type === "email" && typeof value === "string" && value.trim()) {
         if (!EMAIL_RE.test(value.trim())) {
-          errors.push(`${field.label} must be a valid email address`);
+          errors.push(`${field.label}: ${messages.invalid_email}`);
         }
       }
     }

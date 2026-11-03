@@ -1,0 +1,58 @@
+{
+  "actions": {
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "close": "Fermer",
+    "back": "Retour",
+    "copy": "Copier",
+    "duplicate": "Dupliquer",
+    "preview": "Aperçu",
+    "export": "Exporter",
+    "search": "Rechercher"
+  },
+  "status": {
+    "saving": "Enregistrement…",
+    "saved": "Enregistré",
+    "loading": "Chargement…",
+    "active": "Actif",
+    "inactive": "Inactif",
+    "draft": "Brouillon"
+  },
+  "language": {
+    "label": "Langue",
+    "changed": "Langue mise à jour",
+    "changeFailed": "Impossible de changer la langue. Veuillez réessayer."
+  },
+  "errors": {
+    "generic": "Une erreur s'est produite. Veuillez réessayer.",
+    "required": "Ce champ est obligatoire."
+  },
+  "forms": {
+    "confirmDelete": "Voulez-vous vraiment supprimer ce formulaire ?",
+    "copied": "ID du formulaire copié dans le presse-papiers !",
+    "copyFailed": "Échec de la copie de l'ID",
+    "copyHint": "💡 Cliquez sur un ID de formulaire pour le copier",
+    "copyTitle": "Cliquer pour copier : {{id}}",
+    "empty": {
+      "heading": "Aucun formulaire pour le moment",
+      "action": "Créer votre premier formulaire",
+      "body": "Créez un formulaire pour commencer à recevoir des envois depuis votre boutique."
+    }
+  },
+  "support": {
+    "title": "Besoin d'aide ?",
+    "body": "Discutez avec nous : nous vous aidons à créer votre formulaire, rapidement et gratuitement.",
+    "copied": "Adresse e-mail copiée dans le presse-papiers !",
+    "copyFailed": "Impossible de copier l'adresse",
+    "emailLabel": "Votre e-mail",
+    "emailPlaceholder": "vous@exemple.com",
+    "messageLabel": "Comment pouvons-nous vous aider ?",
+    "messagePlaceholder": "À quoi sert le formulaire, les champs dont vous avez besoin, où il doit apparaître…",
+    "send": "Envoyer le message",
+    "sending": "Envoi…",
+    "sent": "Message envoyé — nous vous répondrons par e-mail.",
+    "error": "Impossible d'envoyer votre message. Veuillez réessayer ou copier notre adresse ci-dessous."
+  }
+}

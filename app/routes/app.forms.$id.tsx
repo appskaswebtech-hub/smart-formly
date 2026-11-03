@@ -8,6 +8,7 @@ import { Trans, useTranslation } from "react-i18next";
 import { authenticate } from "../shopify.server";
 import i18next from "../i18n/i18next.server";
 import { resolveLocale } from "../i18n/resolve.server";
+import { isSupportedLocale } from "../i18n/config";
 import { getForm, updateForm } from "../models/form.server";
 import type { FormField, FormSettings } from "../models/form.server";
 import { v4 as uuidv4 } from "uuid";
@@ -232,8 +233,18 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
   const tier = await shopTier(admin);
   const existing = await getForm(id, session.shop);
   const storedExtra = (existing?.settings as any)?.extra ?? null;
+  // A form keeps the language it was written in, even if the app language has
+  // changed since. Forms saved before languages were recorded take the one the
+  // builder is open in now.
+  const storedLocale = existing?.settings?.locale;
+  const builderLocale = body.get("locale");
+  const locale = isSupportedLocale(storedLocale)
+    ? storedLocale
+    : isSupportedLocale(builderLocale) ? builderLocale : undefined;
+
   const safeSettings = {
     ...settings,
+    locale,
     extra: applyTierToExtra((settings as any)?.extra ?? {}, storedExtra, tier),
   } as FormSettings;
 
@@ -250,7 +261,7 @@ export default function EditForm() {
   const submit     = useSubmit();
   const navigation = useNavigation();
   const saving     = navigation.state === "submitting";
-  const { t } = useTranslation(["forms", "common"]);
+  const { t, i18n } = useTranslation(["forms", "common"]);
 
 
   const savedDesign = (form.settings as any)?.design;
@@ -340,6 +351,7 @@ export default function EditForm() {
     fd.append("fields",   JSON.stringify(fields));
     fd.append("settings", JSON.stringify({ ...settings, design, extra }));
     fd.append("isActive", String(isActive));
+    fd.append("locale",   i18n.language);
     submit(fd, { method: "POST" });
   }
 

@@ -1,0 +1,104 @@
+{
+  "title": "Paramètres",
+  "verify": "Vérifier",
+  "submit": "Envoyer",
+  "tabs": {
+    "basic": "Général",
+    "language": "Langue",
+    "blockedDomains": "Domaines bloqués",
+    "integrations": "Intégrations"
+  },
+  "language": {
+    "title": "Langue de l'app",
+    "desc": "Choisissez la langue de l'interface d'administration de SmartFormly.",
+    "label": "Langue",
+    "help": "Elle s'applique à toutes les pages de l'app et est enregistrée pour votre boutique. Les nouveaux formulaires l'utilisent aussi pour les messages que voient vos clients, comme les erreurs et le bouton d'envoi."
+  },
+  "basic": {
+    "monthlyTitle": "Analyse mensuelle",
+    "monthlyDesc": "Nos e-mails d'analyse mensuelle vous tiennent informé des résultats de votre boutique avec notre app.",
+    "monthlyOptOut": "Je ne souhaite pas recevoir les e-mails d'analyse mensuelle.",
+    "altEmailLabel": "Autre adresse e-mail (facultatif)",
+    "altEmailPlaceholder": "E-mail pour l'analyse mensuelle",
+    "altEmailHelp": "Par défaut, il est envoyé à l'adresse e-mail administrateur de votre boutique.",
+    "themeTitle": "Notification de modification/mise à jour du thème",
+    "themeDesc": "Cet e-mail est envoyé au propriétaire de la boutique à chaque modification des fichiers de votre thème.",
+    "themeOptIn": "J'accepte de recevoir des notifications par e-mail lors des modifications/mises à jour du thème."
+  },
+  "blockedDomains": {
+    "title": "Domaines bloqués",
+    "desc": "Si vous souhaitez bloquer certains domaines de messagerie, utilisez cette page de paramètres.",
+    "label": "Domaines de messagerie à bloquer",
+    "placeholder": "example.com, another-example.com",
+    "help": "Saisissez le domaine (par ex. « gmail.com ») pour bloquer tous les e-mails qui en proviennent, ou une adresse complète (par ex. « user@gmail.com ») pour bloquer uniquement cette adresse. N'incluez ni « www » ni « @ »."
+  },
+  "apiTokens": {
+    "title": "Jetons d'API",
+    "newKey": "Nouvelle clé d'API",
+    "columns": {
+      "name": "Nom",
+      "supportEmail": "E-mail d'assistance",
+      "token": "Jeton",
+      "copy": "Copier",
+      "lastUpdated": "Dernière mise à jour",
+      "actions": "Actions"
+    },
+    "noRecords": "Aucun enregistrement disponible"
+  },
+  "domainSetup": {
+    "title": "Domaine d'envoi",
+    "methodLabel": "Méthode de configuration du domaine d'envoi à utiliser",
+    "docsHint": "Vous pouvez suivre les instructions de configuration d'un domaine personnalisé <link>ici</link>.",
+    "detailsHeading": "Détails du domaine",
+    "serverLabel": "Adresse du serveur",
+    "portLabel": "Port",
+    "emailLabel": "E-mail",
+    "authHeading": "Authentification du domaine",
+    "passwordLabel": "Mot de passe",
+    "passwordPlaceholder": "Mot de passe",
+    "authLabel": "Authentification",
+    "sslLabel": "Activer SSL",
+    "sslTrue": "Vrai",
+    "sslFalse": "Faux",
+    "verifyNote": "Remarque : veuillez vérifier les informations SMTP avant d'envoyer."
+  },
+  "payment": {
+    "title": "Intégration de paiement",
+    "typeLabel": "Sélectionnez le type de paiement",
+    "connectHeading": "Se connecter à {{provider}}",
+    "publishableKey": "Clé publiable",
+    "secretKey": "Clé secrète",
+    "docsHint": "Vous pouvez obtenir votre clé {{provider}} <link>ici</link>."
+  },
+  "emailService": {
+    "title": "Intégration de messagerie",
+    "typeLabel": "Sélectionnez le type d'intégration",
+    "connectHeading": "Connecter {{service}}",
+    "keyLabel": "Clé {{service}}",
+    "docsHint": "Vous pouvez obtenir votre clé {{service}} <link>ici</link>."
+  },
+  "zerobounce": {
+    "title": "Intégration Zerobounce",
+    "connectHeading": "Se connecter à Zerobounce",
+    "keyLabel": "Clé Zerobounce",
+    "docsHint": "Vous pouvez obtenir votre clé Zerobounce <link>ici</link>."
+  },
+  "integrations": {
+    "apiTokens": "Jetons d'API",
+    "domainSetup": "Configuration du domaine",
+    "payment": "Intégration de paiement",
+    "emailService": "Fournisseur de services de messagerie",
+    "zerobounce": "Validation d'e-mails Zerobounce"
+  },
+  "footer": {
+    "tagline": "L'app de création de formulaires.",
+    "privacy": "Politique de confidentialité",
+    "terms": "Conditions générales"
+  },
+  "hero": {
+    "eyebrow": "Paramètres de l'app",
+    "title": "Des paramètres",
+    "accent": "simplifiés",
+    "sub": "Regroupez les préférences de votre app au même endroit. Gérez la langue, les options d'e-mail et les intégrations."
+  }
+}

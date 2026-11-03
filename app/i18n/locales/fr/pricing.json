@@ -1,0 +1,42 @@
+{
+  "title": "Tarifs",
+  "banner": "Cliquez sur <bold>Choisir l'offre</bold> pour activer la facturation directement via Shopify.",
+  "choosePlan": "Choisir l'offre",
+  "perMonth": "/mois",
+  "trial_one": "Essai gratuit de {{count}} jour",
+  "trial_many": "Essai gratuit de {{count}} jours",
+  "trial_other": "Essai gratuit de {{count}} jours",
+  "showAllFeatures": "Afficher toutes les fonctionnalités",
+  "hideAllFeatures": "Masquer toutes les fonctionnalités",
+  "plansAvailable_one": "{{count}} offre disponible",
+  "plansAvailable_many": "{{count}} offres disponibles",
+  "plansAvailable_other": "{{count}} offres disponibles",
+  "hero": {
+    "eyebrow": "Facturation et offres",
+    "title": "Une facturation simple et flexible",
+    "accent": "pour votre croissance",
+    "sub": "Choisissez une offre, passez à une offre supérieure ou changez à tout moment. Profitez des fonctionnalités dont vous avez besoin pour créer de meilleurs formulaires."
+  },
+  "mostPopular": "La plus populaire",
+  "planTagline": {
+    "base": "Idéal pour démarrer.",
+    "pro": "Parfait pour les entreprises en croissance.",
+    "proplus": "Pour les utilisateurs avancés et les équipes.",
+    "free": "Essayez tout avec un formulaire."
+  },
+  "needMoreDetails": {
+    "title": "Besoin de plus de détails ?",
+    "body": "Comparez toutes les fonctionnalités et trouvez l'offre adaptée à vos besoins."
+  },
+  "currentPlan": "Offre actuelle",
+  "manageOrCancel": "Gérer votre abonnement",
+  "manageOrCancelHelp": "Changez d'offre ou résiliez-la sur la page de facturation Shopify.",
+  "manageOrCancelCta": "Gérer ou résilier l'offre",
+  "everythingIn": "Tout ce qui est inclus dans {{plan}}, plus :",
+  "formsIncluded_one": "{{count}} formulaire",
+  "formsIncluded_many": "{{count}} formulaires",
+  "formsIncluded_other": "{{count}} formulaires",
+  "formsUnlimited": "Formulaires illimités",
+  "allFeatures": "Toutes les fonctionnalités incluses",
+  "formsRow": "Formulaires inclus"
+}

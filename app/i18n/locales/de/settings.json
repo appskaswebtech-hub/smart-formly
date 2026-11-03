@@ -12,7 +12,7 @@
     "title": "App-Sprache",
     "desc": "Wählen Sie die Sprache für die SmartFormly-Verwaltungsoberfläche.",
     "label": "Sprache",
-    "help": "Dies gilt für jede Seite der App und wird für Ihren Shop gespeichert."
+    "help": "Dies gilt für jede Seite der App und wird für Ihren Shop gespeichert. Neue Formulare verwenden sie auch für die Meldungen, die Kunden sehen, z. B. Fehlermeldungen und die Absenden-Schaltfläche."
   },
   "basic": {
     "monthlyTitle": "Monatliche Auswertung",

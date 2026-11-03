@@ -333,6 +333,8 @@ export type FormSettings = {
   successMessage: string;
   submitLabel: string;
   notifyOnSubmit: boolean;
+  /** Language the form was written in; its storefront messages use it too. */
+  locale?: string;
 };
 
 // ── Default values (prevents undefined crashing Polaris components) ───────────
